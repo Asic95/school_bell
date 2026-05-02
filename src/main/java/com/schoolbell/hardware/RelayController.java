@@ -93,10 +93,17 @@ public class RelayController {
     }
 
     public boolean isConnected() {
-        // Re-check periodically if the device is still in the attached list
-        if (relayDevice == null) return false;
-        return hidServices.getAttachedHidDevices().stream()
+        // Dynamic check: look for any matching device in the current attached list
+        List<HidDevice> devices = hidServices.getAttachedHidDevices();
+        boolean found = devices.stream()
                 .anyMatch(d -> d.getVendorId() == VENDOR_ID && d.getProductId() == PRODUCT_ID);
+        
+        // If device is found but we haven't 'opened' our local relayDevice handle, try to connect
+        if (found && (relayDevice == null || !relayDevice.isOpen())) {
+            connect();
+        }
+        
+        return found && relayDevice != null && relayDevice.isOpen();
     }
 
     public void close() {
