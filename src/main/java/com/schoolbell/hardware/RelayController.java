@@ -58,41 +58,65 @@ public class RelayController {
     }
 
     public void turnOn() {
-        // Official protocol: 0xFF, index, 0, 0, 0, 0, 0, 0
-        sendCommand((byte) 0xFF, (byte) 0x01); 
+        // Команда 0xFE активує УСІ канали реле одночасно
+        sendCommand((byte) 0xFE, (byte) 0x00); 
     }
 
     public void turnOff() {
-        // Official protocol: 0xFD, index, 0, 0, 0, 0, 0, 0
-        sendCommand((byte) 0xFD, (byte) 0x01);
+        // Команда 0xFC деактивує УСІ канали реле одночасно
+        sendCommand((byte) 0xFC, (byte) 0x00);
     }
 
     private void sendCommand(byte command, byte index) {
+        String action = (command == (byte) 0xFE || command == (byte) 0xFF) ? "ON" : "OFF";
+        
+        if (mainApp != null && mainApp.getConfigService().isSimulationMode()) {
+            logger.info("[SIMULATION] Relay command: {} to channel {}", action, index);
+            return;
+        }
+
         if (relayDevice == null || !relayDevice.isOpen()) {
             if (!connect()) return;
         }
 
-        byte[] report = new byte[9]; // 0th byte is Report ID
-        report[0] = 0x00;
-        report[1] = command;
-        report[2] = index;
-        report[3] = 0x00;
-        report[4] = 0x00;
-        report[5] = 0x00;
-        report[6] = 0x00;
-        report[7] = 0x00;
-        report[8] = 0x00;
+        // Пакет для реле: [command, index, 0, 0, 0, 0, 0, 0]
+        byte[] featureData = new byte[8];
+        featureData[0] = command;
+        featureData[1] = index;
+        featureData[2] = 0x00;
+        featureData[3] = 0x00;
+        featureData[4] = 0x00;
+        featureData[5] = 0x00;
+        featureData[6] = 0x00;
+        featureData[7] = 0x00;
         
-        int val = relayDevice.write(report, 8, (byte) 0x00);
+        // Використовуємо sendFeatureReport як основний метод, оскільки він підтвердив свою працездатність
+        int val = relayDevice.sendFeatureReport(featureData, (byte) 0x00);
+        
         if (val >= 0) {
-            logger.info("Relay command sent: {} to channel {}", 
-                    (command == (byte) 0xFF ? "ON" : "OFF"), index);
+            logger.info("Relay command sent (FeatureReport): {} to channel {}", action, index);
         } else {
-            logger.error("Relay write failed: {}", relayDevice.getLastErrorMessage());
+            logger.warn("FeatureReport failed, trying legacy write: {}", relayDevice.getLastErrorMessage());
+            
+            // Запасний варіант: звичайний запис (Output Report)
+            byte[] report = new byte[9];
+            report[0] = 0x00; // Report ID
+            System.arraycopy(featureData, 0, report, 1, 8);
+            
+            int writeVal = relayDevice.write(report, 9, (byte) 0x00);
+            if (writeVal >= 0) {
+                logger.info("Relay command sent (Legacy Write): {} to channel {}", action, index);
+            } else {
+                logger.error("All relay communication attempts failed. Error: {}", relayDevice.getLastErrorMessage());
+            }
         }
     }
 
+    private com.schoolbell.MainApp mainApp;
+    public void setMainApp(com.schoolbell.MainApp mainApp) { this.mainApp = mainApp; }
+
     public boolean isConnected() {
+        if (mainApp != null && mainApp.getConfigService().isSimulationMode()) return true;
         // Dynamic check: look for any matching device in the current attached list
         List<HidDevice> devices = hidServices.getAttachedHidDevices();
         boolean found = devices.stream()
@@ -104,6 +128,14 @@ public class RelayController {
         }
         
         return found && relayDevice != null && relayDevice.isOpen();
+    }
+
+    public String getConnectionDetails() {
+        if (relayDevice != null && relayDevice.isOpen()) {
+            return String.format("USB HID: VID_%04X PID_%04X | %s", 
+                    VENDOR_ID, PRODUCT_ID, relayDevice.getProduct() != null ? relayDevice.getProduct() : "Relay Module");
+        }
+        return "Пристрій не знайдено в системі";
     }
 
     public void close() {

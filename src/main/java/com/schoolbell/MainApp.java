@@ -3,11 +3,16 @@ package com.schoolbell;
 import com.schoolbell.hardware.RelayController;
 import com.schoolbell.model.BellEntry;
 import com.schoolbell.model.DaySchedule;
-import com.schoolbell.service.AcademicService;
-import com.schoolbell.service.DatabaseManager;
-import com.schoolbell.service.ScheduleService;
+import com.schoolbell.model.SchoolClass;
+import com.schoolbell.service.*;
+import com.schoolbell.ui.BroadcastView;
+import com.schoolbell.ui.DashboardView;
+import com.schoolbell.ui.NotificationsView;
 import com.schoolbell.ui.ScheduleEditorDialog;
-import com.schoolbell.ui.SystemConfigDialog;
+import com.schoolbell.ui.SettingsView;
+import com.schoolbell.ui.SignalsView;
+import com.schoolbell.ui.UIStyles;
+import com.sun.net.httpserver.HttpServer;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -20,26 +25,21 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sound.sampled.*;
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Properties;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -48,394 +48,336 @@ import static com.schoolbell.ui.UIStyles.*;
 
 public class MainApp extends Application {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
-    private static final DateTimeFormatter HH_MM_SS = DateTimeFormatter.ofPattern("HH:mm:ss");
-    private static final String CONFIG_FILE = "config.properties";
 
+    // Services
     private final RelayController relayController = new RelayController();
     private final ScheduleService scheduleService = new ScheduleService();
     private final AcademicService academicService = new AcademicService();
+    private final AnnouncementService announcementService = new AnnouncementService();
+    private ConfigService configService;
+    private AudioService audioService;
+    private SignalService signalService;
+    private BroadcastService broadcastService;
+    private HttpServer httpServer;
+
+    // Data
     private List<BellEntry> schedule = Collections.emptyList();
     private List<DaySchedule> internalSchedules = new ArrayList<>();
-    private String selectedScheduleName;
+    private final Map<Integer, String> teacherCache = new HashMap<>();
+    private final Map<Integer, String> subjectCache = new HashMap<>();
+    private final Map<Integer, String> classroomCache = new HashMap<>();
+    private final List<SchoolClass> classCache = new ArrayList<>();
 
-    // Durations
-    private int regularBellDuration = 5;
-    private int airRaidRingDuration = 3;
-    private int airRaidPauseDuration = 1;
-    private int emergencyDuration = 12;
-
-    // Audio
-    private String audioAirRaidPath = "";
-    private boolean isAudioAirRaidEnabled = false;
-    private String audioEmergencyPath = "";
-    private boolean isAudioEmergencyEnabled = false;
-    private String audioSilencePath = "";
-    private boolean isAudioSilenceEnabled = false;
-    private String selectedAudioDeviceName = "Системний за замовчуванням";
-
-    private Label currentTimeLabel;
-    private Label syncStatusLabel;
-    private Label relayStatusLabel;
-    private Circle relayIndicator;
-    private Label countdownLabel;
-    private Label nextBellTypeLabel;
-    private VBox logContainer;
-    private ScrollPane logScrollPane;
-    private ComboBox<String> mainScheduleSelector;
-    private GridPane quickViewGrid;
+    // UI
+    private StackPane contentArea;
+    private VBox sidebar;
+    private final Map<String, Button> navButtons = new HashMap<>();
+    private Label sidebarStatusTime;
+    private Circle sidebarStatusDot;
+    private DashboardView dashboardView;
+    private SignalsView signalsView;
+    private NotificationsView notificationsView;
+    private SettingsView settingsView;
+    private Stage primaryStage;
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private boolean isActionInProgress = false;
-    private MediaPlayer currentPlayer;
 
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
         DatabaseManager.initialize();
-        primaryStage.setTitle("SchoolBell Dashboard v3.9");
-        syncStatusLabel = new Label("ПЕРЕВІРКА NTP...");
-        syncStatusLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #7f8c8d;");
-        VBox timeBox = new VBox(2, new Label("ПОТОЧНИЙ ЧАС"), currentTimeLabel = new Label("00:00:00"), syncStatusLabel);
-        ((Label)timeBox.getChildren().get(0)).setStyle(HEADER_STYLE);
-        currentTimeLabel.setStyle(VALUE_STYLE);
-        relayIndicator = new Circle(6);
-        relayIndicator.setFill(Color.web("#e17055"));
-        relayStatusLabel = new Label("НЕМАЄ ЗВ'ЯЗКУ");
-        relayStatusLabel.setStyle(VALUE_STYLE + "-fx-text-fill: #e17055;");
-        HBox relayStatusBox = new HBox(10, relayIndicator, relayStatusLabel);
-        relayStatusBox.setAlignment(Pos.CENTER_LEFT);
-        VBox relayBox = new VBox(5, new Label("СТАТУС РЕЛЕ"), relayStatusBox);
-        ((Label)relayBox.getChildren().get(0)).setStyle(HEADER_STYLE);
-        HBox topBar = new HBox(20, timeBox, new Region(), relayBox);
-        HBox.setHgrow(topBar.getChildren().get(1), Priority.ALWAYS);
-        topBar.setPadding(new Insets(15, 25, 15, 25));
-        topBar.setStyle(DEPTH_2);
-        VBox scheduleBox = new VBox(12);
-        scheduleBox.setPadding(new Insets(20));
-        scheduleBox.setStyle(DEPTH_2);
-        Label schHeader = new Label("АКТИВНИЙ РОЗКЛАД");
-        schHeader.setStyle(HEADER_STYLE);
-        mainScheduleSelector = new ComboBox<>();
-        mainScheduleSelector.setMaxWidth(Double.MAX_VALUE);
-        mainScheduleSelector.setStyle(COMBO_STYLE);
-        applyHoverEffect(mainScheduleSelector);
-        mainScheduleSelector.setOnAction(e -> { selectedScheduleName = mainScheduleSelector.getValue(); saveConfig(); reloadSchedule(); });
-        quickViewGrid = new GridPane();
-        quickViewGrid.setHgap(15); quickViewGrid.setVgap(5);
-        quickViewGrid.setPadding(new Insets(10, 0, 0, 0));
-        Label qvHeader = new Label("ДЕТАЛІ ДНЯ");
-        qvHeader.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #bdc3c7;");
-        scheduleBox.getChildren().addAll(schHeader, mainScheduleSelector, qvHeader, quickViewGrid);
-        VBox countdownBox = new VBox(15);
-        countdownBox.setPadding(new Insets(20));
-        countdownBox.setStyle(DEPTH_2);
-        countdownBox.setAlignment(Pos.CENTER);
-        Label cdHeader = new Label("ДО НАСТУПНОГО ДЗВІНКА");
-        cdHeader.setStyle(HEADER_STYLE);
-        countdownLabel = new Label("00:00:00");
-        countdownLabel.setStyle("-fx-font-size: 46px; -fx-font-family: 'Monospaced'; -fx-font-weight: bold; -fx-text-fill: #0984e3;");
-        nextBellTypeLabel = new Label("(очікування)");
-        nextBellTypeLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #636e72;");
-        countdownBox.getChildren().addAll(cdHeader, countdownLabel, nextBellTypeLabel);
-        HBox middleSection = new HBox(25, scheduleBox, countdownBox);
-        HBox.setHgrow(scheduleBox, Priority.ALWAYS);
-        HBox.setHgrow(countdownBox, Priority.ALWAYS);
-        VBox logBox = new VBox(8);
-        Label logHeader = new Label("МОНІТОР ПОДІЙ");
-        logHeader.setStyle(HEADER_STYLE);
-        logContainer = new VBox(1);
-        logContainer.setPadding(new Insets(10));
-        logContainer.setStyle("-fx-background-color: #2d3436;");
-        logScrollPane = new ScrollPane(logContainer);
-        logScrollPane.setFitToWidth(true);
-        logScrollPane.setPrefHeight(250);
-        logScrollPane.setStyle("-fx-background: #2d3436; -fx-background-color: #2d3436; -fx-background-radius: 10;");
-        logBox.getChildren().addAll(logHeader, logScrollPane);
-        VBox controlCenter = new VBox(15);
-        controlCenter.setPadding(new Insets(20));
-        controlCenter.setStyle(DEPTH_2);
-        Label ccHeader = new Label("ЦЕНТР КЕРУВАННЯ");
-        ccHeader.setStyle(HEADER_STYLE);
-        Button airRaidBtn = createBigButton("ПОВІТРЯНА\nТРИВОГА", "#fdb827", ICON_MEGAPHONE);
-        airRaidBtn.setPrefSize(230, 75);
-        airRaidBtn.setOnAction(e -> runAirRaidSignal());
-        Button emergencyBtn = createBigButton("НАДЗВИЧАЙНА\nСИТУАЦІЯ", "#e74c3c", ICON_ALERT);
-        emergencyBtn.setPrefSize(230, 75);
-        emergencyBtn.setOnAction(e -> runEmergencySignal());
-        Button settingsBtn = createBigButton("НАЛАШТУВАННЯ\nСИСТЕМИ", "#636e72", ICON_SETTINGS);
-        settingsBtn.setPrefSize(230, 75);
-        settingsBtn.setOnAction(e -> new SystemConfigDialog(this).show(primaryStage));
-        Button scheduleEditorBtn = createBigButton("НАЛАШТУВАННЯ\nРОЗКЛАДУ", "#0984e3", ICON_CALENDAR);
-        scheduleEditorBtn.setPrefSize(230, 75);
-        scheduleEditorBtn.setOnAction(e -> new ScheduleEditorDialog(this).show(primaryStage));
-        HBox buttonBar = new HBox(15, airRaidBtn, emergencyBtn, settingsBtn, scheduleEditorBtn);
-        buttonBar.setAlignment(Pos.CENTER);
-        controlCenter.getChildren().addAll(ccHeader, buttonBar);
-        VBox mainLayout = new VBox(25, topBar, middleSection, logBox, controlCenter);
-        mainLayout.setPadding(new Insets(25, 30, 25, 30));
-        mainLayout.setStyle(DEPTH_1);
-        primaryStage.setScene(new Scene(mainLayout, 1050, 880));
-        primaryStage.setResizable(false);
+        
+        // Initialize Services
+        configService = new ConfigService();
+        configService.loadConfig();
+        relayController.setMainApp(this);
+        audioService = new AudioService(configService);
+        signalService = new SignalService(relayController, audioService, configService);
+        signalService.setLogConsumer(msg -> logger.info(msg));
+        
+        if (configService.isBroadcastEnabled()) {
+            try {
+                broadcastService = new BroadcastService(configService.getBroadcastPort() + 2);
+                broadcastService.start();
+                startHttpServer(configService.getBroadcastPort());
+            } catch (Exception e) {
+                logger.error("Failed to start broadcast server", e);
+            }
+        }
+
+        primaryStage.setTitle("SchoolBell Dashboard v4.0");
+        
+        // --- SIDEBAR ---
+        sidebar = new VBox(10);
+        sidebar.setPrefWidth(220);
+        sidebar.setMinWidth(220);
+        sidebar.setMaxWidth(220);
+        sidebar.setStyle(SIDEBAR_STYLE);
+        sidebar.setAlignment(Pos.TOP_CENTER);
+        
+        // Logo Section
+        VBox logoBox = new VBox(createSVGIcon(ICON_BELL, Color.WHITE, 30));
+        logoBox.setAlignment(Pos.CENTER);
+        logoBox.setPrefSize(60, 60);
+        logoBox.setMaxSize(60, 60);
+        logoBox.setStyle("-fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 16;");
+        
+        VBox logoContainer = new VBox(logoBox);
+        logoContainer.setPadding(new Insets(20, 0, 40, 0));
+        logoContainer.setAlignment(Pos.CENTER);
+        sidebar.getChildren().add(logoContainer);
+
+        createNavButton("DASHBOARD", "Дашборд", ICON_DASHBOARD, this::showDashboard);
+        createNavButton("MY_SCHOOL", "Моя школа", ICON_FOLDER, this::showMySchoolHub);
+        createNavButton("SCHEDULE", "Розклад", ICON_CALENDAR, () -> showEditorTab(0));
+        createNavButton("SIGNALS", "Сигнали", ICON_BELL, this::showSignals);
+        createNavButton("NOTIFICATIONS", "Сповіщення", ICON_NOTIFICATIONS, this::showNotifications);
+        createNavButton("BROADCAST", "Трансляція", ICON_BROADCAST, this::showBroadcast);
+        
+        Region spacer = new Region(); VBox.setVgrow(spacer, Priority.ALWAYS);
+        sidebar.getChildren().add(spacer);
+        
+        createNavButton("SETTINGS", "Налаштування", ICON_SETTINGS, this::showSettings);
+
+        // System Status Indicator at bottom
+        sidebarStatusDot = new Circle(4, Color.web(COLOR_SUCCESS));
+        sidebarStatusDot.setCache(true);
+        sidebarStatusDot.setCacheHint(javafx.scene.CacheHint.SPEED);
+        
+        Label statusText = new Label("Система онлайн");
+        statusText.setStyle("-fx-text-fill: white; -fx-font-size: 11px;");
+        sidebarStatusTime = new Label("00:00:00");
+        sidebarStatusTime.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
+        VBox statusInfo = new VBox(5, new HBox(10, sidebarStatusDot, statusText), sidebarStatusTime);
+        statusInfo.setStyle(SIDEBAR_STATUS_STYLE);
+        statusInfo.setCache(true);
+        statusInfo.setCacheHint(javafx.scene.CacheHint.SPEED);
+        
+        Timeline pulseIndicator = new Timeline(
+            new KeyFrame(Duration.ZERO, new KeyValue(sidebarStatusDot.opacityProperty(), 1.0)),
+            new KeyFrame(Duration.seconds(0.8), new KeyValue(sidebarStatusDot.opacityProperty(), 0.3)),
+            new KeyFrame(Duration.seconds(1.6), new KeyValue(sidebarStatusDot.opacityProperty(), 1.0))
+        );
+        pulseIndicator.setCycleCount(Animation.INDEFINITE);
+        pulseIndicator.play();
+        sidebar.getChildren().add(statusInfo);
+
+        // --- CONTENT AREA ---
+        contentArea = new StackPane();
+        contentArea.setStyle(DEPTH_1);
+        HBox.setHgrow(contentArea, Priority.ALWAYS);
+
+        HBox rootLayout = new HBox(sidebar, contentArea);
+        Scene scene = new Scene(rootLayout, 1400, 950);
+        primaryStage.setScene(scene);
+        primaryStage.setMaximized(true);
         primaryStage.show();
-        startPulsingIndicator();
+
+        dashboardView = new DashboardView(this);
+        signalsView = new SignalsView(this);
+        notificationsView = new NotificationsView(this);
+        settingsView = new SettingsView(this);
+        showDashboard();
+        
         relayController.scanDevices();
         relayController.connect();
-        loadConfig();
         internalSchedules = scheduleService.loadInternalSchedules();
         refreshScheduleOptions();
-        syncStatusLabel.setText("○ NTP ВИМКНЕНО (час локальний)");
         startScheduler();
-        addLog("Система готова до роботи (NTP вимкнено).", "SUCCESS");
+        refreshCaches();
+        logger.info("System ready.");
     }
 
-    private void applyHoverEffect(javafx.scene.control.Control control) {
-        control.setOnMouseEntered(e -> { control.setScaleX(1.02); control.setScaleY(1.02); control.setOpacity(0.9); });
-        control.setOnMouseExited(e -> { control.setScaleX(1.0); control.setScaleY(1.0); control.setOpacity(1.0); });
-    }
-
-    private void startPulsingIndicator() {
-        Timeline pulse = new Timeline(
-            new KeyFrame(Duration.ZERO, new KeyValue(relayIndicator.opacityProperty(), 1.0)),
-            new KeyFrame(Duration.seconds(0.8), new KeyValue(relayIndicator.opacityProperty(), 0.3)),
-            new KeyFrame(Duration.seconds(1.6), new KeyValue(relayIndicator.opacityProperty(), 1.0))
-        );
-        pulse.setCycleCount(Animation.INDEFINITE);
-        pulse.play();
-    }
-
-    public void addLog(String message, String level) {
-        Platform.runLater(() -> {
-            String timestamp = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-            Text ts = new Text("[" + timestamp + "] ");
-            ts.setFill(Color.web("#95a5a6"));
-            ts.setFont(Font.font("Monospaced", 13));
-            Color msgColor = switch (level.toUpperCase()) {
-                case "SUCCESS" -> Color.web("#2ecc71");
-                case "ERROR" -> Color.web("#e17055");
-                case "WARNING" -> Color.web("#f1c40f");
-                default -> Color.web("#dfe6e9");
-            };
-            Text msg = new Text(message);
-            msg.setFont(Font.font("Monospaced", 14));
-            msg.setFill(msgColor);
-            logContainer.getChildren().add(new TextFlow(ts, msg));
-            Platform.runLater(() -> logScrollPane.setVvalue(1.0));
-            if (logContainer.getChildren().size() > 50) logContainer.getChildren().remove(0);
+    private void createNavButton(String id, String text, String iconPath, Runnable action) {
+        Button btn = new Button(text);
+        btn.setGraphic(createSVGIcon(iconPath, Color.web("#b2bec3"), 20));
+        btn.setGraphicTextGap(15);
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.setStyle(NAV_BTN_BASE);
+        VBox.setMargin(btn, new Insets(2, 15, 2, 15));
+        btn.setOnAction(e -> {
+            setActiveNav(id);
+            action.run();
         });
+        btn.setOnMouseEntered(e -> { if (!btn.getStyle().contains(NAV_BTN_ACTIVE)) btn.setStyle(NAV_BTN_BASE + NAV_BTN_HOVER); });
+        btn.setOnMouseExited(e -> { if (!btn.getStyle().contains(NAV_BTN_ACTIVE)) btn.setStyle(NAV_BTN_BASE); });
+        sidebar.getChildren().add(btn);
+        navButtons.put(id, btn);
     }
 
-    private Button createBigButton(String text, String color, String svgPath) {
-        Button b = new Button();
-        Label label = new Label(text);
-        label.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-text-alignment: center;");
-        label.setMaxWidth(Double.MAX_VALUE);
-        label.setAlignment(Pos.CENTER);
-        HBox content = new HBox(15, createSVGIcon(svgPath, Color.WHITE, 24), label);
-        content.setAlignment(Pos.CENTER_LEFT);
-        content.setPadding(new Insets(0, 20, 0, 20));
-        HBox.setHgrow(label, Priority.ALWAYS);
-        b.setGraphic(content);
-        b.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        String baseStyle = BTN_BASE + "-fx-background-color: " + color + "; " + DEPTH_3;
-        b.setStyle(baseStyle);
-        b.setOnMouseEntered(e -> {
-            b.setStyle(baseStyle + "-fx-background-color: " + Color.web(color).deriveColor(0, 1, 1.2, 1).toString().replace("0x", "#") + ";");
-            b.setScaleX(1.03); b.setScaleY(1.03);
+    private void setActiveNav(String id) {
+        navButtons.forEach((k, v) -> {
+            v.setStyle(NAV_BTN_BASE);
+            if (v.getGraphic() instanceof javafx.scene.shape.SVGPath icon) icon.setFill(Color.web("#b2bec3"));
         });
-        b.setOnMouseExited(e -> { b.setStyle(baseStyle); b.setScaleX(1.0); b.setScaleY(1.0); });
-        return b;
-    }
-
-    private void playAudioFile(String path) {
-        if (path == null || path.isEmpty()) return;
-        new Thread(() -> {
-            try {
-                File file = new File(path);
-                if (!file.exists()) return;
-                Mixer.Info selectedMixerInfo = null;
-                if (!"Системний за замовчуванням".equals(selectedAudioDeviceName)) {
-                    for (Mixer.Info info : AudioSystem.getMixerInfo()) {
-                        if (info.getName().equals(selectedAudioDeviceName)) { selectedMixerInfo = info; break; }
-                    }
-                }
-                if (path.toLowerCase().endsWith(".wav") && selectedMixerInfo != null) {
-                    try (AudioInputStream ais = AudioSystem.getAudioInputStream(file)) {
-                        Mixer mixer = AudioSystem.getMixer(selectedMixerInfo);
-                        DataLine.Info info = new DataLine.Info(SourceDataLine.class, ais.getFormat());
-                        try (SourceDataLine line = (SourceDataLine) mixer.getLine(info)) {
-                            line.open(ais.getFormat()); line.start(); byte[] buffer = new byte[4096]; int read;
-                            while ((read = ais.read(buffer)) != -1) { line.write(buffer, 0, read); }
-                            line.drain(); Platform.runLater(() -> addLog("Відтворено (WAV): " + file.getName(), "SUCCESS")); return;
-                        }
-                    } catch (Exception ex) { logger.warn("Fallback for " + file.getName()); }
-                }
-                Platform.runLater(() -> {
-                    try {
-                        javafx.scene.media.Media media = new javafx.scene.media.Media(file.toURI().toString());
-                        if (currentPlayer != null) currentPlayer.stop();
-                        currentPlayer = new MediaPlayer(media); currentPlayer.play();
-                        addLog("Відтворення (Системний): " + file.getName(), "SUCCESS");
-                    } catch (Exception e) { logger.error("Media player failed", e); }
-                });
-            } catch (Exception e) { logger.error("Audio playback error", e); }
-        }).start();
-    }
-
-    public void reloadSchedule() {
-        if (selectedScheduleName == null) return;
-        internalSchedules.stream().filter(ds -> ds.getName().equals(selectedScheduleName)).findFirst().ifPresent(ds -> {
-            schedule = scheduleService.convertToBellEntries(ds);
-            Platform.runLater(() -> {
-                quickViewGrid.getChildren().clear();
-                for (int i = 0; i < ds.getLessons().size(); i++) {
-                    DaySchedule.LessonInfo li = ds.getLessons().get(i);
-                    if (li.start != null && li.end != null) {
-                        Label l = new Label((i + 1) + ". " + li.start + " - " + li.end);
-                        l.setStyle("-fx-font-family: 'Monospaced'; -fx-font-weight: bold; -fx-text-fill: #2d3436; -fx-font-size: 13px;");
-                        l.setPadding(new Insets(3, 5, 3, 5));
-                        quickViewGrid.add(l, i / 4, i % 4);
-                    }
-                }
-            });
-            addLog("Розклад активовано: " + selectedScheduleName, "INFO");
-        });
-    }
-
-    private void updateUI() {
-        LocalTime now = LocalTime.now();
-        currentTimeLabel.setText(now.format(HH_MM_SS));
-        if (relayController.isConnected()) {
-            relayStatusLabel.setText("Підключено");
-            relayStatusLabel.setStyle(VALUE_STYLE + "-fx-text-fill: #2ecc71;");
-            relayIndicator.setFill(Color.web("#2ecc71"));
-        } else {
-            relayStatusLabel.setText("Немає зв'язку");
-            relayStatusLabel.setStyle(VALUE_STYLE + "-fx-text-fill: #e17055;");
-            relayIndicator.setFill(Color.web("#e17055"));
+        Button active = navButtons.get(id);
+        if (active != null) {
+            active.setStyle(NAV_BTN_BASE + NAV_BTN_ACTIVE);
+            if (active.getGraphic() instanceof javafx.scene.shape.SVGPath icon) icon.setFill(Color.WHITE);
         }
-        if (isActionInProgress) return;
-        schedule.stream().filter(entry -> entry.time().isAfter(now)).findFirst().ifPresentOrElse(entry -> {
-            nextBellTypeLabel.setText("(" + entry.type() + ")");
-            java.time.Duration d = java.time.Duration.between(now, entry.time());
-            countdownLabel.setText(String.format("%02d:%02d:%02d", d.toHours(), d.toMinutesPart(), d.toSecondsPart()));
-        }, () -> { countdownLabel.setText("--:--:--"); nextBellTypeLabel.setText("(на сьогодні все)"); });
     }
+
+    private void showDashboard() {
+        setActiveNav("DASHBOARD");
+        contentArea.getChildren().setAll(dashboardView.build());
+    }
+
+    private void showMySchoolHub() {
+        setActiveNav("MY_SCHOOL");
+        Label title = new Label("УПРАВЛІННЯ ШКОЛОЮ");
+        title.setStyle(HEADER_STYLE + "-fx-font-size: 20px;");
+        FlowPane grid = new FlowPane(25, 25);
+        grid.setPadding(new Insets(40));
+        grid.setAlignment(Pos.TOP_LEFT);
+        
+        grid.getChildren().addAll(
+            com.schoolbell.ui.UIComponents.createManagementCard("Вчителі", "Керування списком вчителів", ICON_PERSON, "#0984e3", "#e3f2fd", () -> showEditorTab(1)),
+            com.schoolbell.ui.UIComponents.createManagementCard("Предмети", "Налаштування предметів", ICON_BOOK, "#00b894", "#e8f8f5", () -> showEditorTab(2)),
+            com.schoolbell.ui.UIComponents.createManagementCard("Класи", "Керування класами", ICON_CLASS, "#a29bfe", "#f3efff", () -> showEditorTab(3)),
+            com.schoolbell.ui.UIComponents.createManagementCard("Аудиторії", "Керування аудиторіями", ICON_ROOM, "#e84393", "#fff0f6", () -> showEditorTab(7)),
+            com.schoolbell.ui.UIComponents.createManagementCard("Розклади", "Тижневі розклади занять", ICON_CALENDAR, "#27ae60", "#b8e994", () -> showEditorTab(4)),
+            com.schoolbell.ui.UIComponents.createManagementCard("Заміни", "Перенесення та заміни уроків", ICON_CLOCK, "#e67e22", "#fff3e0", () -> showEditorTab(5)),
+            com.schoolbell.ui.UIComponents.createManagementCard("Оголошення", "Планування повідомлень на табло", ICON_BROADCAST, "#f39c12", "#fff9e1", () -> showEditorTab(6))
+        );
+        
+        VBox root = new VBox(20, title, grid);
+        root.setPadding(new Insets(30));
+        contentArea.getChildren().setAll(root);
+    }
+
+    public void showEditorTab(int tabIndex) {
+        ScheduleEditorDialog editor = new ScheduleEditorDialog(this);
+        Node content = editor.createTabContent(tabIndex);
+        contentArea.getChildren().setAll(content);
+    }
+
+    private void showSignals() { 
+        setActiveNav("SIGNALS"); 
+        contentArea.getChildren().setAll(signalsView.build()); 
+    }
+    
+    private void showNotifications() { 
+        setActiveNav("NOTIFICATIONS"); 
+        contentArea.getChildren().setAll(notificationsView.build()); 
+    }
+
+    private void showSettings() {
+        setActiveNav("SETTINGS");
+        contentArea.getChildren().setAll(settingsView.build());
+    }
+    
+    private void showBroadcast() { 
+        setActiveNav("BROADCAST"); 
+        BroadcastView view = new BroadcastView(this);
+        contentArea.getChildren().setAll(view.build());
+    }
+
+    public Stage getStage() { return primaryStage; }
 
     private void startScheduler() {
         scheduler.scheduleAtFixedRate(() -> {
             LocalTime now = LocalTime.now();
-            if (now.getHour() == 9 && now.getMinute() == 0 && now.getSecond() == 0) {
-                if (isAudioSilenceEnabled) playAudioFile(audioSilencePath);
-            }
-            if (now.getSecond() == 0 && !isActionInProgress) {
-                LocalTime minuteOnly = now.truncatedTo(ChronoUnit.MINUTES);
-                schedule.stream().filter(entry -> entry.time().equals(minuteOnly)).findFirst().ifPresent(entry -> {
-                    new Thread(() -> {
-                        isActionInProgress = true;
-                        try {
-                            addLog("🔔 Автодзвінок: " + entry.type(), "SUCCESS");
-                            relayController.turnOn(); Thread.sleep(regularBellDuration * 1000L); relayController.turnOff();
-                        } catch (InterruptedException e) { relayController.turnOff(); } finally { isActionInProgress = false; }
-                    }).start();
-                });
-            }
-            Platform.runLater(this::updateUI);
+            java.time.LocalDate today = java.time.LocalDate.now();
+            signalService.checkAndTriggerBell(now, schedule);
+            Platform.runLater(() -> {
+                dashboardView.update(now);
+                if (sidebarStatusTime != null) sidebarStatusTime.setText(now.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")));
+                if (relayController.isConnected()) {
+                    if (sidebarStatusDot != null) sidebarStatusDot.setFill(Color.web(COLOR_SUCCESS));
+                } else {
+                    if (sidebarStatusDot != null) sidebarStatusDot.setFill(Color.web(COLOR_DANGER));
+                }
+                
+                if (broadcastService != null && broadcastService.isBroadcasting()) {
+                    Map<String, Object> data = dashboardView.getExtendedDashboardData(now);
+                    
+                    // Logic for announcements: priority to scheduled ones
+                    String activeAnnouncement = announcementService.getActiveAnnouncementText(today, now);
+                    if (activeAnnouncement == null || activeAnnouncement.isEmpty()) {
+                        activeAnnouncement = configService.getAnnouncementText();
+                    }
+                    data.put("announcement", activeAnnouncement);
+                    
+                    broadcastService.broadcastUpdate(data);
+                }
+            });
         }, 0, 1, TimeUnit.SECONDS);
     }
 
-    private void runAirRaidSignal() {
-        if (isActionInProgress) return;
-        new Thread(() -> {
-            isActionInProgress = true; addLog("ЗАПУСК СИГНАЛУ: ПОВІТРЯНА ТРИВОГА", "WARNING");
-            try { 
-                for (int i = 1; i <= 3; i++) { 
-                    relayController.turnOn(); Thread.sleep(airRaidRingDuration * 1000L); 
-                    relayController.turnOff(); if (i < 3) Thread.sleep(airRaidPauseDuration * 1000L); 
-                }
-                if (isAudioAirRaidEnabled) { Thread.sleep(1500); playAudioFile(audioAirRaidPath); }
-                addLog("Сигнал тривоги завершено.", "SUCCESS");
-            } catch (InterruptedException e) { relayController.turnOff(); } finally { isActionInProgress = false; }
-        }).start();
+    public void addLog(String message, String level) {
+        logger.info("[" + level + "] " + message);
     }
 
-    private void runEmergencySignal() {
-        if (isActionInProgress) return;
-        new Thread(() -> {
-            isActionInProgress = true; addLog("ЗАПУСК СИГНАЛУ: НАДЗВИЧАЙНА СИТУАЦІЯ", "ERROR");
-            try { 
-                relayController.turnOn(); Thread.sleep(emergencyDuration * 1000L); relayController.turnOff(); 
-                if (isAudioEmergencyEnabled) { Thread.sleep(1500); playAudioFile(audioEmergencyPath); }
-                addLog("Сигнал НС завершено.", "SUCCESS");
-            } catch (InterruptedException e) { relayController.turnOff(); } finally { isActionInProgress = false; }
-        }).start();
-    }
-
-    public void saveConfig() {
-        Properties props = new Properties(); if (selectedScheduleName != null) props.setProperty("selectedSchedule", selectedScheduleName);
-        props.setProperty("dur.regular", String.valueOf(regularBellDuration)); props.setProperty("dur.arRing", String.valueOf(airRaidRingDuration));
-        props.setProperty("dur.arPause", String.valueOf(airRaidPauseDuration)); props.setProperty("dur.emergency", String.valueOf(emergencyDuration));
-        props.setProperty("audio.arPath", audioAirRaidPath); props.setProperty("audio.arEnabled", String.valueOf(isAudioAirRaidEnabled));
-        props.setProperty("audio.emPath", audioEmergencyPath); props.setProperty("audio.emEnabled", String.valueOf(isAudioEmergencyEnabled));
-        props.setProperty("audio.siPath", audioSilencePath); props.setProperty("audio.siEnabled", String.valueOf(isAudioSilenceEnabled));
-        props.setProperty("audio.device", selectedAudioDeviceName);
-        try (FileOutputStream out = new FileOutputStream(CONFIG_FILE)) { props.store(out, "SchoolBell Config"); } catch (IOException e) { logger.error("Failed to save config", e); }
-    }
-
-    private void loadConfig() {
-        Properties props = new Properties(); File configFile = new File(CONFIG_FILE);
-        if (configFile.exists()) {
-            try (FileInputStream in = new FileInputStream(configFile)) {
-                props.load(in); regularBellDuration = Integer.parseInt(props.getProperty("dur.regular", "5"));
-                airRaidRingDuration = Integer.parseInt(props.getProperty("dur.arRing", "3")); airRaidPauseDuration = Integer.parseInt(props.getProperty("dur.arPause", "1"));
-                emergencyDuration = Integer.parseInt(props.getProperty("dur.emergency", "12")); selectedScheduleName = props.getProperty("selectedSchedule");
-                audioAirRaidPath = props.getProperty("audio.arPath", ""); isAudioAirRaidEnabled = Boolean.parseBoolean(props.getProperty("audio.arEnabled", "false"));
-                audioEmergencyPath = props.getProperty("audio.emPath", ""); isAudioEmergencyEnabled = Boolean.parseBoolean(props.getProperty("audio.emEnabled", "false"));
-                audioSilencePath = props.getProperty("audio.siPath", ""); isAudioSilenceEnabled = Boolean.parseBoolean(props.getProperty("audio.siEnabled", "false"));
-                selectedAudioDeviceName = props.getProperty("audio.device", "Системний за замовчуванням");
-            } catch (Exception e) { logger.error("Failed to load config", e); }
-        }
-    }
-
-    public void refreshScheduleOptions() {
-        Platform.runLater(() -> {
-            mainScheduleSelector.getItems().clear(); for (DaySchedule ds : internalSchedules) mainScheduleSelector.getItems().add(ds.getName());
-            if (selectedScheduleName != null && mainScheduleSelector.getItems().contains(selectedScheduleName)) mainScheduleSelector.setValue(selectedScheduleName);
-            else if (!internalSchedules.isEmpty()) { mainScheduleSelector.setValue(internalSchedules.get(0).getName()); selectedScheduleName = internalSchedules.get(0).getName(); }
-            reloadSchedule();
+    public void reloadSchedule() {
+        String name = configService.getSelectedScheduleName();
+        if (name == null) return;
+        internalSchedules.stream().filter(ds -> ds.getName().equals(name)).findFirst().ifPresent(ds -> {
+            schedule = scheduleService.convertToBellEntries(ds);
+            Platform.runLater(() -> {
+                dashboardView.refreshActiveScheduleLabel();
+                dashboardView.clearFlow();
+            });
+            logger.info("Schedule reloaded: " + name);
         });
     }
 
-    public ComboBox<String> createTimeCombo(int max, int current) {
-        ComboBox<String> cb = new ComboBox<>(); for (int i = 0; i < max; i++) cb.getItems().add(String.format("%02d", i));
-        cb.setValue(String.format("%02d", current)); cb.setPrefWidth(65); cb.setStyle("-fx-font-family: 'Monospaced'; -fx-font-weight: bold; -fx-background-color: white; -fx-background-insets: 0; -fx-background-radius: 5; -fx-border-color: #dfe6e9; -fx-border-radius: 5;"); return cb;
+    public void refreshScheduleOptions() {
+        Platform.runLater(this::reloadSchedule);
     }
 
-    // Getters / Setters for Dialogs
+    public void refreshCaches() {
+        teacherCache.clear();
+        academicService.getAllTeachers().forEach(t -> teacherCache.put(t.id(), t.name()));
+        subjectCache.clear();
+        academicService.getAllSubjects().forEach(s -> subjectCache.put(s.id(), s.name()));
+        classroomCache.clear();
+        academicService.getAllClassrooms().forEach(c -> classroomCache.put(c.id(), c.name()));
+        classCache.clear();
+        classCache.addAll(academicService.getAllClasses());
+    }
+
+    public String getSubjectName(int id) { return subjectCache.getOrDefault(id, "—"); }
+    public String getTeacherName(int id) { return teacherCache.getOrDefault(id, "—"); }
+    public String getClassroomName(int id) { return classroomCache.getOrDefault(id, "—"); }
+    public List<SchoolClass> getClassCache() { return classCache; }
+
+    public ConfigService getConfigService() { return configService; }
+    public AudioService getAudioService() { return audioService; }
+    public SignalService getSignalService() { return signalService; }
+    public BroadcastService getBroadcastService() { return broadcastService; }
+    public RelayController getRelayController() { return relayController; }
     public AcademicService getAcademicService() { return academicService; }
     public ScheduleService getScheduleService() { return scheduleService; }
     public List<DaySchedule> getInternalSchedules() { return internalSchedules; }
-    public int getRegularBellDuration() { return regularBellDuration; }
-    public void setRegularBellDuration(int val) { this.regularBellDuration = val; }
-    public int getAirRaidRingDuration() { return airRaidRingDuration; }
-    public void setAirRaidRingDuration(int val) { this.airRaidRingDuration = val; }
-    public int getAirRaidPauseDuration() { return airRaidPauseDuration; }
-    public void setAirRaidPauseDuration(int val) { this.airRaidPauseDuration = val; }
-    public int getEmergencyDuration() { return emergencyDuration; }
-    public void setEmergencyDuration(int val) { this.emergencyDuration = val; }
-    public String getAudioAirRaidPath() { return audioAirRaidPath; }
-    public void setAudioAirRaidPath(String val) { this.audioAirRaidPath = val; }
-    public boolean isAudioAirRaidEnabled() { return isAudioAirRaidEnabled; }
-    public void setAudioAirRaidEnabled(boolean val) { this.isAudioAirRaidEnabled = val; }
-    public String getAudioEmergencyPath() { return audioEmergencyPath; }
-    public void setAudioEmergencyPath(String val) { this.audioEmergencyPath = val; }
-    public boolean isAudioEmergencyEnabled() { return isAudioEmergencyEnabled; }
-    public void setAudioEmergencyEnabled(boolean val) { this.isAudioEmergencyEnabled = val; }
-    public String getAudioSilencePath() { return audioSilencePath; }
-    public void setAudioSilencePath(String val) { this.audioSilencePath = val; }
-    public boolean isAudioSilenceEnabled() { return isAudioSilenceEnabled; }
-    public void setAudioSilenceEnabled(boolean val) { this.isAudioSilenceEnabled = val; }
-    public String getSelectedAudioDeviceName() { return selectedAudioDeviceName; }
-    public void setSelectedAudioDeviceName(String val) { this.selectedAudioDeviceName = val; }
+    public List<BellEntry> getSchedule() { return schedule; }
+    
+    public void saveConfig() { configService.saveConfig(); }
 
-    @Override public void stop() { relayController.close(); scheduler.shutdown(); }
+    private void startHttpServer(int port) {
+        try {
+            httpServer = HttpServer.create(new InetSocketAddress(port), 0);
+            httpServer.createContext("/", exchange -> {
+                try (InputStream is = getClass().getResourceAsStream("/dashboard.html")) {
+                    if (is == null) { exchange.sendResponseHeaders(404, 0); exchange.close(); return; }
+                    byte[] response = is.readAllBytes();
+                    exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
+                    exchange.sendResponseHeaders(200, response.length);
+                    try (OutputStream os = exchange.getResponseBody()) { os.write(response); }
+                }
+            });
+            httpServer.setExecutor(null);
+            httpServer.start();
+            logger.info("HTTP Server started on port: " + port);
+        } catch (IOException e) {
+            logger.error("Failed to start HTTP server", e);
+        }
+    }
+
+    @Override public void stop() { 
+        relayController.close(); 
+        scheduler.shutdown(); 
+        if (httpServer != null) httpServer.stop(0);
+        if (audioService != null) audioService.stopAll();
+    }
     public static void main(String[] args) { launch(args); }
 }
