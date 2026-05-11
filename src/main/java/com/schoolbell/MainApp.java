@@ -5,13 +5,7 @@ import com.schoolbell.model.BellEntry;
 import com.schoolbell.model.DaySchedule;
 import com.schoolbell.model.SchoolClass;
 import com.schoolbell.service.*;
-import com.schoolbell.ui.BroadcastView;
-import com.schoolbell.ui.DashboardView;
-import com.schoolbell.ui.NotificationsView;
-import com.schoolbell.ui.ScheduleEditorDialog;
-import com.schoolbell.ui.SettingsView;
-import com.schoolbell.ui.SignalsView;
-import com.schoolbell.ui.UIStyles;
+import com.schoolbell.ui.*;
 import com.sun.net.httpserver.HttpServer;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -75,9 +69,11 @@ public class MainApp extends Application {
     private Label sidebarStatusTime;
     private Circle sidebarStatusDot;
     private DashboardView dashboardView;
-    private SignalsView signalsView;
+    private SchoolView schoolView;
+    private ScheduleView scheduleView;
+    private EfirView efirView;
     private NotificationsView notificationsView;
-    private SettingsView settingsView;
+    private SystemView systemView;
     private Stage primaryStage;
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -109,9 +105,9 @@ public class MainApp extends Application {
         
         // --- SIDEBAR ---
         sidebar = new VBox(10);
-        sidebar.setPrefWidth(220);
-        sidebar.setMinWidth(220);
-        sidebar.setMaxWidth(220);
+        sidebar.setPrefWidth(200);
+        sidebar.setMinWidth(200);
+        sidebar.setMaxWidth(200);
         sidebar.setStyle(SIDEBAR_STYLE);
         sidebar.setAlignment(Pos.TOP_CENTER);
         
@@ -127,24 +123,23 @@ public class MainApp extends Application {
         logoContainer.setAlignment(Pos.CENTER);
         sidebar.getChildren().add(logoContainer);
 
-        createNavButton("DASHBOARD", "Дашборд", ICON_DASHBOARD, this::showDashboard);
-        createNavButton("MY_SCHOOL", "Моя школа", ICON_FOLDER, this::showMySchoolHub);
-        createNavButton("SCHEDULE", "Розклад", ICON_CALENDAR, () -> showEditorTab(0));
-        createNavButton("SIGNALS", "Сигнали", ICON_BELL, this::showSignals);
+        createNavButton("DASHBOARD", "Головна", ICON_DASHBOARD, this::showDashboard);
+        createNavButton("SCHEDULE", "Розклад", ICON_CALENDAR, this::showSchedule);
         createNavButton("NOTIFICATIONS", "Сповіщення", ICON_NOTIFICATIONS, this::showNotifications);
-        createNavButton("BROADCAST", "Трансляція", ICON_BROADCAST, this::showBroadcast);
+        createNavButton("EFIR", "Ефір", ICON_BROADCAST, this::showEfir);
+        createNavButton("SCHOOL", "Школа", ICON_FOLDER, this::showSchool);
         
         Region spacer = new Region(); VBox.setVgrow(spacer, Priority.ALWAYS);
         sidebar.getChildren().add(spacer);
         
-        createNavButton("SETTINGS", "Налаштування", ICON_SETTINGS, this::showSettings);
+        createNavButton("SYSTEM", "Система", ICON_SETTINGS, this::showSystem);
 
         // System Status Indicator at bottom
         sidebarStatusDot = new Circle(4, Color.web(COLOR_SUCCESS));
         sidebarStatusDot.setCache(true);
         sidebarStatusDot.setCacheHint(javafx.scene.CacheHint.SPEED);
         
-        Label statusText = new Label("Система онлайн");
+        Label statusText = new Label("Онлайн");
         statusText.setStyle("-fx-text-fill: white; -fx-font-size: 11px;");
         sidebarStatusTime = new Label("00:00:00");
         sidebarStatusTime.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
@@ -167,16 +162,24 @@ public class MainApp extends Application {
         contentArea.setStyle(DEPTH_1);
         HBox.setHgrow(contentArea, Priority.ALWAYS);
 
-        HBox rootLayout = new HBox(sidebar, contentArea);
-        Scene scene = new Scene(rootLayout, 1400, 950);
+        HBox mainLayout = new HBox(sidebar, contentArea);
+        StackPane root = new StackPane(mainLayout);
+        
+        // Initialize Toast System
+        ToastService.setup(root);
+        
+        Scene scene = new Scene(root, 1400, 950);
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
         primaryStage.show();
 
         dashboardView = new DashboardView(this);
-        signalsView = new SignalsView(this);
+        schoolView = new SchoolView(this);
+        scheduleView = new ScheduleView(this);
+        efirView = new EfirView(this);
         notificationsView = new NotificationsView(this);
-        settingsView = new SettingsView(this);
+        systemView = new SystemView(this);
+        
         showDashboard();
         
         relayController.scanDevices();
@@ -217,32 +220,19 @@ public class MainApp extends Application {
         }
     }
 
-    private void showDashboard() {
+    public void showDashboard() {
         setActiveNav("DASHBOARD");
         contentArea.getChildren().setAll(dashboardView.build());
     }
 
-    private void showMySchoolHub() {
-        setActiveNav("MY_SCHOOL");
-        Label title = new Label("УПРАВЛІННЯ ШКОЛОЮ");
-        title.setStyle(HEADER_STYLE + "-fx-font-size: 20px;");
-        FlowPane grid = new FlowPane(25, 25);
-        grid.setPadding(new Insets(40));
-        grid.setAlignment(Pos.TOP_LEFT);
-        
-        grid.getChildren().addAll(
-            com.schoolbell.ui.UIComponents.createManagementCard("Вчителі", "Керування списком вчителів", ICON_PERSON, "#0984e3", "#e3f2fd", () -> showEditorTab(1)),
-            com.schoolbell.ui.UIComponents.createManagementCard("Предмети", "Налаштування предметів", ICON_BOOK, "#00b894", "#e8f8f5", () -> showEditorTab(2)),
-            com.schoolbell.ui.UIComponents.createManagementCard("Класи", "Керування класами", ICON_CLASS, "#a29bfe", "#f3efff", () -> showEditorTab(3)),
-            com.schoolbell.ui.UIComponents.createManagementCard("Аудиторії", "Керування аудиторіями", ICON_ROOM, "#e84393", "#fff0f6", () -> showEditorTab(7)),
-            com.schoolbell.ui.UIComponents.createManagementCard("Розклади", "Тижневі розклади занять", ICON_CALENDAR, "#27ae60", "#b8e994", () -> showEditorTab(4)),
-            com.schoolbell.ui.UIComponents.createManagementCard("Заміни", "Перенесення та заміни уроків", ICON_CLOCK, "#e67e22", "#fff3e0", () -> showEditorTab(5)),
-            com.schoolbell.ui.UIComponents.createManagementCard("Оголошення", "Планування повідомлень на табло", ICON_BROADCAST, "#f39c12", "#fff9e1", () -> showEditorTab(6))
-        );
-        
-        VBox root = new VBox(20, title, grid);
-        root.setPadding(new Insets(30));
-        contentArea.getChildren().setAll(root);
+    public void showSchool() {
+        setActiveNav("SCHOOL");
+        contentArea.getChildren().setAll(schoolView.build());
+    }
+
+    public void showSchedule() {
+        setActiveNav("SCHEDULE");
+        contentArea.getChildren().setAll(scheduleView.build());
     }
 
     public void showEditorTab(int tabIndex) {
@@ -251,28 +241,23 @@ public class MainApp extends Application {
         contentArea.getChildren().setAll(content);
     }
 
-    private void showSignals() { 
-        setActiveNav("SIGNALS"); 
-        contentArea.getChildren().setAll(signalsView.build()); 
+    public void showEfir() { 
+        setActiveNav("EFIR"); 
+        contentArea.getChildren().setAll(efirView.build()); 
     }
     
-    private void showNotifications() { 
-        setActiveNav("NOTIFICATIONS"); 
-        contentArea.getChildren().setAll(notificationsView.build()); 
-    }
-
-    private void showSettings() {
-        setActiveNav("SETTINGS");
-        contentArea.getChildren().setAll(settingsView.build());
+    public void showNotifications() {
+        setActiveNav("NOTIFICATIONS");
+        contentArea.getChildren().setAll(notificationsView.build());
     }
     
-    private void showBroadcast() { 
-        setActiveNav("BROADCAST"); 
-        BroadcastView view = new BroadcastView(this);
-        contentArea.getChildren().setAll(view.build());
+    public void showSystem() { 
+        setActiveNav("SYSTEM"); 
+        contentArea.getChildren().setAll(systemView.build()); 
     }
 
     public Stage getStage() { return primaryStage; }
+
 
     private void startScheduler() {
         scheduler.scheduleAtFixedRate(() -> {

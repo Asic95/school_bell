@@ -79,11 +79,12 @@ public class BroadcastView {
     private boolean isFirewallRuleActive(int port) {
         try {
             // Check if a rule exists that is enabled AND matches the specific port
-            String checkCommand = String.format(
-                "powershell -Command \"if (Get-NetFirewallRule -DisplayName 'SchoolBell Dashboard' -Enabled True -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -eq '%d' }) { exit 0 } else { exit 1 }\"", 
+            String script = String.format(
+                "if (Get-NetFirewallRule -DisplayName 'SchoolBell Dashboard' -Enabled True -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -eq '%d' }) { exit 0 } else { exit 1 }", 
                 port
             );
-            Process process = Runtime.getRuntime().exec(checkCommand);
+            ProcessBuilder pb = new ProcessBuilder("powershell", "-Command", script);
+            Process process = pb.start();
             return process.waitFor() == 0;
         } catch (Exception e) {
             return false;
@@ -395,6 +396,7 @@ public class BroadcastView {
         try { config.setBroadcastPort(Integer.parseInt(portField.getText())); } catch (Exception e) {}
         mainApp.saveConfig();
         mainApp.addLog("Налаштування оновлено.", "SUCCESS");
+        ToastService.showSuccess("Налаштування трансляції збережено!");
     }
 
     private String getLocalIp() {
@@ -436,10 +438,11 @@ public class BroadcastView {
 
         // Escape double quotes for PowerShell argument
         String escapedScript = script.replace("\"", "\\\"");
-        String command = "powershell -Command \"Start-Process powershell -Verb RunAs -ArgumentList '-Command \"" + escapedScript + "\"'\"";
+        String psCommand = "Start-Process powershell -Verb RunAs -ArgumentList '-Command \"" + escapedScript + "\"'";
 
         try {
-            Runtime.getRuntime().exec(command);
+            ProcessBuilder pb = new ProcessBuilder("powershell", "-Command", psCommand);
+            pb.start();
             
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Налаштування Firewall");

@@ -581,7 +581,13 @@ public class DashboardView {
         data.put("schoolName", config.getSchoolName());
         data.put("cityName", config.getCityName());
         data.put("announcement", config.getAnnouncementText());
-        data.put("alertType", signalService.getCurrentAlertType());
+        
+        String alert = signalService.getCurrentAlertType();
+        if ("AIR_RAID".equals(alert) && !config.isVisualAirRaidEnabled()) alert = "NONE";
+        if ("EMERGENCY".equals(alert) && !config.isVisualEmergencyEnabled()) alert = "NONE";
+        if ("SILENCE".equals(alert) && !config.isVisualSilenceEnabled()) alert = "NONE";
+        data.put("alertType", alert);
+
         data.put("countdown", countdown);
         data.put("scheduleName", config.getSelectedScheduleName());
 

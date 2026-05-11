@@ -2,6 +2,7 @@ package com.schoolbell.ui.editor;
 
 import com.schoolbell.MainApp;
 import com.schoolbell.model.DaySchedule;
+import com.schoolbell.ui.ToastService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -203,7 +204,7 @@ public class BellsEditorTab {
             }
             ds.setLessons(list);
             mainApp.getScheduleService().saveInternalSchedules(mainApp.getInternalSchedules());
-            new Alert(Alert.AlertType.INFORMATION, "Зміни в розкладі успішно збережено!").show();
+            ToastService.showSuccess("Зміни в розкладі успішно збережено!");
         });
 
         selector.valueProperty().addListener((obs, oldV, newV) -> {

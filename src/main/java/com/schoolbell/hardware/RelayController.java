@@ -47,7 +47,7 @@ public class RelayController {
 
         if (device.isPresent()) {
             relayDevice = device.get();
-            if (!relayDevice.isOpen()) {
+            if (relayDevice.isClosed()) {
                 relayDevice.open();
             }
             logger.info("Connected to HID Relay: {} (Serial: {})", 
@@ -75,7 +75,7 @@ public class RelayController {
             return;
         }
 
-        if (relayDevice == null || !relayDevice.isOpen()) {
+        if (relayDevice == null || relayDevice.isClosed()) {
             if (!connect()) return;
         }
 
@@ -123,15 +123,15 @@ public class RelayController {
                 .anyMatch(d -> d.getVendorId() == VENDOR_ID && d.getProductId() == PRODUCT_ID);
         
         // If device is found but we haven't 'opened' our local relayDevice handle, try to connect
-        if (found && (relayDevice == null || !relayDevice.isOpen())) {
+        if (found && (relayDevice == null || relayDevice.isClosed())) {
             connect();
         }
         
-        return found && relayDevice != null && relayDevice.isOpen();
+        return found && relayDevice != null && !relayDevice.isClosed();
     }
 
     public String getConnectionDetails() {
-        if (relayDevice != null && relayDevice.isOpen()) {
+        if (relayDevice != null && !relayDevice.isClosed()) {
             return String.format("USB HID: VID_%04X PID_%04X | %s", 
                     VENDOR_ID, PRODUCT_ID, relayDevice.getProduct() != null ? relayDevice.getProduct() : "Relay Module");
         }
@@ -139,7 +139,7 @@ public class RelayController {
     }
 
     public void close() {
-        if (relayDevice != null && relayDevice.isOpen()) {
+        if (relayDevice != null && !relayDevice.isClosed()) {
             relayDevice.close();
         }
         hidServices.stop();
