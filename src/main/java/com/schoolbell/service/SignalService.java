@@ -159,6 +159,20 @@ public class SignalService {
         }).start();
     }
 
+    public void setTemporaryAlertType(String type, int durationMs) {
+        new Thread(() -> {
+            currentAlertType = type;
+            try {
+                Thread.sleep(durationMs);
+            } catch (InterruptedException ignored) {
+            } finally {
+                if (type.equals(currentAlertType)) {
+                    currentAlertType = "NONE";
+                }
+            }
+        }).start();
+    }
+
     public void checkAndTriggerBell(LocalTime now, List<BellEntry> schedule) {
         if (now.getHour() == 9 && now.getMinute() == 0 && now.getSecond() == 0) {
             if (configService.isAudioSilenceEnabled()) {

@@ -155,12 +155,12 @@ public class UIComponents {
             "-fx-padding: 12 40; " +
             "-fx-background-radius: 14; " +
             "-fx-cursor: hand;", 
-            COLOR_SUCCESS
+            COLOR_PRIMARY
         );
         
         btn.setStyle(baseStyle);
         
-        btn.setOnMouseEntered(e -> btn.setStyle(baseStyle + "-fx-opacity: 0.9; -fx-effect: dropshadow(three-pass-box, rgba(0,184,148,0.3), 15, 0, 0, 5);"));
+        btn.setOnMouseEntered(e -> btn.setStyle(baseStyle + "-fx-opacity: 0.9; -fx-effect: dropshadow(three-pass-box, rgba(9,132,227,0.3), 15, 0, 0, 5);"));
         btn.setOnMouseExited(e -> btn.setStyle(baseStyle));
         
         return btn;

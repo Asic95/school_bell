@@ -130,18 +130,8 @@ public class SettingsView {
             config.setAnnouncementText(announcementArea.getText());
             
             mainApp.saveConfig();
-            
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Успіх");
-            alert.setHeaderText(null);
-            alert.setContentText("Загальні налаштування збережено!");
-            alert.showAndWait();
-        } catch (NumberFormatException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Помилка");
-            alert.setHeaderText("Некоректні дані");
-            alert.setContentText("Будь ласка, перевірте правильність введених даних (порт має бути числом).");
-            alert.showAndWait();
-        }
-    }
+            ToastService.showSuccess("Загальні налаштування збережено!");
+            } catch (NumberFormatException e) {
+            ToastService.showError("Некоректні дані: порт має бути числом.");
+            }    }
 }

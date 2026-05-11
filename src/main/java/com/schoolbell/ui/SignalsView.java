@@ -184,18 +184,8 @@ public class SignalsView {
             config.setAirRaidPauseDuration(Integer.parseInt(arPauseField.getText()));
             config.setEmergencyDuration(Integer.parseInt(emField.getText()));
             mainApp.saveConfig();
-            
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Успіх");
-            alert.setHeaderText(null);
-            alert.setContentText("Налаштування сигналів збережено!");
-            alert.showAndWait();
-        } catch (NumberFormatException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Помилка");
-            alert.setHeaderText("Некоректні дані");
-            alert.setContentText("Будь ласка, введіть числові значення для тривалості.");
-            alert.showAndWait();
-        }
-    }
+            ToastService.showSuccess("Налаштування сигналів збережено!");
+            } catch (NumberFormatException e) {
+            ToastService.showError("Некоректні дані: будь ласка, введіть числові значення для тривалості.");
+            }    }
 }

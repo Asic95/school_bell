@@ -3,6 +3,7 @@ package com.schoolbell.ui.editor;
 import com.schoolbell.MainApp;
 import com.schoolbell.model.*;
 import com.schoolbell.ui.ScheduleEditorDialog;
+import com.schoolbell.ui.ToastService;
 import com.schoolbell.ui.UIComponents;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -37,7 +38,7 @@ public class SubstitutionsEditorTab {
     private Runnable refreshSubstitutions;
     private String searchText = "";
     private boolean showArchived = false;
-    private final Locale ukLocale = new Locale("uk", "UA");
+    private final Locale ukLocale = Locale.of("uk", "UA");
 
     public SubstitutionsEditorTab(MainApp mainApp, ScheduleEditorDialog parentDialog) {
         this.mainApp = mainApp;
@@ -262,17 +263,12 @@ public class SubstitutionsEditorTab {
                 writer.println("==========================================");
                 writer.println("Всього замін у звіті: " + filtered.size());
 
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setContentText("Звіт успішно збережено у файл: " + file.getName());
-                alert.show();
-            } catch (Exception ex) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setContentText("Помилка при збереженні файлу: " + ex.getMessage());
-                alert.show();
-            }
-        }
-    }
-
+                ToastService.showSuccess("Звіт успішно збережено у файл: " + file.getName());
+                } catch (Exception ex) {
+                ToastService.showError("Помилка при збереженні файлу: " + ex.getMessage());
+                }
+                }
+                }
     private Node createSubstitutionCard(SubstitutionEntry sub) {
         HBox card = new HBox(20);
         card.setAlignment(Pos.CENTER_LEFT);

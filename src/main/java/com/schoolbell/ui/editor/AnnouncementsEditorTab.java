@@ -28,6 +28,7 @@ public class AnnouncementsEditorTab {
     private final AnnouncementService announcementService;
     private Runnable refreshList;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    private boolean showArchived = false;
 
     public AnnouncementsEditorTab(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -41,10 +42,50 @@ public class AnnouncementsEditorTab {
 
         VBox headerArea = createSectionHeader("Оголошення для табло", "Створюйте та плануйте показ важливих повідомлень за часом та днями", "#6c5ce7", ICON_BROADCAST);
 
+        HBox actionToolbar = new HBox(20);
+        actionToolbar.setAlignment(Pos.CENTER_LEFT);
+
         Button addBtn = new Button("СТВОРИТИ ОГОЛОШЕННЯ");
-        String addBtnStyle = "-fx-background-color: #6c5ce7; -fx-text-fill: white; -fx-font-weight: 900; -fx-padding: 12 40; -fx-background-radius: 12; -fx-cursor: hand;";
+        String addBtnStyle = "-fx-background-color: #6c5ce7; -fx-text-fill: white; -fx-font-weight: 900; -fx-padding: 10 25; -fx-background-radius: 12; -fx-cursor: hand;";
         addBtn.setStyle(addBtnStyle);
         addBtn.setOnAction(e -> openEditDialog(null));
+
+        // Segmented Toggle for Active/Archive
+        HBox toggleGroup = new HBox(0);
+        toggleGroup.setStyle("-fx-background-color: #dfe6e9; -fx-background-radius: 12; -fx-padding: 2;");
+
+        ToggleButton activeBtn = new ToggleButton("Активні");
+        ToggleButton archiveBtn = new ToggleButton("Архів");
+        ToggleGroup group = new ToggleGroup();
+        activeBtn.setToggleGroup(group);
+        archiveBtn.setToggleGroup(group);
+        activeBtn.setSelected(true);
+
+        String activeStyle = "-fx-background-color: white; -fx-text-fill: #6c5ce7; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 20; -fx-cursor: hand;";
+        String inactiveStyle = "-fx-background-color: transparent; -fx-text-fill: #95a5a6; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 20; -fx-cursor: hand;";
+
+        activeBtn.setStyle(activeStyle);
+        archiveBtn.setStyle(inactiveStyle);
+
+        group.selectedToggleProperty().addListener((o, ov, nv) -> {
+            if (nv == activeBtn) {
+                activeBtn.setStyle(activeStyle);
+                archiveBtn.setStyle(inactiveStyle);
+                showArchived = false;
+            } else {
+                activeBtn.setStyle(inactiveStyle);
+                archiveBtn.setStyle(activeStyle);
+                showArchived = true;
+            }
+            refreshList.run();
+        });
+
+        toggleGroup.getChildren().addAll(activeBtn, archiveBtn);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        actionToolbar.getChildren().addAll(addBtn, spacer, toggleGroup);
 
         VBox cardsContainer = new VBox(15);
         cardsContainer.setPadding(new Insets(10));
@@ -55,18 +96,45 @@ public class AnnouncementsEditorTab {
         refreshList = () -> {
             cardsContainer.getChildren().clear();
             List<Announcement> list = announcementService.getAllAnnouncements();
-            if (list.isEmpty()) {
-                Label placeholder = new Label("Немає запланованих оголошень. Створіть перше!");
-                placeholder.setStyle("-fx-text-fill: #95a5a6; -fx-font-style: italic; -fx-padding: 40;");
-                cardsContainer.getChildren().add(placeholder);
+            LocalDate today = LocalDate.now();
+
+            List<Announcement> filtered = list.stream()
+                .filter(a -> {
+                    boolean isExpired = a.endDate() != null && a.endDate().isBefore(today);
+                    boolean isEffectivelyArchived = !a.isActive() || isExpired;
+                    return showArchived == isEffectivelyArchived;
+                })
+                .sorted((a, b) -> {
+                    if (showArchived) {
+                        LocalDate d1 = a.endDate() != null ? a.endDate() : LocalDate.MAX;
+                        LocalDate d2 = b.endDate() != null ? b.endDate() : LocalDate.MAX;
+                        return d2.compareTo(d1);
+                    } else {
+                        LocalDate d1 = a.startDate() != null ? a.startDate() : LocalDate.MIN;
+                        LocalDate d2 = b.startDate() != null ? b.startDate() : LocalDate.MIN;
+                        return d1.compareTo(d2);
+                    }
+                })
+                .collect(Collectors.toList());
+
+            if (filtered.isEmpty()) {
+                VBox empty = new VBox(20);
+                empty.setAlignment(Pos.CENTER);
+                empty.setPadding(new Insets(60, 0, 60, 0));
+                Label emptyIcon = new Label("∅");
+                emptyIcon.setStyle("-fx-font-size: 48px; -fx-text-fill: #dfe6e9;");
+                Label emptyLabel = new Label(showArchived ? "Архів порожній" : "Немає активних оголошень");
+                emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #b2bec3;");
+                empty.getChildren().addAll(emptyIcon, emptyLabel);
+                cardsContainer.getChildren().add(empty);
             } else {
-                for (Announcement a : list) {
+                for (Announcement a : filtered) {
                     cardsContainer.getChildren().add(createAnnouncementCard(a));
                 }
             }
         };
 
-        content.getChildren().addAll(headerArea, new HBox(addBtn), scroll);
+        content.getChildren().addAll(headerArea, actionToolbar, scroll);
         refreshList.run();
         return content;
     }

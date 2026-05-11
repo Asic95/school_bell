@@ -19,6 +19,9 @@ public class ConfigService {
     private boolean isAudioEmergencyEnabled = false;
     private String audioSilencePath = "";
     private boolean isAudioSilenceEnabled = false;
+    private boolean isVisualAirRaidEnabled = true;
+    private boolean isVisualEmergencyEnabled = true;
+    private boolean isVisualSilenceEnabled = true;
     private String selectedAudioDeviceName = "Системний за замовчуванням";
     private int systemVolume = 70;
 
@@ -44,6 +47,9 @@ public class ConfigService {
         isAudioEmergencyEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("audio.emEnabled", "false"));
         audioSilencePath = DatabaseManager.getSetting("audio.siPath", "");
         isAudioSilenceEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("audio.siEnabled", "false"));
+        isVisualAirRaidEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("visual.arEnabled", "true"));
+        isVisualEmergencyEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("visual.emEnabled", "true"));
+        isVisualSilenceEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("visual.siEnabled", "true"));
         selectedAudioDeviceName = DatabaseManager.getSetting("audio.device", "Системний за замовчуванням");
         systemVolume = Integer.parseInt(DatabaseManager.getSetting("audio.volume", "70"));
         isBroadcastEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("broadcast.enabled", "false"));
@@ -67,6 +73,9 @@ public class ConfigService {
         DatabaseManager.saveSetting("audio.emEnabled", String.valueOf(isAudioEmergencyEnabled));
         DatabaseManager.saveSetting("audio.siPath", audioSilencePath);
         DatabaseManager.saveSetting("audio.siEnabled", String.valueOf(isAudioSilenceEnabled));
+        DatabaseManager.saveSetting("visual.arEnabled", String.valueOf(isVisualAirRaidEnabled));
+        DatabaseManager.saveSetting("visual.emEnabled", String.valueOf(isVisualEmergencyEnabled));
+        DatabaseManager.saveSetting("visual.siEnabled", String.valueOf(isVisualSilenceEnabled));
         DatabaseManager.saveSetting("audio.device", selectedAudioDeviceName);
         DatabaseManager.saveSetting("audio.volume", String.valueOf(systemVolume));
         DatabaseManager.saveSetting("broadcast.enabled", String.valueOf(isBroadcastEnabled));
@@ -99,6 +108,14 @@ public class ConfigService {
     public void setAudioSilencePath(String audioSilencePath) { this.audioSilencePath = audioSilencePath; }
     public boolean isAudioSilenceEnabled() { return isAudioSilenceEnabled; }
     public void setAudioSilenceEnabled(boolean audioSilenceEnabled) { isAudioSilenceEnabled = audioSilenceEnabled; }
+    
+    public boolean isVisualAirRaidEnabled() { return isVisualAirRaidEnabled; }
+    public void setVisualAirRaidEnabled(boolean visualAirRaidEnabled) { isVisualAirRaidEnabled = visualAirRaidEnabled; }
+    public boolean isVisualEmergencyEnabled() { return isVisualEmergencyEnabled; }
+    public void setVisualEmergencyEnabled(boolean visualEmergencyEnabled) { isVisualEmergencyEnabled = visualEmergencyEnabled; }
+    public boolean isVisualSilenceEnabled() { return isVisualSilenceEnabled; }
+    public void setVisualSilenceEnabled(boolean visualSilenceEnabled) { isVisualSilenceEnabled = visualSilenceEnabled; }
+
     public String getSelectedAudioDeviceName() { return selectedAudioDeviceName; }
     public void setSelectedAudioDeviceName(String selectedAudioDeviceName) { this.selectedAudioDeviceName = selectedAudioDeviceName; }
     public int getSystemVolume() { return systemVolume; }
