@@ -137,7 +137,7 @@ public class SignalsView {
     private VBox createModernSignalCard(String title, String subtitle, String iconPath, String color) {
         VBox card = new VBox(20);
         card.setPadding(new Insets(30));
-        card.setStyle("-fx-background-color: white; -fx-background-radius: 28; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 15, 0, 0, 5);");
+        card.setStyle(SOFT_CARD + "-fx-padding: 30; -fx-border-color: #f1f2f6; -fx-border-radius: 28;");
         
         HBox header = new HBox(20);
         header.setAlignment(Pos.CENTER_LEFT);
@@ -145,13 +145,13 @@ public class SignalsView {
         VBox iconBox = new VBox(createSVGIcon(iconPath, Color.web(color), 32));
         iconBox.setAlignment(Pos.CENTER);
         iconBox.setPrefSize(64, 64);
-        iconBox.setStyle("-fx-background-color: " + color + "15; -fx-background-radius: 18;");
+        iconBox.setStyle("-fx-background-color: " + color + "15; -fx-background-radius: 20;");
         
         VBox texts = new VBox(2);
         Label t = new Label(title);
-        t.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #2d3436;");
+        t.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + ";");
         Label s = new Label(subtitle.toUpperCase());
-        s.setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 1px;");
+        s.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 1.5px;");
         texts.getChildren().addAll(t, s);
         
         header.getChildren().addAll(iconBox, texts);
@@ -162,17 +162,18 @@ public class SignalsView {
 
     private HBox createModernInputRow(String labelText, TextField field) {
         Label lbl = new Label(labelText);
-        lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #636e72;");
+        lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: 800; -fx-text-fill: #636e72;");
         
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
-        field.setPrefWidth(85);
-        field.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dfe6e9; -fx-border-radius: 10; -fx-padding: 8 12;");
+        field.setPrefWidth(100);
+        field.setStyle(FIELD_STYLE + "-fx-font-size: 15px; -fx-font-weight: 900; -fx-padding: 10 15;");
         
-        HBox row = new HBox(15, lbl, spacer, field, new Label("сек"));
+        HBox row = new HBox(15, lbl, spacer, field, new Label("СЕК"));
         row.setAlignment(Pos.CENTER_LEFT);
-        ((Label)row.getChildren().get(3)).setStyle("-fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        Label unit = (Label)row.getChildren().get(3);
+        unit.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 1px;");
         
         return row;
     }

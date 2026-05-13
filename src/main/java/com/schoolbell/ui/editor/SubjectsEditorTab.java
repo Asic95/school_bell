@@ -9,7 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
-import static com.schoolbell.ui.UIComponents.createSectionHeader;
+import static com.schoolbell.ui.UIComponents.*;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class SubjectsEditorTab {
@@ -31,10 +31,10 @@ public class SubjectsEditorTab {
         addField.setStyle(COMBO_STYLE);
         addField.setPrefWidth(550);
 
-        Button addBtn = new Button("ДОДАТИ ПРЕДМЕТ");
-        addBtn.setStyle("-fx-background-color: #00b894; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 30; -fx-background-radius: 8;");
+        Button addBtn = createPrimaryActionButton("ДОДАТИ ПРЕДМЕТ", ICON_PLUS);
+        addBtn.setStyle(addBtn.getStyle().replace(COLOR_PRIMARY, "#00b894"));
 
-        FlowPane subjectsContainer = new FlowPane(15, 15);
+        FlowPane subjectsContainer = new FlowPane(20, 20);
         subjectsContainer.setPadding(new Insets(10));
         ScrollPane scroll = new ScrollPane(subjectsContainer);
         scroll.setFitToWidth(true);
@@ -43,25 +43,63 @@ public class SubjectsEditorTab {
         refreshSubjects = () -> {
             subjectsContainer.getChildren().clear();
             for (Subject s : mainApp.getAcademicService().getAllSubjects()) {
-                VBox card = new VBox(8);
-                card.setStyle("-fx-background-color: #e8f8f5; -fx-background-radius: 16; -fx-padding: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);");
-                card.setPrefWidth(240);
-                HBox header = new HBox(8);
-                header.setAlignment(Pos.CENTER_LEFT);
-                TextField edit = new TextField(s.name());
-                edit.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-font-size: 13px;");
-                HBox.setHgrow(edit, Priority.ALWAYS);
-                edit.focusedProperty().addListener((obs, ov, nv) -> {
-                    if (!nv && !edit.getText().equals(s.name()) && !edit.getText().isEmpty()) {
-                        mainApp.getAcademicService().updateSubject(s.id(), edit.getText());
-                        refreshSubjects.run();
+                VBox card = new VBox(15);
+                card.setStyle(SOFT_CARD + "-fx-padding: 20; -fx-border-color: #f1f2f6; -fx-border-radius: 20;");
+                card.setPrefWidth(340);
+                
+                HBox topRow = new HBox(12);
+                topRow.setAlignment(Pos.CENTER_LEFT);
+                
+                VBox iconBox = new VBox(createSVGIcon(ICON_BOOK, Color.web(COLOR_SUCCESS), 20));
+                iconBox.setAlignment(Pos.CENTER);
+                iconBox.setPrefSize(40, 40);
+                iconBox.setMinSize(40, 40);
+                iconBox.setMaxSize(40, 40);
+                iconBox.setStyle("-fx-background-color: " + COLOR_SUCCESS + "15; -fx-background-radius: 12;");
+
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                Button editBtn = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
+                Button del = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
+                del.setOnAction(e -> { mainApp.getAcademicService().deleteSubject(s.id()); refreshSubjects.run(); });
+                
+                topRow.getChildren().addAll(iconBox, spacer, editBtn, del);
+
+                VBox nameArea = new VBox(5);
+                Label nameLabel = new Label(s.name());
+                nameLabel.setWrapText(true);
+                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_TEXT + ";");
+                nameLabel.setMaxWidth(300);
+                
+                TextField nameEdit = new TextField(s.name());
+                nameEdit.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-background-color: #f1f2f6; -fx-background-radius: 8; -fx-padding: 8 12;");
+                nameEdit.setMaxWidth(Double.MAX_VALUE);
+                nameEdit.setManaged(false);
+                nameEdit.setVisible(false);
+                
+                nameArea.getChildren().addAll(nameLabel, nameEdit);
+
+                editBtn.setOnAction(e -> {
+                    nameLabel.setVisible(false); nameLabel.setManaged(false);
+                    nameEdit.setVisible(true); nameEdit.setManaged(true);
+                    nameEdit.requestFocus();
+                    nameEdit.selectAll();
+                });
+
+                nameEdit.focusedProperty().addListener((obs, ov, nv) -> {
+                    if (!nv) {
+                        if (!nameEdit.getText().equals(s.name()) && !nameEdit.getText().isEmpty()) {
+                            mainApp.getAcademicService().updateSubject(s.id(), nameEdit.getText());
+                            refreshSubjects.run();
+                        } else {
+                            nameEdit.setVisible(false); nameEdit.setManaged(false);
+                            nameLabel.setVisible(true); nameLabel.setManaged(true);
+                        }
                     }
                 });
-                Button del = new Button("✕");
-                del.setStyle("-fx-text-fill: #ff7675; -fx-background-color: transparent; -fx-cursor: hand;");
-                del.setOnAction(e -> { mainApp.getAcademicService().deleteSubject(s.id()); refreshSubjects.run(); });
-                header.getChildren().addAll(createSVGIcon(ICON_BOOK, Color.web("#00b894"), 16), edit, del);
-                card.getChildren().add(header);
+
+                card.getChildren().addAll(topRow, nameArea);
                 subjectsContainer.getChildren().add(card);
             }
         };

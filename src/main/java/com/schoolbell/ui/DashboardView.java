@@ -107,7 +107,7 @@ public class DashboardView {
         timeCard.setPadding(new Insets(25));
         timeCard.setStyle(SOFT_CARD);
         timeCard.setCache(true);
-        timeCard.setCacheHint(CacheHint.QUALITY);
+        timeCard.setCacheHint(CacheHint.SPEED);
         grid.add(timeCard, 0, 0);
 
         relayIndicator = new Circle(8, Color.web(COLOR_DANGER));
@@ -132,7 +132,7 @@ public class DashboardView {
         relayCard.setPadding(new Insets(25));
         relayCard.setStyle(SOFT_CARD);
         relayCard.setCache(true);
-        relayCard.setCacheHint(CacheHint.QUALITY);
+        relayCard.setCacheHint(CacheHint.SPEED);
         grid.add(relayCard, 1, 0);
 
         // --- MIDDLE ROW ---
@@ -140,7 +140,7 @@ public class DashboardView {
         heroCard.setPadding(new Insets(30));
         heroCard.setStyle(SOFT_CARD);
         heroCard.setCache(true);
-        heroCard.setCacheHint(CacheHint.QUALITY);
+        heroCard.setCacheHint(CacheHint.SPEED);
         
         HBox heroHeader = new HBox(15);
         heroHeader.setAlignment(Pos.CENTER_LEFT);
@@ -666,16 +666,28 @@ public class DashboardView {
             for (SchoolClass sc : mainApp.getClassCache()) {
                 Map<String, Object> cs = new HashMap<>();
                 cs.put("className", sc.name());
+                cs.put("lessonNumber", currentLessonNum);
+                cs.put("statusClass", "current");
+
                 final int lNum = currentLessonNum;
                 SubstitutionEntry sub = subs.stream()
                         .filter(s -> s.classId() == sc.id() && s.lessonNumber() == lNum)
                         .findFirst().orElse(null);
                 
                 if (sub != null) {
-                    cs.put("isSubstitution", true);
+                    cs.put("isReplacement", true);
                     cs.put("subject", mainApp.getSubjectName(sub.subjectId()));
                     cs.put("teacher", mainApp.getTeacherName(sub.teacherId()));
                     cs.put("room", mainApp.getClassroomName(sub.classroomId()));
+                    
+                    // Find original teacher for the replacement view
+                    List<com.schoolbell.model.ScheduleEntry> sched = academicService.getScheduleForClass(sc.id());
+                    sched.stream()
+                        .filter(e -> e.dayOfWeek() == dayOfWeek && e.lessonNumber() == lNum)
+                        .findFirst()
+                        .ifPresent(orig -> cs.put("originalTeacher", mainApp.getTeacherName(orig.teacherId())));
+                    
+                    if (!cs.containsKey("originalTeacher")) cs.put("originalTeacher", "—");
                 } else {
                     List<com.schoolbell.model.ScheduleEntry> sched = academicService.getScheduleForClass(sc.id());
                     com.schoolbell.model.ScheduleEntry entry = sched.stream()

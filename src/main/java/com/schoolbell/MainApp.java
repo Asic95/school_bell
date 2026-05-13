@@ -29,11 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -74,15 +70,17 @@ public class MainApp extends Application {
     private EfirView efirView;
     private NotificationsView notificationsView;
     private SystemView systemView;
+    private ImportView importView;
     private Stage primaryStage;
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     @Override
     public void start(Stage primaryStage) {
+        java.util.Locale.setDefault(Locale.of("uk", "UA"));
         this.primaryStage = primaryStage;
         DatabaseManager.initialize();
-        
+
         // Initialize Services
         configService = new ConfigService();
         configService.loadConfig();
@@ -90,7 +88,7 @@ public class MainApp extends Application {
         audioService = new AudioService(configService);
         signalService = new SignalService(relayController, audioService, configService);
         signalService.setLogConsumer(msg -> logger.info(msg));
-        
+
         if (configService.isBroadcastEnabled()) {
             try {
                 broadcastService = new BroadcastService(configService.getBroadcastPort() + 2);
@@ -102,7 +100,7 @@ public class MainApp extends Application {
         }
 
         primaryStage.setTitle("SchoolBell Dashboard v4.0");
-        
+
         // --- SIDEBAR ---
         sidebar = new VBox(10);
         sidebar.setPrefWidth(200);
@@ -110,14 +108,14 @@ public class MainApp extends Application {
         sidebar.setMaxWidth(200);
         sidebar.setStyle(SIDEBAR_STYLE);
         sidebar.setAlignment(Pos.TOP_CENTER);
-        
+
         // Logo Section
         VBox logoBox = new VBox(createSVGIcon(ICON_BELL, Color.WHITE, 30));
         logoBox.setAlignment(Pos.CENTER);
         logoBox.setPrefSize(60, 60);
         logoBox.setMaxSize(60, 60);
         logoBox.setStyle("-fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 16;");
-        
+
         VBox logoContainer = new VBox(logoBox);
         logoContainer.setPadding(new Insets(20, 0, 40, 0));
         logoContainer.setAlignment(Pos.CENTER);
@@ -128,17 +126,18 @@ public class MainApp extends Application {
         createNavButton("NOTIFICATIONS", "Сповіщення", ICON_NOTIFICATIONS, this::showNotifications);
         createNavButton("EFIR", "Ефір", ICON_BROADCAST, this::showEfir);
         createNavButton("SCHOOL", "Школа", ICON_FOLDER, this::showSchool);
-        
+        createNavButton("IMPORT", "Імпорт", ICON_PLUS, this::showImport);
+
         Region spacer = new Region(); VBox.setVgrow(spacer, Priority.ALWAYS);
         sidebar.getChildren().add(spacer);
-        
+
         createNavButton("SYSTEM", "Система", ICON_SETTINGS, this::showSystem);
 
         // System Status Indicator at bottom
         sidebarStatusDot = new Circle(4, Color.web(COLOR_SUCCESS));
         sidebarStatusDot.setCache(true);
         sidebarStatusDot.setCacheHint(javafx.scene.CacheHint.SPEED);
-        
+
         Label statusText = new Label("Онлайн");
         statusText.setStyle("-fx-text-fill: white; -fx-font-size: 11px;");
         sidebarStatusTime = new Label("00:00:00");
@@ -147,7 +146,7 @@ public class MainApp extends Application {
         statusInfo.setStyle(SIDEBAR_STATUS_STYLE);
         statusInfo.setCache(true);
         statusInfo.setCacheHint(javafx.scene.CacheHint.SPEED);
-        
+
         Timeline pulseIndicator = new Timeline(
             new KeyFrame(Duration.ZERO, new KeyValue(sidebarStatusDot.opacityProperty(), 1.0)),
             new KeyFrame(Duration.seconds(0.8), new KeyValue(sidebarStatusDot.opacityProperty(), 0.3)),
@@ -164,10 +163,10 @@ public class MainApp extends Application {
 
         HBox mainLayout = new HBox(sidebar, contentArea);
         StackPane root = new StackPane(mainLayout);
-        
+
         // Initialize Toast System
         ToastService.setup(root);
-        
+
         Scene scene = new Scene(root, 1400, 950);
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
@@ -179,9 +178,10 @@ public class MainApp extends Application {
         efirView = new EfirView(this);
         notificationsView = new NotificationsView(this);
         systemView = new SystemView(this);
-        
+        importView = new ImportView(this);
+
         showDashboard();
-        
+
         relayController.scanDevices();
         relayController.connect();
         internalSchedules = scheduleService.loadInternalSchedules();
@@ -245,17 +245,21 @@ public class MainApp extends Application {
         setActiveNav("EFIR"); 
         contentArea.getChildren().setAll(efirView.build()); 
     }
-    
+
     public void showNotifications() {
         setActiveNav("NOTIFICATIONS");
         contentArea.getChildren().setAll(notificationsView.build());
     }
-    
-    public void showSystem() { 
-        setActiveNav("SYSTEM"); 
-        contentArea.getChildren().setAll(systemView.build()); 
+
+    public void showSystem() {
+        setActiveNav("SYSTEM");
+        contentArea.getChildren().setAll(systemView.build());
     }
 
+    public void showImport() {
+        setActiveNav("IMPORT");
+        contentArea.getChildren().setAll(importView.build());
+    }
     public Stage getStage() { return primaryStage; }
 
 

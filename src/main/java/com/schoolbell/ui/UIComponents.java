@@ -166,6 +166,42 @@ public class UIComponents {
         return btn;
     }
 
+    public static Button createCardActionButton(String iconPath, String hoverBg, String hoverBorder) {
+        Button btn = new Button();
+        btn.setGraphic(createSVGIcon(iconPath, Color.web(COLOR_NEUTRAL), 18));
+        btn.setPrefSize(34, 34);
+        btn.setMinSize(34, 34);
+        
+        String baseStyle = "-fx-background-color: white; " +
+                           "-fx-background-radius: 10; " +
+                           "-fx-border-color: #dfe6e9; " +
+                           "-fx-border-width: 1; " +
+                           "-fx-border-radius: 10; " +
+                           "-fx-cursor: hand; " +
+                           "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 5, 0, 0, 1);";
+        
+        btn.setStyle(baseStyle);
+        
+        btn.setOnMouseEntered(e -> {
+            btn.setStyle(baseStyle + 
+                "-fx-background-color: " + hoverBg + "; " +
+                "-fx-border-color: " + hoverBorder + "; " +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 8, 0, 0, 2);");
+            if (hoverBorder.equals(COLOR_DANGER)) {
+                btn.setGraphic(createSVGIcon(iconPath, Color.web(COLOR_DANGER), 18));
+            } else {
+                btn.setGraphic(createSVGIcon(iconPath, Color.web(COLOR_PRIMARY), 18));
+            }
+        });
+        
+        btn.setOnMouseExited(e -> {
+            btn.setStyle(baseStyle);
+            btn.setGraphic(createSVGIcon(iconPath, Color.web(COLOR_NEUTRAL), 18));
+        });
+        
+        return btn;
+    }
+
     public static VBox createSectionHeader(String title, String subtitle, String color, String svgPath, Node action) {
         VBox iconBox = new VBox(createSVGIcon(svgPath, Color.web(color), 32));
         iconBox.setAlignment(Pos.CENTER);

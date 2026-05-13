@@ -59,6 +59,8 @@ public class EfirView {
         heroCard.setAlignment(Pos.CENTER_LEFT);
         heroCard.setPadding(new Insets(25, 35, 25, 35));
         heroCard.setStyle("-fx-background-color: white; -fx-background-radius: 24; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 20, 0, 0, 8); -fx-border-color: #f1f2f6; -fx-border-width: 1;");
+        heroCard.setCache(true);
+        heroCard.setCacheHint(javafx.scene.CacheHint.SPEED);
 
         // 1. Live Indicator Section
         VBox statusSection = new VBox(8);
@@ -66,21 +68,28 @@ public class EfirView {
         
         StackPane indicatorStack = new StackPane();
         Circle pulseCircle = new Circle(12, Color.web(config.isBroadcastEnabled() ? COLOR_SUCCESS : COLOR_DANGER, 0.2));
+        pulseCircle.setCache(true);
+        pulseCircle.setCacheHint(javafx.scene.CacheHint.SPEED);
+        
         Circle mainCircle = new Circle(6, Color.web(config.isBroadcastEnabled() ? COLOR_SUCCESS : COLOR_DANGER));
+        mainCircle.setCache(true);
+        mainCircle.setCacheHint(javafx.scene.CacheHint.SPEED);
         
         if (config.isBroadcastEnabled()) {
-            javafx.animation.ScaleTransition pulse = new javafx.animation.ScaleTransition(javafx.util.Duration.seconds(1.5), pulseCircle);
-            pulse.setFromX(1); pulse.setFromY(1);
-            pulse.setToX(2.5); pulse.setToY(2.5);
-            pulse.setCycleCount(javafx.animation.Animation.INDEFINITE);
-            pulse.setAutoReverse(false);
-            
-            javafx.animation.FadeTransition fade = new javafx.animation.FadeTransition(javafx.util.Duration.seconds(1.5), pulseCircle);
-            fade.setFromValue(0.6); fade.setToValue(0);
-            fade.setCycleCount(javafx.animation.Animation.INDEFINITE);
-            fade.setAutoReverse(false);
-            
-            pulse.play(); fade.play();
+            javafx.animation.Timeline pulseTimeline = new javafx.animation.Timeline(
+                new javafx.animation.KeyFrame(javafx.util.Duration.ZERO, 
+                    new javafx.animation.KeyValue(pulseCircle.scaleXProperty(), 1),
+                    new javafx.animation.KeyValue(pulseCircle.scaleYProperty(), 1),
+                    new javafx.animation.KeyValue(pulseCircle.opacityProperty(), 0.6)
+                ),
+                new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1.5), 
+                    new javafx.animation.KeyValue(pulseCircle.scaleXProperty(), 2.5),
+                    new javafx.animation.KeyValue(pulseCircle.scaleYProperty(), 2.5),
+                    new javafx.animation.KeyValue(pulseCircle.opacityProperty(), 0)
+                )
+            );
+            pulseTimeline.setCycleCount(javafx.animation.Animation.INDEFINITE);
+            pulseTimeline.play();
         }
         indicatorStack.getChildren().addAll(pulseCircle, mainCircle);
         
@@ -146,6 +155,8 @@ public class EfirView {
         VBox scheduledContainer = new VBox();
         scheduledContainer.getChildren().add(announcementsEditor.createContent());
         scheduledContainer.setStyle(SOFT_CARD);
+        scheduledContainer.setCache(true);
+        scheduledContainer.setCacheHint(javafx.scene.CacheHint.SPEED);
         
         Node editorContent = scheduledContainer.getChildren().get(0);
         if (editorContent instanceof VBox vb) {
@@ -163,6 +174,8 @@ public class EfirView {
         VBox devicesCard = createSettingsSection("МОНІТОРИНГ ПРИСТРОЇВ", "#6c5ce7", ICON_MONITOR);
         devicesCard.setStyle(SOFT_CARD);
         devicesCard.setPadding(new Insets(25));
+        devicesCard.setCache(true);
+        devicesCard.setCacheHint(javafx.scene.CacheHint.SPEED);
         
         Button refreshBtn = new Button("ОНОВИТИ");
         refreshBtn.setStyle("-fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: bold; -fx-background-color: transparent; -fx-cursor: hand;");
@@ -203,7 +216,7 @@ public class EfirView {
         
         Node iconNode = createSVGIcon(icon, Color.web(color), 18);
         Label v = new Label(value);
-        v.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_TEXT + "; -fx-font-family: 'Monospaced';");
+        v.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_TEXT + ";");
         
         valBox.getChildren().addAll(iconNode, v);
         box.getChildren().addAll(t, valBox);
@@ -275,7 +288,9 @@ public class EfirView {
         HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(15));
-        row.setStyle("-fx-background-color: white; -fx-background-radius: 16; -fx-border-color: #f1f2f6; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.02), 5, 0, 0, 2);");
+        row.setStyle(SOFT_CARD + "-fx-padding: 15; -fx-border-color: #f1f2f6; -fx-border-radius: 20;");
+        row.setCache(true);
+        row.setCacheHint(javafx.scene.CacheHint.SPEED);
         
         // --- ICON BOX (SQUARE STYLE) ---
         String iconPath = ICON_MONITOR;
@@ -290,47 +305,36 @@ public class EfirView {
 
         // --- INFO BOX ---
         VBox info = new VBox(4);
-        Label name = new Label(device.name());
-        name.setStyle("-fx-font-weight: 900; -fx-font-size: 14px; -fx-text-fill: " + COLOR_TEXT + ";");
+        Label name = new Label(device.name().toUpperCase());
+        name.setStyle("-fx-font-weight: 900; -fx-font-size: 13px; -fx-text-fill: " + COLOR_TEXT + ";");
         
         HBox ipLine = new HBox(8);
         ipLine.setAlignment(Pos.CENTER_LEFT);
         Circle dot = new Circle(4, Color.web(isActive ? COLOR_SUCCESS : COLOR_DANGER));
         Label ip = new Label(device.ip() + (device.isBanned() ? " [ЗАБЛОКОВАНО]" : ""));
-        ip.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + (device.isBanned() ? COLOR_DANGER : "#57606f") + "; -fx-font-family: 'Monospaced';");
+        ip.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + (device.isBanned() ? COLOR_DANGER : COLOR_TEXT_DIM) + ";");
         ipLine.getChildren().addAll(dot, ip);
         
         info.getChildren().addAll(name, ipLine);
         HBox.setHgrow(info, Priority.ALWAYS);
 
-        // --- ACTIONS (TEACHER STYLE) ---
+        // --- ACTIONS (UNIFIED) ---
         HBox actions = new HBox(8);
         actions.setAlignment(Pos.CENTER_RIGHT);
 
-        Button editBtn = createSoftActionButton(ICON_EDIT, "#636e72", "#dfe6e9", "#f1f2f6", "#b2bec3", () -> editDevice(device));
-        Button banBtn = createSoftActionButton(device.isBanned() ? ICON_CHECK : ICON_BAN, device.isBanned() ? COLOR_SUCCESS : COLOR_PRIMARY, "#dfe6e9", "#f1f2f6", COLOR_PRIMARY, () -> toggleBan(device));
-        Button delBtn = createSoftActionButton(ICON_TRASH, "#ff7675", "#ffeaa7", "#fff5f5", COLOR_DANGER, () -> deleteDevice(device));
+        Button editBtn = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
+        editBtn.setOnAction(e -> editDevice(device));
+        
+        Button banBtn = createCardActionButton(device.isBanned() ? ICON_CHECK : ICON_BAN, "#f1f2f6", COLOR_PRIMARY);
+        banBtn.setOnAction(e -> toggleBan(device));
+        
+        Button delBtn = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
+        delBtn.setOnAction(e -> deleteDevice(device));
 
         actions.getChildren().addAll(editBtn, banBtn, delBtn);
         
         row.getChildren().addAll(iconBox, info, actions);
-        
-        row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: #fafafa; -fx-background-radius: 16; -fx-border-color: #dfe6e9; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);"));
-        row.setOnMouseExited(e -> row.setStyle("-fx-background-color: white; -fx-background-radius: 16; -fx-border-color: #f1f2f6; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.02), 5, 0, 0, 2);"));
-        
         return row;
-    }
-
-    private Button createSoftActionButton(String icon, String iconColor, String borderColor, String hoverBg, String hoverBorder, Runnable action) {
-        Button btn = new Button();
-        btn.setGraphic(createSVGIcon(icon, Color.web(iconColor), 18));
-        btn.setPrefSize(36, 36);
-        String baseStyle = "-fx-background-color: white; -fx-cursor: hand; -fx-background-radius: 10; -fx-border-color: " + borderColor + "; -fx-border-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.04), 4, 0, 0, 1);";
-        btn.setStyle(baseStyle);
-        btn.setOnMouseEntered(e -> btn.setStyle(baseStyle + "-fx-background-color: " + hoverBg + "; -fx-border-color: " + hoverBorder + ";"));
-        btn.setOnMouseExited(e -> btn.setStyle(baseStyle));
-        btn.setOnAction(e -> action.run());
-        return btn;
     }
 
     private void editDevice(BroadcastDevice device) {
