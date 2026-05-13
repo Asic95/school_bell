@@ -27,9 +27,9 @@ public class UIStyles {
         ".slider .thumb { -fx-background-color: " + COLOR_SUCCESS + "; -fx-background-radius: 50; -fx-pref-width: 12; -fx-pref-height: 12; } ";
 
     public static final String DEPTH_1 = "-fx-background-color: " + COLOR_BG + ";";
-    public static final String DEPTH_2 = "-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 10, 0, 0, 4);";
-    public static final String SOFT_CARD = "-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 15, 0, 0, 5);";
-    public static final String DEPTH_3 = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 8, 0, 0, 2);";
+    public static final String DEPTH_2 = "-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 8, 0, 0, 3);";
+    public static final String SOFT_CARD = "-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);";
+    public static final String DEPTH_3 = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 6, 0, 0, 2);";
 
     // Styles
     public static final String HEADER_STYLE = "-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 1.5px;";
@@ -53,6 +53,24 @@ public class UIStyles {
     public static final String NAV_BTN_HOVER = "-fx-background-color: rgba(255,255,255,0.05);";
 
     public static final String SIDEBAR_STATUS_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20; -fx-border-color: rgba(255,255,255,0.05); -fx-border-width: 1 0 0 0;";
+
+    public static final String MODERN_DATE_PICKER_STYLE = 
+        ".date-picker { -fx-background-color: transparent; } " +
+        ".date-picker > .text-field { -fx-background-color: white; -fx-background-radius: 12 0 0 12; -fx-border-color: #dfe6e9; -fx-border-radius: 12 0 0 12; -fx-border-width: 1 0 1 1; -fx-padding: 10; } " +
+        ".date-picker > .arrow-button { -fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 0 12 12 0; -fx-padding: 10; -fx-cursor: hand; } " +
+        ".date-picker > .arrow-button > .arrow { -fx-shape: \"M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z\"; -fx-background-color: white; -fx-padding: 8; } " +
+        ".date-picker-popup { -fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 12, 0, 0, 8); -fx-border-color: #dfe6e9; -fx-border-width: 1; -fx-border-radius: 16; } " +
+        ".date-picker-popup > .month-year-pane { -fx-background-color: white; -fx-background-radius: 16 16 0 0; -fx-padding: 10; } " +
+        ".date-picker-popup > .calendar-grid { -fx-background-color: white; -fx-padding: 10; } " +
+        ".date-picker-popup > * > .spinner > .button { -fx-background-color: transparent; } " +
+        ".date-picker-popup > * > .spinner > .button:hover { -fx-background-color: #f1f2f6; } " +
+        ".date-picker-popup > * > .day-name-cell, .date-picker-popup > * > .week-number-cell { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #95a5a6; -fx-padding: 8; } " +
+        ".date-picker-popup > * > .day-cell { -fx-background-color: white; -fx-background-radius: 8; -fx-padding: 8; -fx-cursor: hand; -fx-text-fill: " + COLOR_TEXT + "; } " +
+        ".date-picker-popup > * > .day-cell:hover { -fx-background-color: #e3f2fd; -fx-text-fill: " + COLOR_PRIMARY + "; } " +
+        ".date-picker-popup > * > .today { -fx-background-color: #f8f9fa; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: bold; -fx-border-color: " + COLOR_PRIMARY + "44; -fx-border-radius: 8; } " +
+        ".date-picker-popup > * > .selected { -fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white; -fx-font-weight: bold; } " +
+        ".date-picker-popup > * > .selected:hover { -fx-text-fill: white; } " +
+        ".date-picker-popup > * > .previous-month, .date-picker-popup > * > .next-month { -fx-text-fill: #bdc3c7; }";
 
     // SVG Icons
     public static final String ICON_DASHBOARD = "M13,3V9H21V3H13M13,21H21V15H13V21M3,21H11V11H3V21M3,9H11V3H3V9Z";
@@ -85,7 +103,7 @@ public class UIStyles {
     public static final String ICON_CHECK = "M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z";
     public static final String ICON_DANGER = "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z";
     public static final String ICON_AIR_RAID = "M12,2L1,21H23L12,2M12,6L19.53,19H4.47L12,6M13,16H11V18H13V16M13,10H11V14H13V10Z";
-    public static final String ICON_LIFEBUOY = "M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4C9,4 6.42,5.64 5.05,8.11L8.11,11.17C8.64,9.33 10.17,8 12,8C13.83,8 15.36,9.33 15.89,11.17L18.95,8.11C17.58,5.64 15,4 12,4M4,12C4,15 5.64,17.58 8.11,18.95L11.17,15.89C9.33,15.36 8,13.83 8,12C8,10.17 9.33,8.64 11.17,8.11L8.11,5.05C5.64,6.42 4,9 4,12M12,20C15,20 17.58,18.36 18.95,15.89L15.89,12.83C15.36,14.67 13.83,16 12,16C10.17,16 8.64,14.67 8.11,12.83L5.05,15.89C6.42,18.36 9,20 12,20M20,12C20,9 18.36,6.42 15.89,5.05L12.83,8.11C14.67,8.64 16,10.17 16,12C16,13.83 14.67,15.36 12.83,15.89L15.89,18.95C18.36,17.58 20,15 20,12Z";
+    public static final String ICON_LIFEBUOY = "M12,1L3,5v6c0,5.55,3.84,10.74,9,12c5.16,-1.26,9,-6.45,9,-12V5L12,1z M11,7h2v7h-2V7z M11,16h2v2h-2V16z";
     public static final String ICON_ALL_CLEAR = "M10,17L5,12L6.41,10.58L10,14.17L17.59,6.58L19,8L10,17Z";
     
     // Premium Gradients

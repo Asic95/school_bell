@@ -47,71 +47,99 @@ public class SettingsView {
     }
 
     public Node build() {
-        VBox root = new VBox(25);
-        root.setPadding(new Insets(30));
-        root.setStyle("-fx-background-color: #f1f2f6;");
+        VBox root = new VBox(30);
+        root.setPadding(new Insets(35));
+        root.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
-        Label title = new Label("ЗАГАЛЬНІ НАЛАШТУВАННЯ СИСТЕМИ");
-        title.setStyle(HEADER_STYLE + "-fx-font-size: 24px;");
+        Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ НАЛАШТУВАННЯ", ICON_SAVE);
+        saveBtn.setOnAction(e -> save());
 
-        VBox content = new VBox(20);
-        content.setPadding(new Insets(30));
-        content.setStyle(SOFT_CARD);
+        VBox headerArea = createSectionHeader(
+                "Налаштування системи",
+                "Загальна конфігурація закладу, мережі та системних параметрів",
+                COLOR_PRIMARY,
+                ICON_SETTINGS,
+                saveBtn
+        );
+
+        VBox content = new VBox(25);
+        content.setAlignment(Pos.TOP_LEFT);
+
+        // --- GRID LAYOUT FOR SECTIONS ---
+        GridPane grid = new GridPane();
+        grid.setHgap(25);
+        grid.setVgap(25);
+        
+        ColumnConstraints col1 = new ColumnConstraints(); col1.setPercentWidth(50);
+        ColumnConstraints col2 = new ColumnConstraints(); col2.setPercentWidth(50);
+        grid.getColumnConstraints().addAll(col1, col2);
 
         // Section 1: Identity
         VBox sec1 = createSettingsSection("ІДЕНТИФІКАЦІЯ ЗАКЛАДУ", "#0984e3", ICON_PERSON);
+        sec1.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
         GridPane identityGrid = new GridPane();
         identityGrid.setHgap(20);
         identityGrid.setVgap(15);
         identityGrid.setPadding(new Insets(10, 0, 0, 0));
         
         Label lblSchool = new Label("Назва закладу:");
-        lblSchool.setStyle("-fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + ";");
+        lblSchool.setStyle("-fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-font-size: 13px;");
         schoolNameField.setPrefWidth(400); 
         identityGrid.add(lblSchool, 0, 0);
         identityGrid.add(schoolNameField, 1, 0);
         
         Label lblCity = new Label("Місто:");
-        lblCity.setStyle("-fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + ";");
+        lblCity.setStyle("-fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-font-size: 13px;");
         cityNameField.setPrefWidth(400);
         identityGrid.add(lblCity, 0, 1);
         identityGrid.add(cityNameField, 1, 1);
-        
         sec1.getChildren().add(identityGrid);
 
         // Section 2: Audio
         VBox sec2 = createSettingsSection("НАЛАШТУВАННЯ ЗВУКУ", "#00b894", ICON_VOLUME);
+        sec2.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
         Label volVal = new Label(config.getSystemVolume() + "%");
-        volVal.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_SUCCESS + ";");
+        volVal.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_SUCCESS + "; -fx-font-size: 16px;");
         volumeSlider.valueProperty().addListener((o, ov, nv) -> volVal.setText(nv.intValue() + "%"));
-        HBox volRow = new HBox(15, volumeSlider, volVal);
+        HBox volRow = new HBox(20, volumeSlider, volVal);
         volRow.setAlignment(Pos.CENTER_LEFT);
-        sec2.getChildren().addAll(new Label("Загальна гучність системи:"), volRow);
+        Label volLabel = new Label("ЗАГАЛЬНА ГУЧНІСТЬ СИСТЕМИ:");
+        volLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        sec2.getChildren().addAll(volLabel, volRow);
 
         // Section 3: Network
-        VBox sec3 = createSettingsSection("МЕРЕЖЕВІ НАЛАШТУВАННЯ", "#6c5ce7", ICON_BROADCAST);
-        sec3.getChildren().addAll(
-            broadcastEnabledCb,
-            createFieldRow("Порт трансляції:", portField)
-        );
+        VBox sec3 = createSettingsSection("МЕРЕЖА ТА ТРАНСЛЯЦІЯ", "#6c5ce7", ICON_BROADCAST);
+        sec3.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
+        broadcastEnabledCb.setStyle("-fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT + "; -fx-font-size: 13px;");
+        
+        HBox portRow = createFieldRow("ПОРТ ТРАНСЛЯЦІЇ:", portField);
+        ((Label)portRow.getChildren().get(0)).setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        portField.setPrefWidth(120);
+        
+        sec3.getChildren().addAll(broadcastEnabledCb, portRow);
 
         // Section 5: System
-        VBox sec5 = createSettingsSection("СИСТЕМНІ НАЛАШТУВАННЯ", "#636e72", ICON_SETTINGS);
-        sec5.getChildren().add(simulationModeCb);
+        VBox sec5 = createSettingsSection("СИСТЕМНІ ПАРАМЕТРИ", "#636e72", ICON_SETTINGS);
+        sec5.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
+        simulationModeCb.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 13px;");
+        Label simDesc = new Label("Використовуйте цей режим для тестування без підключеного реле");
+        simDesc.setStyle("-fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        sec5.getChildren().addAll(simulationModeCb, simDesc);
 
         // Section 4: Announcement
-        VBox sec4 = createSettingsSection("ТЕКСТ ОГОЛОШЕННЯ (ДАШБОРД)", "#f39c12", ICON_MESSAGE);
+        VBox sec4 = createSettingsSection("ТЕКСТ ОГОЛОШЕННЯ НА ДАШБОРДІ", "#f39c12", ICON_MESSAGE);
+        sec4.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
+        announcementArea.setStyle(FIELD_STYLE + "-fx-font-size: 14px;");
         sec4.getChildren().add(announcementArea);
 
-        Button saveBtn = new Button("ЗБЕРЕГТИ ВСІ НАЛАШТУВАННЯ");
-        saveBtn.setStyle("-fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white; -fx-font-weight: 900; -fx-padding: 12 40; -fx-background-radius: 12;");
-        saveBtn.setOnAction(e -> save());
-        
-        HBox footer = new HBox(saveBtn);
-        footer.setAlignment(Pos.CENTER_RIGHT);
+        grid.add(sec1, 0, 0);
+        grid.add(sec2, 1, 0);
+        grid.add(sec3, 0, 1);
+        grid.add(sec5, 1, 1);
+        grid.add(sec4, 0, 2, 2, 1);
 
-        content.getChildren().addAll(sec1, sec2, sec3, sec5, sec4, footer);
-        root.getChildren().addAll(title, content);
+        content.getChildren().addAll(grid);
+        root.getChildren().addAll(headerArea, content);
 
         ScrollPane scroll = new ScrollPane(root);
         scroll.setFitToWidth(true);

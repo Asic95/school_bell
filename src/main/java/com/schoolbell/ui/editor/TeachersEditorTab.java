@@ -12,7 +12,7 @@ import javafx.scene.paint.Color;
 
 import java.util.List;
 
-import static com.schoolbell.ui.UIComponents.createSectionHeader;
+import static com.schoolbell.ui.UIComponents.*;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class TeachersEditorTab {
@@ -35,91 +35,85 @@ public class TeachersEditorTab {
         addField.setStyle("-fx-font-size: 14px; -fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #dfe6e9; -fx-border-radius: 12; -fx-padding: 10 15;");
         addField.setPrefWidth(550);
 
-        Button addBtn = new Button("ДОДАТИ ВЧИТЕЛЯ");
-        String addBtnStyle = "-fx-background-color: #0984e3; -fx-text-fill: white; -fx-font-weight: 900; -fx-padding: 10 30; -fx-background-radius: 12; -fx-cursor: hand;";
-        addBtn.setStyle(addBtnStyle);
-        addBtn.setOnMouseEntered(e -> addBtn.setStyle(addBtnStyle + "-fx-background-color: #076ad2; -fx-effect: dropshadow(three-pass-box, rgba(9, 132, 227, 0.3), 15, 0, 0, 5);"));
-        addBtn.setOnMouseExited(e -> addBtn.setStyle(addBtnStyle));
+        Button addBtn = createPrimaryActionButton("ДОДАТИ ВЧИТЕЛЯ", ICON_PLUS);
+        addBtn.setStyle(addBtn.getStyle().replace(COLOR_PRIMARY, "#0984e3"));
 
         FlowPane cardsContainer = new FlowPane(20, 20);
         cardsContainer.setPadding(new Insets(10));
-        ScrollPane scroll = new ScrollPane(cardsContainer);
-        scroll.setFitToWidth(true);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         refreshTeachers = () -> {
             cardsContainer.getChildren().clear();
             List<Subject> allSubs = mainApp.getAcademicService().getAllSubjects();
             for (Teacher t : mainApp.getAcademicService().getAllTeachers()) {
                 VBox card = new VBox(15);
-                card.setStyle("-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 12, 0, 0, 5); -fx-border-color: #f1f2f6; -fx-border-radius: 20;");
+                card.setStyle(SOFT_CARD + "-fx-padding: 20; -fx-border-color: #f1f2f6; -fx-border-radius: 20;");
                 card.setPrefWidth(340);
 
-                HBox header = new HBox(10);
-                header.setAlignment(Pos.CENTER_LEFT);
-                StackPane avatar = com.schoolbell.ui.UIComponents.createAvatar(t.name(), 40);
+                HBox topRow = new HBox(12);
+                topRow.setAlignment(Pos.CENTER_LEFT);
+                StackPane avatar = com.schoolbell.ui.UIComponents.createAvatar(t.name(), 44);
+                
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
 
-                StackPane nameStack = new StackPane();
+                Button edit = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
+                Button del = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
+                del.setOnAction(e -> { mainApp.getAcademicService().deleteTeacher(t.id()); refreshTeachers.run(); });
+
+                topRow.getChildren().addAll(avatar, spacer, edit, del);
+
+                VBox nameArea = new VBox(5);
                 Label nameLabel = new Label(t.name());
-                nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2d3436;");
+                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: #2d3436;");
                 nameLabel.setWrapText(true);
-                nameLabel.setMaxWidth(160);
+                nameLabel.setMaxWidth(300);
+                
                 TextField nameEdit = new TextField(t.name());
-                nameEdit.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+                nameEdit.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-background-color: #f1f2f6; -fx-background-radius: 8; -fx-padding: 8 12;");
+                nameEdit.setMaxWidth(Double.MAX_VALUE);
+                nameEdit.setManaged(false);
                 nameEdit.setVisible(false);
-                nameStack.getChildren().addAll(nameLabel, nameEdit);
-                StackPane.setAlignment(nameLabel, Pos.CENTER_LEFT);
-                nameLabel.setOnMouseClicked(e -> { nameLabel.setVisible(false); nameEdit.setVisible(true); nameEdit.requestFocus(); });
+                
+                nameArea.getChildren().addAll(nameLabel, nameEdit);
+
+                edit.setOnAction(e -> { 
+                    nameLabel.setVisible(false); nameLabel.setManaged(false);
+                    nameEdit.setVisible(true); nameEdit.setManaged(true);
+                    nameEdit.requestFocus();
+                    nameEdit.selectAll();
+                });
+
                 nameEdit.focusedProperty().addListener((obs, ov, nv) -> {
                     if (!nv) {
                         if (!nameEdit.getText().equals(t.name()) && !nameEdit.getText().isEmpty()) {
                             mainApp.getAcademicService().updateTeacher(t.id(), nameEdit.getText());
                             refreshTeachers.run();
                         } else {
-                            nameEdit.setVisible(false);
-                            nameLabel.setVisible(true);
+                            nameEdit.setVisible(false); nameEdit.setManaged(false);
+                            nameLabel.setVisible(true); nameLabel.setManaged(true);
                         }
                     }
                 });
 
-                Region spacer = new Region();
-                HBox.setHgrow(spacer, Priority.ALWAYS);
-
-                Button edit = new Button();
-                edit.setGraphic(createSVGIcon(ICON_EDIT, Color.web("#636e72"), 18));
-                edit.setPrefSize(34, 34);
-                String editStyle = "-fx-background-color: white; -fx-cursor: hand; -fx-background-radius: 10; -fx-border-color: #dfe6e9; -fx-border-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1);";
-                edit.setStyle(editStyle);
-                edit.setOnMouseEntered(e -> edit.setStyle(editStyle + "-fx-background-color: #f1f2f6; -fx-border-color: #b2bec3;"));
-                edit.setOnMouseExited(e -> edit.setStyle(editStyle));
-                edit.setOnAction(e -> { nameLabel.setVisible(false); nameEdit.setVisible(true); nameEdit.requestFocus(); });
-
-                Button del = new Button();
-                del.setGraphic(createSVGIcon(ICON_TRASH, Color.web("#ff7675"), 18));
-                del.setPrefSize(34, 34);
-                String delStyle = "-fx-background-color: white; -fx-cursor: hand; -fx-background-radius: 10; -fx-border-color: #ffeaa7; -fx-border-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1);";
-                del.setStyle(delStyle);
-                del.setOnMouseEntered(e -> del.setStyle(delStyle + "-fx-background-color: #fff5f5; -fx-border-color: #ff7675;"));
-                del.setOnMouseExited(e -> del.setStyle(delStyle));
-                del.setOnAction(e -> { mainApp.getAcademicService().deleteTeacher(t.id()); refreshTeachers.run(); });
-                header.getChildren().addAll(avatar, nameStack, spacer, edit, del);
-
                 FlowPane chips = new FlowPane(6, 6);
                 for (Subject sub : mainApp.getAcademicService().getSubjectsForTeacher(t.id())) {
-                    Label chip = new Label(sub.name() + " ✕");
-                    chip.setStyle("-fx-background-color: #d1e8ff; -fx-background-radius: 12; -fx-padding: 4 10; -fx-font-size: 11px; -fx-text-fill: #0984e3; -fx-cursor: hand;");
-                    chip.setOnMouseEntered(e -> chip.setStyle("-fx-background-color: #ff7675; -fx-background-radius: 12; -fx-padding: 4 10; -fx-font-size: 11px; -fx-text-fill: white; -fx-cursor: hand;"));
-                    chip.setOnMouseExited(e -> chip.setStyle("-fx-background-color: #d1e8ff; -fx-background-radius: 12; -fx-padding: 4 10; -fx-font-size: 11px; -fx-text-fill: #0984e3; -fx-cursor: hand;"));
+                    Label chip = new Label(sub.name().toUpperCase() + " ✕");
+                    String chipBase = "-fx-background-color: #e3f2fd; -fx-background-radius: 10; -fx-padding: 4 10; -fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: #0984e3; -fx-cursor: hand; -fx-border-color: #0984e320; -fx-border-radius: 10;";
+                    chip.setStyle(chipBase);
+                    chip.setOnMouseEntered(e -> chip.setStyle(chipBase + "-fx-background-color: #ff767515; -fx-text-fill: #ff7675; -fx-border-color: #ff767540;"));
+                    chip.setOnMouseExited(e -> chip.setStyle(chipBase));
                     chip.setOnMouseClicked(e -> { mainApp.getAcademicService().unlinkTeacherFromSubject(t.id(), sub.id()); refreshTeachers.run(); });
                     chips.getChildren().add(chip);
                 }
+                
                 ComboBox<Subject> picker = new ComboBox<>();
-                picker.setPromptText("+ додати предмет");
+                picker.setPromptText("+ ПРИЗНАЧИТИ ПРЕДМЕТ");
                 picker.getItems().setAll(allSubs);
                 picker.setMaxWidth(Double.MAX_VALUE);
-                picker.setStyle("-fx-font-size: 11px; -fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #dfe6e9;");
+                picker.setStyle(COMBO_STYLE + "-fx-font-size: 11px; -fx-font-weight: 900;");
                 picker.setOnAction(e -> { if (picker.getValue() != null) { mainApp.getAcademicService().linkTeacherToSubject(t.id(), picker.getValue().id()); refreshTeachers.run(); } });
-                card.getChildren().addAll(header, chips, picker);
+                
+                card.getChildren().addAll(topRow, nameArea, chips, picker);
                 cardsContainer.getChildren().add(card);
             }
         };
@@ -133,8 +127,12 @@ public class TeachersEditorTab {
             }
         });
 
-        content.getChildren().addAll(headerArea, new HBox(15, addField, addBtn), scroll);
+        content.getChildren().addAll(headerArea, new HBox(15, addField, addBtn), cardsContainer);
         refreshTeachers.run();
-        return content;
+
+        ScrollPane mainScroll = new ScrollPane(content);
+        mainScroll.setFitToWidth(true);
+        mainScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+        return mainScroll;
     }
 }

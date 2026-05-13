@@ -9,7 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
-import static com.schoolbell.ui.UIComponents.createSectionHeader;
+import static com.schoolbell.ui.UIComponents.*;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class ClassroomsEditorTab {
@@ -32,10 +32,10 @@ public class ClassroomsEditorTab {
         addField.setStyle(COMBO_STYLE);
         addField.setPrefWidth(550);
 
-        Button addBtn = new Button("ДОДАТИ КАБІНЕТ");
-        addBtn.setStyle("-fx-background-color: #6c5ce7; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 30; -fx-background-radius: 8;");
+        Button addBtn = createPrimaryActionButton("ДОДАТИ КАБІНЕТ", ICON_PLUS);
+        addBtn.setStyle(addBtn.getStyle().replace(COLOR_PRIMARY, "#6c5ce7"));
 
-        FlowPane classroomsContainer = new FlowPane(15, 15);
+        FlowPane classroomsContainer = new FlowPane(20, 20);
         classroomsContainer.setPadding(new Insets(10));
         ScrollPane scroll = new ScrollPane(classroomsContainer);
         scroll.setFitToWidth(true);
@@ -44,33 +44,66 @@ public class ClassroomsEditorTab {
         refreshClassrooms = () -> {
             classroomsContainer.getChildren().clear();
             for (Classroom c : mainApp.getAcademicService().getAllClassrooms()) {
-                VBox card = new VBox(8);
-                card.setStyle("-fx-background-color: #f3efff; -fx-background-radius: 16; -fx-padding: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);");
-                card.setPrefWidth(240);
+                VBox card = new VBox(15);
+                card.setStyle(SOFT_CARD + "-fx-padding: 20; -fx-border-color: #f1f2f6; -fx-border-radius: 20;");
+                card.setPrefWidth(300);
                 
-                HBox header = new HBox(8);
-                header.setAlignment(Pos.CENTER_LEFT);
+                HBox topRow = new HBox(12);
+                topRow.setAlignment(Pos.CENTER_LEFT);
                 
-                TextField edit = new TextField(c.name());
-                edit.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-font-size: 13px;");
-                HBox.setHgrow(edit, Priority.ALWAYS);
-                
-                edit.focusedProperty().addListener((obs, ov, nv) -> {
-                    if (!nv && !edit.getText().equals(c.name()) && !edit.getText().isEmpty()) {
-                        mainApp.getAcademicService().updateClassroom(c.id(), edit.getText());
-                        refreshClassrooms.run();
-                    }
-                });
+                VBox iconBox = new VBox(createSVGIcon(ICON_ROOM, Color.web("#6c5ce7"), 18));
+                iconBox.setAlignment(Pos.CENTER);
+                iconBox.setPrefSize(40, 40);
+                iconBox.setMinSize(40, 40);
+                iconBox.setMaxSize(40, 40);
+                iconBox.setStyle("-fx-background-color: #6c5ce715; -fx-background-radius: 12;");
 
-                Button del = new Button("✕");
-                del.setStyle("-fx-text-fill: #ff7675; -fx-background-color: transparent; -fx-cursor: hand;");
-                del.setOnAction(e -> { 
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                Button editBtn = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
+                Button delBtn = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
+                delBtn.setOnAction(e -> { 
                     mainApp.getAcademicService().deleteClassroom(c.id()); 
                     refreshClassrooms.run(); 
                 });
 
-                header.getChildren().addAll(createSVGIcon(ICON_ROOM, Color.web("#6c5ce7"), 16), edit, del);
-                card.getChildren().add(header);
+                topRow.getChildren().addAll(iconBox, spacer, editBtn, delBtn);
+
+                VBox nameArea = new VBox(5);
+                Label nameLabel = new Label(c.name());
+                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: #2d3436;");
+                nameLabel.setWrapText(true);
+                nameLabel.setMaxWidth(260);
+                
+                TextField nameEdit = new TextField(c.name());
+                nameEdit.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-background-color: #f1f2f6; -fx-background-radius: 8; -fx-padding: 8 12;");
+                nameEdit.setMaxWidth(Double.MAX_VALUE);
+                nameEdit.setManaged(false);
+                nameEdit.setVisible(false);
+                
+                nameArea.getChildren().addAll(nameLabel, nameEdit);
+
+                editBtn.setOnAction(e -> {
+                    nameLabel.setVisible(false); nameLabel.setManaged(false);
+                    nameEdit.setVisible(true); nameEdit.setManaged(true);
+                    nameEdit.requestFocus();
+                    nameEdit.selectAll();
+                });
+
+                nameEdit.focusedProperty().addListener((obs, ov, nv) -> {
+                    if (!nv) {
+                        if (!nameEdit.getText().equals(c.name()) && !nameEdit.getText().isEmpty()) {
+                            mainApp.getAcademicService().updateClassroom(c.id(), nameEdit.getText());
+                            refreshClassrooms.run();
+                        } else {
+                            nameEdit.setVisible(false); nameEdit.setManaged(false);
+                            nameLabel.setVisible(true); nameLabel.setManaged(true);
+                        }
+                    }
+                });
+
+                card.getChildren().addAll(topRow, nameArea);
                 classroomsContainer.getChildren().add(card);
             }
         };

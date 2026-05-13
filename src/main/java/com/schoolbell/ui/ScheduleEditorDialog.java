@@ -164,7 +164,7 @@ public class ScheduleEditorDialog {
         buttons.setAlignment(Pos.CENTER);
 
         root.getChildren().addAll(header, grid, buttons);
-        stage.setScene(new Scene(root, 400, 400));
+        stage.setScene(new Scene(root, 400, 450));
         stage.showAndWait();
     }
 
@@ -186,7 +186,6 @@ public class ScheduleEditorDialog {
         grid.setVgap(15);
 
         DatePicker datePicker = new DatePicker(entry != null ? entry.date() : defaultDate);
-        datePicker.setStyle(FIELD_STYLE);
         datePicker.setMaxWidth(Double.MAX_VALUE);
 
         Spinner<Integer> lessonSpinner = new Spinner<>(1, 10, entry != null ? entry.lessonNumber() : 1);
@@ -276,7 +275,9 @@ public class ScheduleEditorDialog {
         btnBox.setAlignment(Pos.CENTER);
 
         root.getChildren().addAll(header, grid, btnBox);
-        stage.setScene(new Scene(root, 450, 550));
+        Scene scene = new Scene(root, 450, 580);
+        scene.getStylesheets().add("data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"));
+        stage.setScene(scene);
         stage.showAndWait();
     }
 }

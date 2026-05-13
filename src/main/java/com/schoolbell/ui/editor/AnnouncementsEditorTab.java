@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.schoolbell.ui.UIComponents.createPrimaryActionButton;
 import static com.schoolbell.ui.UIComponents.createSectionHeader;
 import static com.schoolbell.ui.UIStyles.*;
 
@@ -45,24 +46,23 @@ public class AnnouncementsEditorTab {
         HBox actionToolbar = new HBox(20);
         actionToolbar.setAlignment(Pos.CENTER_LEFT);
 
-        Button addBtn = new Button("СТВОРИТИ ОГОЛОШЕННЯ");
-        String addBtnStyle = "-fx-background-color: #6c5ce7; -fx-text-fill: white; -fx-font-weight: 900; -fx-padding: 10 25; -fx-background-radius: 12; -fx-cursor: hand;";
-        addBtn.setStyle(addBtnStyle);
+        Button addBtn = createPrimaryActionButton("СТВОРИТИ ОГОЛОШЕННЯ", ICON_PLUS);
+        addBtn.setStyle(addBtn.getStyle().replace(COLOR_PRIMARY, "#6c5ce7"));
         addBtn.setOnAction(e -> openEditDialog(null));
 
         // Segmented Toggle for Active/Archive
         HBox toggleGroup = new HBox(0);
-        toggleGroup.setStyle("-fx-background-color: #dfe6e9; -fx-background-radius: 12; -fx-padding: 2;");
+        toggleGroup.setStyle("-fx-background-color: #f1f2f6; -fx-background-radius: 14; -fx-padding: 3; -fx-effect: inset 0 1 2 rgba(0,0,0,0.1);");
 
-        ToggleButton activeBtn = new ToggleButton("Активні");
-        ToggleButton archiveBtn = new ToggleButton("Архів");
+        ToggleButton activeBtn = new ToggleButton("АКТИВНІ");
+        ToggleButton archiveBtn = new ToggleButton("АРХІВ");
         ToggleGroup group = new ToggleGroup();
         activeBtn.setToggleGroup(group);
         archiveBtn.setToggleGroup(group);
         activeBtn.setSelected(true);
 
-        String activeStyle = "-fx-background-color: white; -fx-text-fill: #6c5ce7; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 20; -fx-cursor: hand;";
-        String inactiveStyle = "-fx-background-color: transparent; -fx-text-fill: #95a5a6; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 20; -fx-cursor: hand;";
+        String activeStyle = "-fx-background-color: white; -fx-text-fill: #6c5ce7; -fx-background-radius: 11; -fx-font-weight: 900; -fx-padding: 8 25; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1);";
+        String inactiveStyle = "-fx-background-color: transparent; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-background-radius: 11; -fx-font-weight: 900; -fx-padding: 8 25; -fx-cursor: hand;";
 
         activeBtn.setStyle(activeStyle);
         archiveBtn.setStyle(inactiveStyle);
@@ -87,7 +87,7 @@ public class AnnouncementsEditorTab {
 
         actionToolbar.getChildren().addAll(addBtn, spacer, toggleGroup);
 
-        VBox cardsContainer = new VBox(15);
+        VBox cardsContainer = new VBox(20);
         cardsContainer.setPadding(new Insets(10));
         ScrollPane scroll = new ScrollPane(cardsContainer);
         scroll.setFitToWidth(true);
@@ -120,11 +120,10 @@ public class AnnouncementsEditorTab {
             if (filtered.isEmpty()) {
                 VBox empty = new VBox(20);
                 empty.setAlignment(Pos.CENTER);
-                empty.setPadding(new Insets(60, 0, 60, 0));
-                Label emptyIcon = new Label("∅");
-                emptyIcon.setStyle("-fx-font-size: 48px; -fx-text-fill: #dfe6e9;");
-                Label emptyLabel = new Label(showArchived ? "Архів порожній" : "Немає активних оголошень");
-                emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #b2bec3;");
+                empty.setPadding(new Insets(80, 0, 80, 0));
+                Node emptyIcon = createSVGIcon(ICON_INFO, Color.web("#dfe6e9"), 64);
+                Label emptyLabel = new Label(showArchived ? "Архів оголошень порожній" : "Немає активних оголошень");
+                emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #b2bec3;");
                 empty.getChildren().addAll(emptyIcon, emptyLabel);
                 cardsContainer.getChildren().add(empty);
             } else {
@@ -140,50 +139,48 @@ public class AnnouncementsEditorTab {
     }
 
     private Node createAnnouncementCard(Announcement a) {
-        VBox card = new VBox(15);
-        card.setStyle("-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 12, 0, 0, 5); -fx-border-color: #f1f2f6; -fx-border-radius: 20;");
+        VBox card = new VBox(20);
+        card.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 20;");
 
-        HBox top = new HBox(20);
+        HBox top = new HBox(25);
         top.setAlignment(Pos.TOP_LEFT);
 
-        VBox iconBox = new VBox(createSVGIcon(ICON_BROADCAST, Color.web(a.isActive() ? "#6c5ce7" : "#95a5a6"), 32));
+        VBox iconBox = new VBox(createSVGIcon(ICON_BROADCAST, Color.web(a.isActive() ? "#6c5ce7" : COLOR_TEXT_DIM), 32));
         iconBox.setAlignment(Pos.CENTER);
-        iconBox.setPrefSize(60, 60);
-        iconBox.setStyle("-fx-background-color: " + (a.isActive() ? "#6c5ce715" : "#f1f2f6") + "; -fx-background-radius: 16;");
+        iconBox.setPrefSize(64, 64);
+        iconBox.setStyle("-fx-background-color: " + (a.isActive() ? "#6c5ce715" : "#f1f2f6") + "; -fx-background-radius: 18;");
 
-        VBox info = new VBox(6);
+        VBox info = new VBox(10);
         Label textLabel = new Label(a.text());
         textLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: #2d3436;");
         textLabel.setWrapText(true);
         textLabel.setMaxWidth(800);
 
-        HBox badges = new HBox(10);
+        HBox badges = new HBox(12);
         badges.setAlignment(Pos.CENTER_LEFT);
 
         String dateRange = (a.startDate() != null ? a.startDate().format(DATE_FORMATTER) : "...") + " – " + (a.endDate() != null ? a.endDate().format(DATE_FORMATTER) : "...");
-        Label dateBadge = createBadge(dateRange, "#0984e3", ICON_CALENDAR);
+        Label dateBadge = createBadge(dateRange, COLOR_PRIMARY, ICON_CALENDAR);
         
         String timeRange = (a.startTime() != null ? a.startTime() : "...") + " – " + (a.endTime() != null ? a.endTime() : "...");
-        Label timeBadge = createBadge(timeRange, "#00b894", ICON_CLOCK);
+        Label timeBadge = createBadge(timeRange, COLOR_SUCCESS, ICON_CLOCK);
         
         badges.getChildren().addAll(dateBadge, timeBadge);
         
         if (a.daysOfWeek() != null && !a.daysOfWeek().isEmpty()) {
-            badges.getChildren().add(createBadge(getDaysText(a.daysOfWeek()), "#e67e22", ICON_CALENDAR));
+            badges.getChildren().add(createBadge(getDaysText(a.daysOfWeek()).toUpperCase(), "#e67e22", ICON_CALENDAR));
         }
 
         info.getChildren().addAll(textLabel, badges);
         HBox.setHgrow(info, Priority.ALWAYS);
 
-        VBox actions = new VBox(10);
-        actions.setAlignment(Pos.CENTER_RIGHT);
+        HBox actions = new HBox(10);
+        actions.setAlignment(Pos.TOP_RIGHT);
         
-        Button editBtn = new Button("РЕДАГУВАТИ");
-        editBtn.setStyle("-fx-background-color: #f1f2f6; -fx-text-fill: #636e72; -fx-font-weight: 900; -fx-font-size: 10px; -fx-padding: 8 15; -fx-background-radius: 8; -fx-cursor: hand;");
+        Button editBtn = com.schoolbell.ui.UIComponents.createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
         editBtn.setOnAction(e -> openEditDialog(a));
         
-        Button delBtn = new Button("ВИДАЛИТИ");
-        delBtn.setStyle("-fx-background-color: #fff5f5; -fx-text-fill: #ff7675; -fx-font-weight: 900; -fx-font-size: 10px; -fx-padding: 8 15; -fx-background-radius: 8; -fx-cursor: hand;");
+        Button delBtn = com.schoolbell.ui.UIComponents.createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
         delBtn.setOnAction(e -> {
             announcementService.deleteAnnouncement(a.id());
             refreshList.run();
@@ -200,8 +197,8 @@ public class AnnouncementsEditorTab {
     private Label createBadge(String text, String color, String icon) {
         Label l = new Label(text);
         l.setGraphic(createSVGIcon(icon, Color.web(color), 12));
-        l.setGraphicTextGap(6);
-        l.setStyle("-fx-background-color: " + color + "15; -fx-text-fill: " + color + "; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 4 10; -fx-background-radius: 8;");
+        l.setGraphicTextGap(8);
+        l.setStyle("-fx-background-color: " + color + "10; -fx-text-fill: " + color + "; -fx-font-size: 10px; -fx-font-weight: 900; -fx-padding: 5 12; -fx-background-radius: 10; -fx-border-color: " + color + "25; -fx-border-radius: 10;");
         return l;
     }
 
@@ -244,7 +241,6 @@ public class AnnouncementsEditorTab {
 
         DatePicker startPicker = new DatePicker(a != null ? a.startDate() : LocalDate.now());
         DatePicker endPicker = new DatePicker(a != null ? a.endDate() : LocalDate.now().plusWeeks(1));
-        startPicker.setStyle(FIELD_STYLE); endPicker.setStyle(FIELD_STYLE);
 
         TextField startTimeField = new TextField(a != null && a.startTime() != null ? a.startTime().toString() : "08:00");
         TextField endTimeField = new TextField(a != null && a.endTime() != null ? a.endTime().toString() : "18:00");
@@ -305,7 +301,9 @@ public class AnnouncementsEditorTab {
         root.getChildren().addAll(header, new Label("ТЕКСТ ПОВІДОМЛЕННЯ:"), textArea, grid, activeCb, new HBox(saveBtn));
         ((HBox)root.getChildren().get(root.getChildren().size()-1)).setAlignment(Pos.CENTER);
 
-        stage.setScene(new Scene(root, 550, 650));
+        Scene scene = new Scene(root, 550, 720);
+        scene.getStylesheets().add("data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"));
+        stage.setScene(scene);
         stage.showAndWait();
     }
 }
