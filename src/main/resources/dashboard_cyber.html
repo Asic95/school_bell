@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Bell Dashboard - Cyber</title>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --panel-bg: rgba(10, 10, 10, 0.8);
+            --neon-blue: #00f2ff;
+            --neon-purple: #bc13fe;
+            --neon-green: #39ff14;
+            --neon-red: #ff3131;
+            --neon-yellow: #fff200;
+            --text-main: #ffffff;
+            --text-dim: #888888;
+        }
+
+        @font-face {
+            font-family: 'Digital';
+            src: local('Courier New'), local('monospace');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* LEFT COLUMN: Main Info & Stats */
+        .left-col {
+            flex: 0 0 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .cyber-panel {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.05);
+            position: relative;
+            padding: 25px;
+            overflow: hidden;
+        }
+
+        .cyber-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--neon-blue);
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .corner-accent {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border: 2px solid var(--neon-blue);
+        }
+
+        .corner-tl { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+        .corner-tr { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+        .corner-br { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+        .time-panel {
+            flex: 0 0 auto;
+            text-align: center;
+        }
+
+        #clock {
+            font-family: 'Digital', monospace;
+            font-size: 110px;
+            font-weight: 900;
+            line-height: 1;
+            color: var(--neon-blue);
+            text-shadow: 0 0 30px rgba(0, 242, 255, 0.6);
+            letter-spacing: -5px;
+        }
+
+        #header-date {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-top: 10px;
+        }
+
+        .countdown-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-color: rgba(188, 19, 254, 0.3);
+        }
+
+        .countdown-panel::before { background: var(--neon-purple); box-shadow: 0 0 15px var(--neon-purple); }
+        .countdown-panel .corner-accent { border-color: var(--neon-purple); }
+
+        .countdown-label {
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        #countdown-text {
+            font-size: 84px;
+            font-weight: 900;
+            color: var(--neon-purple);
+            text-shadow: 0 0 30px rgba(188, 19, 254, 0.6);
+        }
+
+        .school-panel {
+            padding: 15px 25px;
+        }
+
+        .school-name {
+            font-size: 24px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: -1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* RIGHT COLUMN: Schedule */
+        .right-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .schedule-title {
+            font-size: 14px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            color: var(--neon-blue);
+        }
+
+        .schedule-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 15px;
+            align-content: start;
+        }
+
+        .lesson-card {
+            background: rgba(20, 20, 20, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .lesson-card.current {
+            border-color: var(--neon-blue);
+            background: rgba(0, 242, 255, 0.05);
+            box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.1);
+        }
+
+        .lesson-card.replacement {
+            border-color: var(--neon-red);
+        }
+
+        .lesson-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .lesson-class {
+            font-size: 32px;
+            font-weight: 900;
+            color: white;
+        }
+
+        .lesson-status {
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border: 1px solid currentColor;
+        }
+
+        .status-current { color: var(--neon-blue); }
+        .status-upcoming { color: var(--neon-yellow); }
+        .status-replacement { color: var(--neon-red); }
+        .status-normal { color: var(--neon-green); }
+
+        .lesson-subject {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--neon-blue);
+            line-height: 1.2;
+        }
+
+        .lesson-bottom {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dim);
+        }
+
+        .teacher-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .replacement-label {
+            color: var(--neon-red);
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 900;
+        }
+
+        .original-teacher {
+            text-decoration: line-through;
+            font-size: 14px;
+        }
+
+        .room-info {
+            font-size: 24px;
+            font-weight: 900;
+            color: white;
+        }
+
+        /* FOOTER: Announcements */
+        .footer-panel {
+            flex: 0 0 60px;
+            padding: 0 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-color: rgba(57, 255, 20, 0.3);
+        }
+
+        .footer-panel::before { background: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
+
+        .ann-label {
+            color: var(--neon-green);
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+
+        .ann-text {
+            flex: 1;
+            font-size: 20px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .ann-scroller {
+            display: inline-block;
+            padding-left: 100%;
+            animation: scroller 20s linear infinite;
+        }
+
+        @keyframes scroller {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+
+        /* EMERGENCY */
+        #emergency-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            display: none;
+            background: rgba(0, 0, 0, 0.9);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 10px solid var(--neon-red);
+            animation: border-pulse 0.5s infinite alternate;
+        }
+
+        @keyframes border-pulse {
+            from { border-color: rgba(255, 49, 49, 0.5); }
+            to { border-color: rgba(255, 49, 49, 1); }
+        }
+
+        .em-text {
+            font-size: 120px;
+            font-weight: 900;
+            color: var(--neon-red);
+            text-shadow: 0 0 50px var(--neon-red);
+            text-align: center;
+        }
+
+        .em-sub {
+            font-size: 40px;
+            color: white;
+            margin-top: 20px;
+            letter-spacing: 10px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="left-col">
+        <div class="cyber-panel school-panel">
+            <div class="corner-accent corner-tl"></div>
+            <div class="corner-accent corner-tr"></div>
+            <div class="corner-accent corner-bl"></div>
+            <div class="corner-accent corner-br"></div>
+            <div class="school-name" id="school-name">SYSTEM LOADED</div>
+            <div style="font-size: 10px; color: var(--neon-blue); letter-spacing: 2px;">CORE_SEC_ALPHA_24</div>
+        </div>
+
+        <div class="cyber-panel time-panel">
+            <div class="corner-accent corner-tl"></div>
+            <div class="corner-accent corner-tr"></div>
+            <div class="corner-accent corner-bl"></div>
+            <div class="corner-accent corner-br"></div>
+            <div id="clock">00:00</div>
+            <div id="header-date">-- / -- / ----</div>
+        </div>
+
+        <div class="cyber-panel countdown-panel">
+            <div class="corner-accent corner-tl"></div>
+            <div class="corner-accent corner-tr"></div>
+            <div class="corner-accent corner-bl"></div>
+            <div class="corner-accent corner-br"></div>
+            <div class="countdown-label" id="countdown-label">NEXT EVENT IN</div>
+            <div id="countdown-text">--:--</div>
+        </div>
+
+        <div class="cyber-panel" style="flex: 0 0 100px; border-color: rgba(255, 242, 0, 0.2);">
+            <div class="corner-accent corner-tl" style="border-color: var(--neon-yellow);"></div>
+            <div class="corner-accent corner-tr" style="border-color: var(--neon-yellow);"></div>
+            <div class="corner-accent corner-bl" style="border-color: var(--neon-yellow);"></div>
+            <div class="corner-accent corner-br" style="border-color: var(--neon-yellow);"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; height: 100%;">
+                <div>
+                    <div style="font-size: 10px; color: var(--text-dim); letter-spacing: 2px;">STATUS</div>
+                    <div style="font-size: 20px; font-weight: 900; color: var(--neon-yellow);" id="status-title">STANDBY</div>
+                </div>
+                <div id="conn-dot" style="width: 20px; height: 20px; border-radius: 50%; background: var(--neon-red); box-shadow: 0 0 15px var(--neon-red);"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <div class="schedule-header">
+            <div class="schedule-title">ACTIVE_SCHEDULE_DATA</div>
+            <div style="font-size: 10px; color: var(--text-dim);" id="page-info">PAGE 1 / 1</div>
+        </div>
+        <div class="schedule-grid" id="schedule-grid">
+            <!-- Cards will be injected here -->
+        </div>
+        <div class="cyber-panel footer-panel">
+            <div class="corner-accent corner-tl"></div>
+            <div class="corner-accent corner-tr"></div>
+            <div class="corner-accent corner-bl"></div>
+            <div class="corner-accent corner-br"></div>
+            <div class="ann-label">BROADCAST:</div>
+            <div class="ann-text">
+                <div class="ann-scroller" id="announcement-text">INITIALIZING SYSTEM ENCRYPTION... STANDING BY...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="emergency-overlay">
+        <div class="em-text" id="em-title">WARNING</div>
+        <div class="em-sub" id="em-desc">SEEK COVER IMMEDIATELY</div>
+    </div>
+
+    <script>
+        let socket;
+        let currentPage = 0;
+        const rowsPerPage = 12;
+        let allRows = [];
+        let paginationTimeout = null;
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', hour12: false });
+            document.getElementById('header-date').textContent = now.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\./g, ' / ');
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function connectWS() {
+            const currentPort = parseInt(window.location.port) || 80;
+            const wsPort = currentPort + 2;
+            const wsUrl = `ws://${window.location.hostname}:${wsPort}`;
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                document.getElementById('conn-dot').style.background = 'var(--neon-green)';
+                document.getElementById('conn-dot').style.boxShadow = '0 0 15px var(--neon-green)';
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleUpdate(data);
+            };
+
+            socket.onclose = () => {
+                document.getElementById('conn-dot').style.background = 'var(--neon-red)';
+                document.getElementById('conn-dot').style.boxShadow = '0 0 15px var(--neon-red)';
+                setTimeout(connectWS, 5000);
+            };
+        }
+
+        function handleUpdate(data) {
+            if (data.schoolName) document.getElementById('school-name').textContent = data.schoolName.toUpperCase();
+            if (data.announcement) document.getElementById('announcement-text').textContent = data.announcement.toUpperCase();
+            
+            const overlay = document.getElementById('emergency-overlay');
+            const alert = data.alertType;
+            if (alert && alert !== 'NONE') {
+                overlay.style.display = 'flex';
+                if (alert === 'SILENCE') {
+                    overlay.style.borderColor = 'var(--neon-blue)';
+                    document.getElementById('em-title').style.color = 'var(--neon-blue)';
+                    document.getElementById('em-title').style.textShadow = '0 0 50px var(--neon-blue)';
+                    document.getElementById('em-title').textContent = 'SILENCE';
+                    document.getElementById('em-desc').textContent = 'IN MEMORY OF HEROES';
+                } else {
+                    overlay.style.borderColor = 'var(--neon-red)';
+                    document.getElementById('em-title').style.color = 'var(--neon-red)';
+                    document.getElementById('em-title').style.textShadow = '0 0 50px var(--neon-red)';
+                    document.getElementById('em-title').textContent = alert === 'AIR_RAID' ? 'AIR RAID' : 'WARNING';
+                    document.getElementById('em-desc').textContent = 'FOLLOW PROTOCOL';
+                }
+            } else {
+                overlay.style.display = 'none';
+            }
+
+            if (data.schoolStatus) {
+                document.getElementById('status-title').textContent = data.schoolStatus.title.toUpperCase();
+                document.getElementById('countdown-label').textContent = data.schoolStatus.type === 'BREAK' ? 'NEXT LESSON IN' : 'NEXT BELL IN';
+            }
+
+            if (data.rows) {
+                const newData = JSON.stringify(data.rows);
+                if (window.lastRowsData !== newData) {
+                    window.lastRowsData = newData;
+                    allRows = data.rows;
+                    renderGrid();
+                }
+            }
+
+            if (data.countdown) {
+                document.getElementById('countdown-text').textContent = data.countdown;
+            }
+        }
+
+        function renderGrid() {
+            if (paginationTimeout) clearTimeout(paginationTimeout);
+            const grid = document.getElementById('schedule-grid');
+            grid.innerHTML = '';
+            
+            const totalPages = Math.ceil(allRows.length / rowsPerPage);
+            document.getElementById('page-info').textContent = `PAGE ${currentPage + 1} / ${totalPages || 1}`;
+
+            const start = currentPage * rowsPerPage;
+            const pageRows = allRows.slice(start, start + rowsPerPage);
+
+            pageRows.forEach((row) => {
+                const card = document.createElement('div');
+                card.className = 'lesson-card';
+                if (row.isReplacement) card.classList.add('replacement');
+                if (row.statusClass === 'current') card.classList.add('current');
+                
+                let sClass = row.statusClass || 'normal';
+                let sText = sClass === 'current' ? 'ACTIVE' : sClass === 'upcoming' ? 'NEXT' : row.isReplacement ? 'REPLACED' : 'OK';
+                
+                let teacherHtml = `<span>${row.teacher}</span>`;
+                if (row.isReplacement) {
+                    teacherHtml = `<div class="teacher-info"><span class="replacement-label">REPLACEMENT</span><span class="original-teacher">${row.originalTeacher}</span><span>${row.teacher}</span></div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="lesson-top">
+                        <div class="lesson-class">${row.className}</div>
+                        <div class="lesson-status status-${row.isReplacement && sClass !== 'current' ? 'replacement' : sClass}">${sText}</div>
+                    </div>
+                    <div class="lesson-subject">${row.subject}</div>
+                    <div class="lesson-bottom">
+                        ${teacherHtml}
+                        <div class="room-info">R:${row.room}</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            if (allRows.length > rowsPerPage) {
+                paginationTimeout = setTimeout(() => {
+                    currentPage = (currentPage + 1) % totalPages;
+                    renderGrid();
+                }, 10000);
+            }
+        }
+
+        connectWS();
+    </script>
+</body>
+</html>

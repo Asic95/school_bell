@@ -89,9 +89,6 @@ public class AnnouncementsEditorTab {
 
         VBox cardsContainer = new VBox(20);
         cardsContainer.setPadding(new Insets(10));
-        ScrollPane scroll = new ScrollPane(cardsContainer);
-        scroll.setFitToWidth(true);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         refreshList = () -> {
             cardsContainer.getChildren().clear();
@@ -133,7 +130,7 @@ public class AnnouncementsEditorTab {
             }
         };
 
-        content.getChildren().addAll(headerArea, actionToolbar, scroll);
+        content.getChildren().addAll(headerArea, actionToolbar, cardsContainer);
         refreshList.run();
         return content;
     }
@@ -148,6 +145,7 @@ public class AnnouncementsEditorTab {
         VBox iconBox = new VBox(createSVGIcon(ICON_BROADCAST, Color.web(a.isActive() ? "#6c5ce7" : COLOR_TEXT_DIM), 32));
         iconBox.setAlignment(Pos.CENTER);
         iconBox.setPrefSize(64, 64);
+        iconBox.setMinSize(64, 64);
         iconBox.setStyle("-fx-background-color: " + (a.isActive() ? "#6c5ce715" : "#f1f2f6") + "; -fx-background-radius: 18;");
 
         VBox info = new VBox(10);
@@ -156,8 +154,9 @@ public class AnnouncementsEditorTab {
         textLabel.setWrapText(true);
         textLabel.setMaxWidth(800);
 
-        HBox badges = new HBox(12);
+        FlowPane badges = new FlowPane(12, 10);
         badges.setAlignment(Pos.CENTER_LEFT);
+        badges.setPrefWrapLength(700); // Trigger wrap earlier for better readability on laptops
 
         String dateRange = (a.startDate() != null ? a.startDate().format(DATE_FORMATTER) : "...") + " – " + (a.endDate() != null ? a.endDate().format(DATE_FORMATTER) : "...");
         Label dateBadge = createBadge(dateRange, COLOR_PRIMARY, ICON_CALENDAR);
@@ -261,11 +260,20 @@ public class AnnouncementsEditorTab {
         activeCb.setSelected(a == null || a.isActive());
         activeCb.setStyle("-fx-font-weight: bold;");
 
-        grid.add(new Label("Початок (дата):"), 0, 0); grid.add(startPicker, 1, 0);
-        grid.add(new Label("Кінець (дата):"), 0, 1); grid.add(endPicker, 1, 1);
-        grid.add(new Label("Початок (час):"), 0, 2); grid.add(startTimeField, 1, 2);
-        grid.add(new Label("Кінець (час):"), 0, 3); grid.add(endTimeField, 1, 3);
-        grid.add(new Label("Дні тижня:"), 0, 4); grid.add(daysBox, 1, 4);
+        Label startDL = new Label("Початок (дата):"); startDL.setStyle(HEADER_STYLE);
+        grid.add(startDL, 0, 0); grid.add(startPicker, 1, 0);
+        
+        Label endDL = new Label("Кінець (дата):"); endDL.setStyle(HEADER_STYLE);
+        grid.add(endDL, 0, 1); grid.add(endPicker, 1, 1);
+        
+        Label startTL = new Label("Початок (час):"); startTL.setStyle(HEADER_STYLE);
+        grid.add(startTL, 0, 2); grid.add(startTimeField, 1, 2);
+        
+        Label endTL = new Label("Кінець (час):"); endTL.setStyle(HEADER_STYLE);
+        grid.add(endTL, 0, 3); grid.add(endTimeField, 1, 3);
+        
+        Label daysL = new Label("Дні тижня:"); daysL.setStyle(HEADER_STYLE);
+        grid.add(daysL, 0, 4); grid.add(daysBox, 1, 4);
 
         Button saveBtn = new Button("ЗБЕРЕГТИ");
         saveBtn.setStyle(BTN_BASE + "-fx-background-color: #27ae60; -fx-padding: 12 50;");
@@ -298,7 +306,9 @@ public class AnnouncementsEditorTab {
             stage.close();
         });
 
-        root.getChildren().addAll(header, new Label("ТЕКСТ ПОВІДОМЛЕННЯ:"), textArea, grid, activeCb, new HBox(saveBtn));
+        Label textL = new Label("ТЕКСТ ПОВІДОМЛЕННЯ:");
+        textL.setStyle(HEADER_STYLE);
+        root.getChildren().addAll(header, textL, textArea, grid, activeCb, new HBox(saveBtn));
         ((HBox)root.getChildren().get(root.getChildren().size()-1)).setAlignment(Pos.CENTER);
 
         Scene scene = new Scene(root, 550, 720);

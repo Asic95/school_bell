@@ -109,6 +109,72 @@ public class DatabaseManager {
         }
     }
 
+    public static java.util.List<com.schoolbell.model.MediaEvent> getAllMediaEvents() {
+        java.util.List<com.schoolbell.model.MediaEvent> events = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM media_events";
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                events.add(new com.schoolbell.model.MediaEvent(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("path"),
+                        rs.getString("type"),
+                        rs.getString("time"),
+                        rs.getString("days_of_week"),
+                        rs.getString("date"),
+                        rs.getInt("is_active") == 1,
+                        rs.getInt("is_folder") == 1,
+                        rs.getInt("duration_minutes"),
+                        rs.getString("break_anchor"),
+                        rs.getInt("break_offset")
+                ));
+            }
+        } catch (SQLException e) {
+            logger.error("Failed to load media events", e);
+        }
+        return events;
+    }
+
+    public static void saveMediaEvent(com.schoolbell.model.MediaEvent event) {
+        String sql;
+        if (event.id() == null) {
+            sql = "INSERT INTO media_events (name, path, type, time, days_of_week, date, is_active, is_folder, duration_minutes, break_anchor, break_offset) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        } else {
+            sql = "UPDATE media_events SET name=?, path=?, type=?, time=?, days_of_week=?, date=?, is_active=?, is_folder=?, duration_minutes=?, break_anchor=?, break_offset=? WHERE id=?";
+        }
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, event.name());
+            pstmt.setString(2, event.path());
+            pstmt.setString(3, event.type());
+            pstmt.setString(4, event.time());
+            pstmt.setString(5, event.daysOfWeek());
+            pstmt.setString(6, event.date());
+            pstmt.setInt(7, event.isActive() ? 1 : 0);
+            pstmt.setInt(8, event.isFolder() ? 1 : 0);
+            pstmt.setInt(9, event.durationMinutes());
+            pstmt.setString(10, event.breakAnchor() != null ? event.breakAnchor() : "START");
+            pstmt.setInt(11, event.breakOffset());
+            if (event.id() != null) pstmt.setInt(12, event.id());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Failed to save media event", e);
+        }
+    }
+
+    public static void deleteMediaEvent(int id) {
+        String sql = "DELETE FROM media_events WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Failed to delete media event: " + id, e);
+        }
+    }
+
     public static void initialize() {
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
@@ -204,6 +270,33 @@ public class DatabaseManager {
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "name TEXT NOT NULL" +
                     ")");
+
+            // Media Events table
+            stmt.execute("CREATE TABLE IF NOT EXISTS media_events (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "name TEXT NOT NULL," +
+                    "path TEXT NOT NULL," +
+                    "type TEXT NOT NULL," +
+                    "time TEXT," +
+                    "days_of_week TEXT," +
+                    "date TEXT," +
+                    "is_active INTEGER DEFAULT 1," +
+                    "is_folder INTEGER DEFAULT 0," +
+                    "duration_minutes INTEGER DEFAULT 0," +
+                    "break_anchor TEXT DEFAULT 'START'," +
+                    "break_offset INTEGER DEFAULT 0" +
+                    ")");
+
+            // Migration: Add break_anchor and break_offset to media_events if they don't exist
+            try (ResultSet rs = conn.getMetaData().getColumns(null, null, "media_events", "break_anchor")) {
+                if (!rs.next()) {
+                    logger.info("Adding break_anchor and break_offset to media_events table...");
+                    stmt.execute("ALTER TABLE media_events ADD COLUMN break_anchor TEXT DEFAULT 'START'");
+                    stmt.execute("ALTER TABLE media_events ADD COLUMN break_offset INTEGER DEFAULT 0");
+                }
+            } catch (Exception e) {
+                logger.warn("Media events migration skipped: " + e.getMessage());
+            }
 
             // Migration: Check if we need to add new columns to broadcast_devices
             try (ResultSet rs = conn.getMetaData().getColumns(null, null, "broadcast_devices", "device_type")) {

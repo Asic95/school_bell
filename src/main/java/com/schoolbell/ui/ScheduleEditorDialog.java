@@ -72,8 +72,12 @@ public class ScheduleEditorDialog {
         VBox header = createSectionHeader("Редагування уроку", schoolClass.name() + " | Урок " + lesson, COLOR_PRIMARY, ICON_EDIT);
 
         GridPane grid = new GridPane();
-        grid.setHgap(15);
+        grid.setHgap(5);
         grid.setVgap(15);
+        ColumnConstraints col1 = new ColumnConstraints();
+        col1.setMinWidth(130);
+        col1.setPrefWidth(130);
+        grid.getColumnConstraints().addAll(col1, new ColumnConstraints());
 
         ComboBox<Teacher> teacherCombo = new ComboBox<>();
         teacherCombo.getItems().addAll(allTeachers);
@@ -124,13 +128,20 @@ public class ScheduleEditorDialog {
                     allClasses.stream().filter(c -> c.id() == e.classroomId()).findFirst().ifPresent(classroomCombo::setValue);
                 });
 
-        grid.add(new Label("Вчитель:"), 0, 0);
+        Label teacherL = new Label("Вчитель:"); teacherL.setStyle(HEADER_STYLE);
+        grid.add(teacherL, 0, 0);
         grid.add(teacherCombo, 1, 0);
-        grid.add(new Label("Предмет:"), 0, 1);
+        
+        Label subjectL = new Label("Предмет:"); subjectL.setStyle(HEADER_STYLE);
+        grid.add(subjectL, 0, 1);
         grid.add(subjectCombo, 1, 1);
-        grid.add(new Label("Кабінет:"), 0, 2);
+        
+        Label classroomL = new Label("Кабінет:"); classroomL.setStyle(HEADER_STYLE);
+        grid.add(classroomL, 0, 2);
         grid.add(classroomCombo, 1, 2);
-        grid.add(new Label("Тиждень:"), 0, 3);
+        
+        Label weekL = new Label("Тиждень:"); weekL.setStyle(HEADER_STYLE);
+        grid.add(weekL, 0, 3);
         grid.add(parityCombo, 1, 3);
 
         Button saveBtn = new Button("ЗБЕРЕГТИ");
@@ -164,7 +175,10 @@ public class ScheduleEditorDialog {
         buttons.setAlignment(Pos.CENTER);
 
         root.getChildren().addAll(header, grid, buttons);
-        stage.setScene(new Scene(root, 400, 450));
+        Scene scene = new Scene(root, 400, 450);
+        scene.getStylesheets().add("data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"));
+        scene.getStylesheets().add("data:text/css," + MODERN_SPINNER_STYLE.replace(" ", "%20"));
+        stage.setScene(scene);
         stage.showAndWait();
     }
 
@@ -182,8 +196,12 @@ public class ScheduleEditorDialog {
         VBox header = createSectionHeader(entry == null ? "Нова заміна" : "Редагування", "Оберіть параметри заміни", COLOR_WARNING, ICON_CALENDAR);
 
         GridPane grid = new GridPane();
-        grid.setHgap(15);
+        grid.setHgap(5);
         grid.setVgap(15);
+        ColumnConstraints col1 = new ColumnConstraints();
+        col1.setMinWidth(130);
+        col1.setPrefWidth(130);
+        grid.getColumnConstraints().addAll(col1, new ColumnConstraints());
 
         DatePicker datePicker = new DatePicker(entry != null ? entry.date() : defaultDate);
         datePicker.setMaxWidth(Double.MAX_VALUE);
@@ -237,17 +255,28 @@ public class ScheduleEditorDialog {
             allClasses.stream().filter(c -> c.id() == entry.classroomId()).findFirst().ifPresent(classroomCombo::setValue);
         }
 
-        grid.add(new Label("Дата:"), 0, 0);
+        Label dateL = new Label("Дата:"); dateL.setStyle(HEADER_STYLE);
+        grid.add(dateL, 0, 0);
         grid.add(datePicker, 1, 0);
-        grid.add(new Label("Урок №:"), 0, 1);
+        
+        Label lessonL = new Label("Урок №:"); lessonL.setStyle(HEADER_STYLE);
+        grid.add(lessonL, 0, 1);
         grid.add(lessonSpinner, 1, 1);
-        grid.add(new Label("Клас:"), 0, 2);
+        
+        Label classL = new Label("Клас:"); classL.setStyle(HEADER_STYLE);
+        grid.add(classL, 0, 2);
         grid.add(classCombo, 1, 2);
-        grid.add(new Label("Вчитель:"), 0, 3);
+        
+        Label teacherSubL = new Label("Вчитель:"); teacherSubL.setStyle(HEADER_STYLE);
+        grid.add(teacherSubL, 0, 3);
         grid.add(teacherCombo, 1, 3);
-        grid.add(new Label("Предмет:"), 0, 4);
+        
+        Label subjectSubL = new Label("Предмет:"); subjectSubL.setStyle(HEADER_STYLE);
+        grid.add(subjectSubL, 0, 4);
         grid.add(subjectCombo, 1, 4);
-        grid.add(new Label("Кабінет:"), 0, 5);
+        
+        Label roomL = new Label("Кабінет:"); roomL.setStyle(HEADER_STYLE);
+        grid.add(roomL, 0, 5);
         grid.add(classroomCombo, 1, 5);
 
         Button saveBtn = new Button("ЗБЕРЕГТИ");
@@ -277,6 +306,7 @@ public class ScheduleEditorDialog {
         root.getChildren().addAll(header, grid, btnBox);
         Scene scene = new Scene(root, 450, 580);
         scene.getStylesheets().add("data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"));
+        scene.getStylesheets().add("data:text/css," + MODERN_SPINNER_STYLE.replace(" ", "%20"));
         stage.setScene(scene);
         stage.showAndWait();
     }

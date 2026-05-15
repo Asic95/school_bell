@@ -32,12 +32,22 @@ public class UIStyles {
     public static final String DEPTH_3 = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 6, 0, 0, 2);";
 
     // Styles
-    public static final String HEADER_STYLE = "-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 1.5px;";
+    public static final String HEADER_STYLE = "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 1.5px;";
     public static final String SUB_HEADER_STYLE = "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + "; -fx-letter-spacing: 0.5px;";
     public static final String VALUE_STYLE = "-fx-font-size: 26px; -fx-font-family: 'Monospaced'; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + ";";
     public static final String BTN_BASE = "-fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 12; -fx-cursor: hand;";
     public static final String COMBO_STYLE = "-fx-font-size: 14px; -fx-background-color: white; -fx-background-insets: 0; -fx-background-radius: 8; -fx-border-color: #dfe6e9; -fx-border-radius: 8; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;";
     public static final String FIELD_STYLE = "-fx-font-size: 14px; -fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #dfe6e9; -fx-border-radius: 8; -fx-padding: 8;";
+
+    public static final String MODERN_SPINNER_STYLE = 
+        ".spinner { -fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #dfe6e9; -fx-border-radius: 8; } " +
+        ".spinner > .text-field { -fx-font-size: 14px; -fx-background-color: white; -fx-background-radius: 8 0 0 8; -fx-background-insets: 0; -fx-padding: 8; } " +
+        ".spinner > .increment-arrow-button, .spinner > .decrement-arrow-button { -fx-background-color: #f1f2f6; -fx-background-insets: 0; -fx-cursor: hand; } " +
+        ".spinner > .increment-arrow-button { -fx-background-radius: 0 8 0 0; } " +
+        ".spinner > .decrement-arrow-button { -fx-background-radius: 0 0 8 0; } " +
+        ".spinner > .increment-arrow-button:hover, .spinner > .decrement-arrow-button:hover { -fx-background-color: " + COLOR_PRIMARY + "22; } " +
+        ".spinner > .increment-arrow-button > .increment-arrow { -fx-shape: \"M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z\"; -fx-background-color: " + COLOR_PRIMARY + "; -fx-scale-x: 0.8; -fx-scale-y: 0.8; } " +
+        ".spinner > .decrement-arrow-button > .decrement-arrow { -fx-shape: \"M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z\"; -fx-background-color: " + COLOR_PRIMARY + "; -fx-scale-x: 0.8; -fx-scale-y: 0.8; } ";
 
     public static final String TAB_STYLE = ".tab-pane .tab-header-area .tab-header-background { -fx-background-color: transparent; } " +
             ".tab-pane .tab { -fx-background-color: #e1e4e8; -fx-background-radius: 10 10 0 0; -fx-padding: 8 20; -fx-background-insets: 0 1 0 1; } " +
@@ -56,8 +66,8 @@ public class UIStyles {
 
     public static final String MODERN_DATE_PICKER_STYLE = 
         ".date-picker { -fx-background-color: transparent; } " +
-        ".date-picker > .text-field { -fx-background-color: white; -fx-background-radius: 12 0 0 12; -fx-border-color: #dfe6e9; -fx-border-radius: 12 0 0 12; -fx-border-width: 1 0 1 1; -fx-padding: 10; } " +
-        ".date-picker > .arrow-button { -fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 0 12 12 0; -fx-padding: 10; -fx-cursor: hand; } " +
+        ".date-picker > .text-field { -fx-font-size: 14px; -fx-background-color: white; -fx-background-radius: 12 0 0 12; -fx-border-color: #dfe6e9; -fx-border-radius: 12 0 0 12; -fx-border-width: 1 0 1 1; -fx-padding: 8; } " +
+        ".date-picker > .arrow-button { -fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 0 12 12 0; -fx-padding: 8; -fx-cursor: hand; } " +
         ".date-picker > .arrow-button > .arrow { -fx-shape: \"M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z\"; -fx-background-color: white; -fx-padding: 8; } " +
         ".date-picker-popup { -fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 12, 0, 0, 8); -fx-border-color: #dfe6e9; -fx-border-width: 1; -fx-border-radius: 16; } " +
         ".date-picker-popup > .month-year-pane { -fx-background-color: white; -fx-background-radius: 16 16 0 0; -fx-padding: 10; } " +

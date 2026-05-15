@@ -150,6 +150,7 @@ public class EfirView {
         HBox.setHgrow(leftCol, Priority.ALWAYS);
         VBox rightCol = new VBox(25);
         rightCol.setPrefWidth(550); // Wider for full actions
+        rightCol.setMinWidth(550);  // Prevent compression by left column content
 
         // --- LEFT: ANNOUNCEMENTS ---
         VBox scheduledContainer = new VBox();
@@ -185,13 +186,10 @@ public class EfirView {
         Region s2 = new Region(); HBox.setHgrow(s2, Priority.ALWAYS);
         devHeader.getChildren().addAll(s2, refreshBtn);
         
-        ScrollPane devScroll = new ScrollPane(deviceListContainer);
-        devScroll.setFitToWidth(true);
-        devScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
-        devScroll.setPrefHeight(600);
-        
-        devicesCard.getChildren().add(devScroll);
-        VBox.setVgrow(devScroll, Priority.ALWAYS);
+        // Unified scrolling: Use a simple VBox instead of a ScrollPane with fixed height
+        deviceListContainer.setPadding(new Insets(10, 0, 0, 0));
+        devicesCard.getChildren().add(deviceListContainer);
+        VBox.setVgrow(deviceListContainer, Priority.ALWAYS);
 
         rightCol.getChildren().add(devicesCard);
 

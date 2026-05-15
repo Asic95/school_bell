@@ -548,4 +548,41 @@ public class UIComponents {
         TextField f = new TextField(val); f.setPrefWidth(70); f.setAlignment(Pos.CENTER);
         f.setStyle("-fx-font-size: 14px; -fx-background-color: white; -fx-background-insets: 0; -fx-background-radius: 6; -fx-border-color: #dfe6e9; -fx-border-radius: 6; -fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-padding: 4 7;"); return f;
     }
+
+    public static ToggleButton createToggleSwitch(boolean initialState) {
+        ToggleButton btn = new ToggleButton();
+        btn.setSelected(initialState);
+        btn.setPrefSize(40, 22);
+        btn.setMinSize(40, 22);
+        
+        javafx.scene.shape.Circle thumb = new javafx.scene.shape.Circle(8, Color.WHITE);
+        thumb.setEffect(new javafx.scene.effect.DropShadow(3, Color.rgb(0,0,0,0.2)));
+        
+        StackPane container = new StackPane(thumb);
+        container.setPrefSize(40, 22);
+        container.setAlignment(Pos.CENTER_LEFT);
+        container.setPadding(new Insets(0, 3, 0, 3));
+        
+        btn.setGraphic(container);
+        
+        Runnable updateStyle = () -> {
+            if (btn.isSelected()) {
+                container.setStyle("-fx-background-color: " + COLOR_SUCCESS + "; -fx-background-radius: 20;");
+                javafx.animation.TranslateTransition tt = new javafx.animation.TranslateTransition(javafx.util.Duration.millis(150), thumb);
+                tt.setToX(18);
+                tt.play();
+            } else {
+                container.setStyle("-fx-background-color: #dfe6e9; -fx-background-radius: 20;");
+                javafx.animation.TranslateTransition tt = new javafx.animation.TranslateTransition(javafx.util.Duration.millis(150), thumb);
+                tt.setToX(0);
+                tt.play();
+            }
+        };
+        
+        btn.selectedProperty().addListener((obs, oldVal, newVal) -> updateStyle.run());
+        updateStyle.run();
+        
+        btn.setStyle("-fx-background-color: transparent; -fx-padding: 0; -fx-cursor: hand;");
+        return btn;
+    }
 }

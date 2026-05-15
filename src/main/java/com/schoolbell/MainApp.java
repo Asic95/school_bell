@@ -26,13 +26,24 @@ import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.Graphics2D;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.RenderingHints;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.swing.SwingUtilities;
 
 import static com.schoolbell.ui.UIStyles.*;
 
@@ -47,6 +58,8 @@ public class MainApp extends Application {
     private ConfigService configService;
     private AudioService audioService;
     private SignalService signalService;
+    private SystemService systemService;
+    private MediaSchedulerService mediaSchedulerService;
     private BroadcastService broadcastService;
     private HttpServer httpServer;
 
@@ -72,6 +85,7 @@ public class MainApp extends Application {
     private SystemView systemView;
     private ImportView importView;
     private Stage primaryStage;
+    private TrayIcon trayIcon;
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -88,6 +102,8 @@ public class MainApp extends Application {
         audioService = new AudioService(configService);
         signalService = new SignalService(relayController, audioService, configService);
         signalService.setLogConsumer(msg -> logger.info(msg));
+        systemService = new SystemService(configService);
+        mediaSchedulerService = new MediaSchedulerService(this);
 
         if (configService.isBroadcastEnabled()) {
             try {
@@ -100,6 +116,19 @@ public class MainApp extends Application {
         }
 
         primaryStage.setTitle("SchoolBell Dashboard v4.0");
+
+        // Tray Support
+        initTray();
+        primaryStage.setOnCloseRequest(event -> {
+            if (configService.isMinimizeToTray()) {
+                event.consume();
+                primaryStage.hide();
+            } else {
+                stop();
+                Platform.exit();
+                System.exit(0);
+            }
+        });
 
         // --- SIDEBAR ---
         sidebar = new VBox(10);
@@ -280,12 +309,9 @@ public class MainApp extends Application {
                 if (broadcastService != null && broadcastService.isBroadcasting()) {
                     Map<String, Object> data = dashboardView.getExtendedDashboardData(now);
                     
-                    // Logic for announcements: priority to scheduled ones
+                    // Logic for announcements: only show active ones from the dedicated system
                     String activeAnnouncement = announcementService.getActiveAnnouncementText(today, now);
-                    if (activeAnnouncement == null || activeAnnouncement.isEmpty()) {
-                        activeAnnouncement = configService.getAnnouncementText();
-                    }
-                    data.put("announcement", activeAnnouncement);
+                    data.put("announcement", activeAnnouncement != null ? activeAnnouncement : "");
                     
                     broadcastService.broadcastUpdate(data);
                 }
@@ -333,6 +359,8 @@ public class MainApp extends Application {
     public ConfigService getConfigService() { return configService; }
     public AudioService getAudioService() { return audioService; }
     public SignalService getSignalService() { return signalService; }
+    public SystemService getSystemService() { return systemService; }
+    public MediaSchedulerService getMediaSchedulerService() { return mediaSchedulerService; }
     public BroadcastService getBroadcastService() { return broadcastService; }
     public RelayController getRelayController() { return relayController; }
     public AcademicService getAcademicService() { return academicService; }
@@ -346,8 +374,25 @@ public class MainApp extends Application {
         try {
             httpServer = HttpServer.create(new InetSocketAddress(port), 0);
             httpServer.createContext("/", exchange -> {
-                try (InputStream is = getClass().getResourceAsStream("/dashboard.html")) {
-                    if (is == null) { exchange.sendResponseHeaders(404, 0); exchange.close(); return; }
+                String theme = configService.getDashboardTheme();
+                String resourceName = "/dashboard_" + theme + ".html";
+                
+                try (InputStream is = getClass().getResourceAsStream(resourceName)) {
+                    if (is == null) {
+                        // Fallback to classic if theme not found
+                        try (InputStream fis = getClass().getResourceAsStream("/dashboard_classic.html")) {
+                            if (fis == null) {
+                                exchange.sendResponseHeaders(404, 0);
+                                exchange.close();
+                                return;
+                            }
+                            byte[] response = fis.readAllBytes();
+                            exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
+                            exchange.sendResponseHeaders(200, response.length);
+                            try (OutputStream os = exchange.getResponseBody()) { os.write(response); }
+                            return;
+                        }
+                    }
                     byte[] response = is.readAllBytes();
                     exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
                     exchange.sendResponseHeaders(200, response.length);
@@ -368,5 +413,111 @@ public class MainApp extends Application {
         if (httpServer != null) httpServer.stop(0);
         if (audioService != null) audioService.stopAll();
     }
+    private void initTray() {
+        if (!SystemTray.isSupported()) return;
+
+        Platform.runLater(() -> Platform.setImplicitExit(false));
+
+        SwingUtilities.invokeLater(() -> {
+            try {
+                SystemTray tray = SystemTray.getSystemTray();
+                
+                // Create a high-quality bell icon from SVG path
+                int size = 32; // Use larger size for better scaling
+                BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2 = image.createGraphics();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+                
+                // Draw a soft rounded background (optional, but looks modern)
+                g2.setColor(new java.awt.Color(9, 132, 227)); // COLOR_PRIMARY
+                g2.fillRoundRect(0, 0, size, size, 8, 8);
+                
+                // Render the SVG Bell Icon
+                g2.setColor(java.awt.Color.WHITE);
+                java.awt.geom.Path2D bellPath = new java.awt.geom.Path2D.Double();
+                // ICON_BELL path parsed to AWT Path
+                // M12,2A2,2 0 0,0 10,4A2,2 0 0,0 10,4.29C7.12,5.14 5,7.82 5,11V17L3,19V20H21V19L19,17V11C19,7.82 16.88,5.14 14,4.29C14,4.19 14,4.1 14,4A2,2 0 0,0 12,2M10,21A2,2 0 0,0 12,23A2,2 0 0,0 14,21H10Z
+                // Simplified manual drawing or using a shape to match the brand
+                double s = size / 24.0;
+                g2.scale(s, s);
+                
+                // Draw the bell shape manually to match ICON_BELL exactly
+                g2.fill(new java.awt.geom.Area(createBellShape()));
+                g2.dispose();
+
+                PopupMenu popup = new PopupMenu();
+                java.awt.MenuItem showItem = new java.awt.MenuItem("Відкрити");
+                showItem.addActionListener(e -> Platform.runLater(() -> {
+                    primaryStage.show();
+                    primaryStage.toFront();
+                }));
+                
+                java.awt.MenuItem exitItem = new java.awt.MenuItem("Вихід");
+                exitItem.addActionListener(e -> {
+                    Platform.runLater(() -> {
+                        stop();
+                        Platform.exit();
+                        System.exit(0);
+                    });
+                });
+
+                popup.add(showItem);
+                popup.addSeparator();
+                popup.add(exitItem);
+
+                trayIcon = new TrayIcon(image, "SchoolBell", popup);
+                trayIcon.setImageAutoSize(true);
+                trayIcon.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
+                            Platform.runLater(() -> {
+                                if (primaryStage.isShowing()) {
+                                    primaryStage.hide();
+                                } else {
+                                    primaryStage.show();
+                                    primaryStage.toFront();
+                                }
+                            });
+                        }
+                    }
+                });
+
+                tray.add(trayIcon);
+            } catch (Exception e) {
+                logger.error("Failed to initialize tray icon", e);
+            }
+        });
+    }
+
+    private java.awt.Shape createBellShape() {
+        java.awt.geom.Path2D.Double path = new java.awt.geom.Path2D.Double();
+        // M12,2 A2,2 0 0,0 10,4 A2,2 0 0,0 10,4.29 C7.12,5.14 5,7.82 5,11 V17 L3,19 V20 H21 V19 L19,17 V11 C19,7.82 16.88,5.14 14,4.29 C14,4.19 14,4.1 14,4 A2,2 0 0,0 12,2 M10,21 A2,2 0 0,0 12,23 A2,2 0 0,0 14,21 H10 Z
+        path.moveTo(12, 2);
+        path.curveTo(11.45, 2, 10.95, 2.22, 10.59, 2.59); // Simplified A2,2 arc
+        path.lineTo(10, 4);
+        path.curveTo(10, 4.1, 10, 4.2, 10, 4.29);
+        path.curveTo(7.12, 5.14, 5, 7.82, 5, 11);
+        path.lineTo(5, 17);
+        path.lineTo(3, 19);
+        path.lineTo(3, 20);
+        path.lineTo(21, 20);
+        path.lineTo(21, 19);
+        path.lineTo(19, 17);
+        path.lineTo(19, 11);
+        path.curveTo(19, 7.82, 16.88, 5.14, 14, 4.29);
+        path.curveTo(14, 4.19, 14, 4.1, 14, 4);
+        path.curveTo(14, 2.9, 13.1, 2, 12, 2);
+        path.closePath();
+        
+        path.moveTo(10, 21);
+        path.curveTo(10, 22.1, 10.9, 23, 12, 23);
+        path.curveTo(13.1, 23, 14, 22.1, 14, 21);
+        path.lineTo(10, 21);
+        path.closePath();
+        return path;
+    }
+
     public static void main(String[] args) { launch(args); }
 }

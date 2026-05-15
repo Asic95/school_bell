@@ -1,16 +1,21 @@
 package com.schoolbell.ui;
 
 import com.schoolbell.MainApp;
+import com.schoolbell.model.MediaEvent;
 import com.schoolbell.service.ConfigService;
+import com.schoolbell.service.MediaSchedulerService;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import javax.sound.sampled.*;
@@ -99,6 +104,9 @@ public class NotificationsView {
         alertsPanel.getChildren().addAll(panelTitle, alertsList);
         mainCol.getChildren().add(alertsPanel);
 
+        // --- MEDIA EVENTS PANEL ---
+        mainCol.getChildren().add(buildMediaEventsCard());
+
         VBox helpPanel = createSideHelpPanel(
             createHelpCard(ICON_VOLUME, "Аудіо", "Налаштуйте гучність та пристрій для трансляції сигналів.", COLOR_SUCCESS),
             createHelpCard(ICON_MONITOR, "Табло", "Сигнали з'являться на всіх підключених екранах автоматично.", COLOR_PURPLE),
@@ -115,19 +123,23 @@ public class NotificationsView {
     }
 
     private VBox createAudioOutputCard() {
-        VBox card = new VBox(20);
-        card.setPadding(new Insets(25));
-        card.setStyle(SOFT_CARD);
+        VBox card = new VBox(25);
+        card.setPadding(new Insets(30));
+        card.setStyle(SOFT_CARD + "-fx-padding: 30;");
 
-        HBox top = new HBox(40);
-        top.setAlignment(Pos.CENTER_LEFT);
+        HBox layout = new HBox(40);
+        layout.setAlignment(Pos.CENTER_LEFT);
 
-        deviceCombo = new ComboBox<>();
-        VBox devBox = new VBox(8, new Label("ПРИСТРІЙ ВІДТВОРЕННЯ"), deviceCombo);
+        // --- Left: Device Selection ---
+        VBox devBox = new VBox(12);
         HBox.setHgrow(devBox, Priority.ALWAYS);
-        ((Label)devBox.getChildren().get(0)).setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        
+        Label devLabel = new Label("ПРИСТРІЙ ВІДТВОРЕННЯ");
+        devLabel.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 1px;");
+        
+        deviceCombo = new ComboBox<>();
         deviceCombo.setMaxWidth(Double.MAX_VALUE);
-        deviceCombo.setStyle(COMBO_STYLE);
+        deviceCombo.setStyle(COMBO_STYLE + "-fx-font-weight: 700; -fx-padding: 8 12;");
         deviceCombo.setValue(config.getSelectedAudioDeviceName());
         try {
             deviceCombo.getItems().add("Системний за замовчуванням");
@@ -138,17 +150,54 @@ public class NotificationsView {
             }
         } catch (Exception ignored) {}
 
-        volumeSlider = new Slider(0, 100, config.getSystemVolume());
-        Label volVal = new Label(config.getSystemVolume() + "%");
-        volVal.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 18px;");
-        volumeSlider.valueProperty().addListener((o, ov, nv) -> volVal.setText(nv.intValue() + "%"));
+        HBox devInput = new HBox(15, 
+            new VBox(createSVGIcon(ICON_VOLUME, Color.web(COLOR_PRIMARY), 22)),
+            deviceCombo
+        );
+        devInput.setAlignment(Pos.CENTER_LEFT);
+        ((VBox)devInput.getChildren().get(0)).setPadding(new Insets(0, 0, 0, 5));
         
-        VBox volBox = new VBox(8, new Label("ГУЧНІСТЬ СПОВІЩЕНЬ"), new HBox(15, volumeSlider, volVal));
-        ((Label)volBox.getChildren().get(0)).setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
-        ((HBox)volBox.getChildren().get(1)).setAlignment(Pos.CENTER_LEFT);
+        devBox.getChildren().addAll(devLabel, devInput);
 
-        top.getChildren().addAll(devBox, volBox);
-        card.getChildren().add(top);
+        // --- Right: Volume Control ---
+        VBox volBox = new VBox(12);
+        volBox.setMinWidth(300);
+        
+        Label volLabel = new Label("ЗАГАЛЬНА ГУЧНІСТЬ СПОВІЩЕНЬ");
+        volLabel.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 1px;");
+
+        volumeSlider = new Slider(0, 100, config.getSystemVolume());
+        volumeSlider.getStylesheets().add("data:text/css," + SLIDER_STYLE.replace(" ", "%20"));
+        HBox.setHgrow(volumeSlider, Priority.ALWAYS);
+        
+        Label volVal = new Label(config.getSystemVolume() + "%");
+        volVal.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 18px; -fx-min-width: 50;");
+        
+        volumeSlider.valueProperty().addListener((o, ov, nv) -> {
+            int val = nv.intValue();
+            volVal.setText(val + "%");
+            config.setSystemVolume(val);
+            mainApp.getAudioService().setVolume(val);
+            
+            // Proactively try to sync with Windows system volume if on Windows
+            if (val % 2 == 0) { // Only every 2% to reduce command spam
+                mainApp.getSystemService().setWindowsSystemVolume(val);
+            }
+        });
+        
+        // Also sync on drag end for precision
+        volumeSlider.valueChangingProperty().addListener((obs, wasChanging, isChanging) -> {
+            if (!wasChanging && isChanging) return;
+            mainApp.getSystemService().setWindowsSystemVolume((int)volumeSlider.getValue());
+        });
+        
+        HBox volInput = new HBox(20, volumeSlider, volVal);
+        volInput.setAlignment(Pos.CENTER_LEFT);
+        
+        volBox.getChildren().addAll(volLabel, volInput);
+
+        layout.getChildren().addAll(devBox, volBox);
+        card.getChildren().add(layout);
         return card;
     }
 
@@ -156,37 +205,42 @@ public class NotificationsView {
         VBox root = new VBox();
         HBox row = new HBox(30);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(25));
+        row.setPadding(new Insets(25, 30, 25, 30));
         row.setStyle("-fx-background-color: white;");
 
-        // 1. IDENTITY & TYPE
-        VBox iconBox = new VBox(createSVGIcon(icon, Color.web(color), 24));
+        // 1. IDENTITY
+        VBox iconBox = new VBox(createSVGIcon(icon, Color.web(color), 28));
         iconBox.setAlignment(Pos.CENTER);
-        iconBox.setPrefSize(50, 50);
-        iconBox.setMinSize(50, 50);
-        iconBox.setStyle("-fx-background-color: " + color + "10; -fx-background-radius: 14;");
+        iconBox.setPrefSize(56, 56);
+        iconBox.setMinSize(56, 56);
+        iconBox.setStyle("-fx-background-color: " + color + "12; -fx-background-radius: 18;");
         
-        VBox titleBox = new VBox(2, new Label("ТИП СИГНАЛУ"), new Label(title));
-        ((Label)titleBox.getChildren().get(0)).setStyle("-fx-font-size: 9px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
-        ((Label)titleBox.getChildren().get(1)).setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: #2d3436;");
-        titleBox.setMinWidth(180);
+        VBox titleBox = new VBox(2);
+        Label tType = new Label("ТИП СИГНАЛУ");
+        tType.setStyle("-fx-font-size: 9px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 0.5px;");
+        Label tMain = new Label(title);
+        tMain.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + ";");
+        titleBox.getChildren().addAll(tType, tMain);
+        titleBox.setMinWidth(200);
 
-        // 2. AUDIO SETTINGS (EXPANDABLE)
-        VBox audioCol = new VBox(10);
-        HBox.setHgrow(audioCol, Priority.ALWAYS);
+        // 2. CONFIGURATION (AUDIO & VISUAL)
+        VBox configArea = new VBox(15);
+        HBox.setHgrow(configArea, Priority.ALWAYS);
+
+        // Audio Sub-row
+        HBox audioRow = new HBox(20);
+        audioRow.setAlignment(Pos.CENTER_LEFT);
         
-        HBox aHead = new HBox(12, audioTg, new Label("АУДІО-СУПРОВІД"));
-        aHead.setAlignment(Pos.CENTER_LEFT);
-        ((Label)aHead.getChildren().get(1)).setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: #636e72;");
+        VBox audioToggleBox = new VBox(4, audioTg, new Label("АУДІО"));
+        audioToggleBox.setAlignment(Pos.CENTER);
+        ((Label)audioToggleBox.getChildren().get(1)).setStyle("-fx-font-size: 8px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
         
-        HBox pathRow = new HBox(10);
         pathField.setEditable(false);
-        pathField.setPromptText("Шлях до файлу...");
-        pathField.setStyle(FIELD_STYLE + "-fx-background-color: #f8f9fa; -fx-font-size: 12px; -fx-text-fill: #2d3436;");
+        pathField.setPromptText("Шлях до аудіофайлу...");
+        pathField.setStyle(FIELD_STYLE + "-fx-background-color: #f8f9fa; -fx-font-size: 12px; -fx-border-color: #f1f2f6;");
         HBox.setHgrow(pathField, Priority.ALWAYS);
         
-        Button browse = new Button("ОБРАТИ");
-        browse.setStyle(BTN_BASE + "-fx-background-color: " + COLOR_TEXT_DIM + "; -fx-font-size: 9px; -fx-padding: 6 12;");
+        Button browse = createCardActionButton(ICON_FOLDER, "#f1f2f6", COLOR_PRIMARY);
         browse.setOnAction(e -> {
             FileChooser fc = new FileChooser();
             fc.setTitle("Оберіть аудіофайл");
@@ -194,97 +248,49 @@ public class NotificationsView {
             File f = fc.showOpenDialog(mainApp.getStage());
             if (f != null) pathField.setText(f.getAbsolutePath());
         });
-        pathRow.getChildren().addAll(pathField, browse);
-        audioCol.getChildren().addAll(aHead, pathRow);
+        
+        audioRow.getChildren().addAll(audioToggleBox, pathField, browse);
 
-        // 3. VISUAL SETTINGS (COMPACT)
-        VBox visualCol = new VBox(10);
-        visualCol.setAlignment(Pos.CENTER_LEFT);
-        visualCol.setMinWidth(140);
-        
-        HBox vHead = new HBox(12, visualTg, new Label("ТАБЛО"));
-        vHead.setAlignment(Pos.CENTER_LEFT);
-        ((Label)vHead.getChildren().get(1)).setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: #636e72;");
-        
-        Label vDesc = new Label("Візуальне сповіщення");
-        vDesc.setStyle("-fx-font-size: 9px; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-padding: 0 0 0 5;");
-        visualCol.getChildren().addAll(vHead, vDesc);
+        // Visual Sub-row (Inline with Audio or below) - Let's put it next to test buttons for compactness
+        configArea.getChildren().add(audioRow);
 
-        // 4. TEST ACTIONS
-        HBox testActions = new HBox(10);
-        testActions.setAlignment(Pos.CENTER_RIGHT);
+        // 3. VISUAL TOGGLE & TEST ACTIONS
+        HBox actionsRow = new HBox(25);
+        actionsRow.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox visualToggleBox = new VBox(4, visualTg, new Label("ЕКРАН"));
+        visualToggleBox.setAlignment(Pos.CENTER);
+        ((Label)visualToggleBox.getChildren().get(1)).setStyle("-fx-font-size: 8px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+
+        HBox testButtons = new HBox(12);
+        testButtons.setAlignment(Pos.CENTER_LEFT);
         
-        Button tAudio = createTestIconButton(ICON_VOLUME, COLOR_SUCCESS, () -> {
+        Button tAudio = createCardActionButton(ICON_VOLUME, COLOR_GREEN_LIGHT, COLOR_SUCCESS);
+        tAudio.setOnAction(e -> {
             if (!pathField.getText().isEmpty()) mainApp.getAudioService().playAudioFile(pathField.getText());
             else java.awt.Toolkit.getDefaultToolkit().beep();
         });
         
-        Button tVisual = createTestIconButton(ICON_MONITOR, COLOR_PURPLE, () -> {
-            mainApp.getSignalService().setTemporaryAlertType(alertType, 5000);
-        });
+        Button tVisual = createCardActionButton(ICON_MONITOR, COLOR_PURPLE_LIGHT, COLOR_PURPLE);
+        tVisual.setOnAction(e -> mainApp.getSignalService().setTemporaryAlertType(alertType, 5000));
         
-        testActions.getChildren().addAll(tAudio, tVisual);
+        testButtons.getChildren().addAll(tAudio, tVisual);
+        
+        actionsRow.getChildren().addAll(visualToggleBox, new Separator(javafx.geometry.Orientation.VERTICAL), testButtons);
 
-        row.getChildren().addAll(iconBox, titleBox, audioCol, visualCol, testActions);
+        row.getChildren().addAll(iconBox, titleBox, configArea, actionsRow);
         root.getChildren().add(row);
         
+        row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: #fcfcfc;"));
+        row.setOnMouseExited(e -> row.setStyle("-fx-background-color: white;"));
+
         if (showSeparator) {
             Separator sep = new Separator();
-            sep.setPadding(new Insets(0, 25, 0, 25));
-            sep.setStyle("-fx-opacity: 0.5;");
+            sep.setPadding(new Insets(0, 30, 0, 30));
+            sep.setStyle("-fx-opacity: 0.3;");
             root.getChildren().add(sep);
         }
         return root;
-    }
-
-    private Button createTestIconButton(String icon, String color, Runnable action) {
-        Button btn = new Button();
-        btn.setGraphic(createSVGIcon(icon, Color.WHITE, 20));
-        btn.setPrefSize(50, 50);
-        btn.setStyle(BTN_BASE + "-fx-background-color: " + color + "; -fx-background-radius: 14;");
-        btn.setOnAction(e -> action.run());
-        
-        btn.setOnMouseEntered(e -> btn.setStyle(btn.getStyle() + "-fx-opacity: 0.9; -fx-effect: dropshadow(three-pass-box, " + color + "40, 12, 0, 0, 5);"));
-        btn.setOnMouseExited(e -> btn.setStyle(btn.getStyle().split("-fx-opacity")[0]));
-        
-        return btn;
-    }
-
-    private ToggleButton createToggleSwitch(boolean initialState) {
-        ToggleButton btn = new ToggleButton();
-        btn.setSelected(initialState);
-        btn.setPrefSize(40, 22);
-        btn.setMinSize(40, 22);
-        
-        Circle thumb = new Circle(8, Color.WHITE);
-        thumb.setEffect(new javafx.scene.effect.DropShadow(3, Color.rgb(0,0,0,0.2)));
-        
-        StackPane container = new StackPane(thumb);
-        container.setPrefSize(40, 22);
-        container.setAlignment(Pos.CENTER_LEFT);
-        container.setPadding(new Insets(0, 3, 0, 3));
-        
-        btn.setGraphic(container);
-        
-        Runnable updateStyle = () -> {
-            if (btn.isSelected()) {
-                container.setStyle("-fx-background-color: " + COLOR_SUCCESS + "; -fx-background-radius: 20;");
-                TranslateTransition tt = new TranslateTransition(Duration.millis(150), thumb);
-                tt.setToX(18);
-                tt.play();
-            } else {
-                container.setStyle("-fx-background-color: #dfe6e9; -fx-background-radius: 20;");
-                TranslateTransition tt = new TranslateTransition(Duration.millis(150), thumb);
-                tt.setToX(0);
-                tt.play();
-            }
-        };
-        
-        btn.setOnAction(e -> updateStyle.run());
-        updateStyle.run();
-        
-        btn.setStyle("-fx-background-color: transparent; -fx-padding: 0; -fx-cursor: hand;");
-        return btn;
     }
 
     private void save() {
@@ -305,5 +311,272 @@ public class NotificationsView {
 
         mainApp.saveConfig();
         ToastService.showSuccess("Налаштування сповіщень збережено!");
+    }
+
+    private VBox buildMediaEventsCard() {
+        VBox card = new VBox(0);
+        card.setStyle(SOFT_CARD + "-fx-padding: 0;");
+
+        HBox header = new HBox();
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(20, 25, 20, 25));
+        
+        Label title = new Label("АВТОМАТИЧНІ АУДІО-ПОВІДОМЛЕННЯ");
+        title.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 1px;");
+        
+        Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
+        
+        Button addBtn = new Button("ДОДАТИ ПОДІЮ");
+        addBtn.setStyle(BTN_BASE + "-fx-background-color: " + COLOR_PRIMARY + "; -fx-padding: 6 15; -fx-font-size: 11px;");
+        addBtn.setGraphic(createSVGIcon(ICON_PLUS, Color.WHITE, 14));
+        addBtn.setOnAction(e -> showEventDialog(null));
+        
+        header.getChildren().addAll(title, spacer, addBtn);
+        
+        VBox list = new VBox(0);
+        refreshMediaEventsList(list);
+        
+        card.getChildren().addAll(header, list);
+        return card;
+    }
+
+    private void refreshMediaEventsList(VBox list) {
+        list.getChildren().clear();
+        MediaSchedulerService svc = mainApp.getMediaSchedulerService();
+        for (MediaEvent event : svc.getEvents()) {
+            list.getChildren().add(createMediaEventRow(event));
+            Separator s = new Separator(); s.setStyle("-fx-opacity: 0.2;");
+            list.getChildren().add(s);
+        }
+    }
+
+    private HBox createMediaEventRow(MediaEvent event) {
+        HBox row = new HBox(20);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(15, 25, 15, 25));
+        row.setStyle("-fx-background-color: white;");
+
+        VBox iconBox = new VBox(createSVGIcon(event.isFolder() ? ICON_FOLDER : ICON_MUSIC, Color.web(COLOR_PRIMARY), 20));
+        iconBox.setAlignment(Pos.CENTER);
+        iconBox.setPrefSize(40, 40);
+        iconBox.setStyle("-fx-background-color: " + COLOR_PRIMARY + "12; -fx-background-radius: 12;");
+
+        VBox info = new VBox(2);
+        Label name = new Label(event.name());
+        name.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_TEXT + ";");
+        
+        String desc = switch(event.type()) {
+            case "BREAKS" -> "На всіх перервах";
+            case "TIME" -> "Щодня о " + event.time();
+            case "ONCE" -> "Разово: " + event.date() + " " + event.time();
+            default -> "";
+        };
+        Label detail = new Label(desc);
+        detail.setStyle("-fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        info.getChildren().addAll(name, detail);
+        HBox.setHgrow(info, Priority.ALWAYS);
+
+        ToggleButton tg = createToggleSwitch(event.isActive());
+        tg.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            MediaEvent updated = new MediaEvent(event.id(), event.name(), event.path(), event.type(), event.time(), event.daysOfWeek(), event.date(), newVal, event.isFolder(), event.durationMinutes(), event.breakAnchor(), event.breakOffset());
+            mainApp.getMediaSchedulerService().updateEvent(updated);
+        });
+
+        Button test = createCardActionButton(ICON_VOLUME, COLOR_GREEN_LIGHT, COLOR_SUCCESS);
+        test.setOnAction(e -> mainApp.getAudioService().playAudioFile(event.path()));
+
+        Button edit = createCardActionButton(ICON_EDIT, COLOR_BLUE_LIGHT, COLOR_PRIMARY);
+        edit.setOnAction(e -> showEventDialog(event));
+
+        Button del = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
+        del.setOnAction(e -> {
+            mainApp.getMediaSchedulerService().deleteEvent(event.id());
+            refreshMediaEventsList((VBox)row.getParent());
+        });
+
+        row.getChildren().addAll(iconBox, info, tg, test, edit, del);
+        return row;
+    }
+
+    private void showEventDialog(MediaEvent event) {
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setTitle(event == null ? "Додати медіа-подію" : "Редагування події");
+
+        VBox root = new VBox(25);
+        root.setPadding(new Insets(30));
+        root.setMinWidth(600);
+        root.setStyle("-fx-background-color: " + COLOR_BG + ";");
+
+        VBox header = createSectionHeader(
+                event == null ? "Додати подію" : "Редагувати подію",
+                event == null ? "Налаштування нового автоматичного сповіщення" : event.name(),
+                COLOR_PRIMARY,
+                ICON_MUSIC
+        );
+
+        GridPane grid = new GridPane();
+        grid.setHgap(20);
+        grid.setVgap(20);
+        grid.setAlignment(Pos.CENTER_LEFT);
+
+        TextField nameF = createStyledField(event != null ? event.name() : "");
+        nameF.setPrefWidth(350);
+        nameF.setAlignment(Pos.CENTER_LEFT);
+        nameF.setPromptText("Назва (напр. Фонова музика)");
+        Label nameL = new Label("НАЗВА");
+        nameL.setStyle(HEADER_STYLE);
+        grid.add(nameL, 0, 0);
+        grid.add(nameF, 1, 0);
+        
+        ComboBox<String> typeC = new ComboBox<>();
+        typeC.getItems().addAll("На перервах", "У конкретний час", "Разово");
+        typeC.setValue(event != null ? (switch(event.type()) {
+            case "BREAKS" -> "На перервах";
+            case "TIME" -> "У конкретний час";
+            case "ONCE" -> "Разово";
+            default -> "На перервах";
+        }) : "На перервах");
+        typeC.setStyle(COMBO_STYLE);
+        typeC.setMaxWidth(Double.MAX_VALUE);
+        Label typeL = new Label("ТИП ТРИГЕРА");
+        typeL.setStyle(HEADER_STYLE);
+        grid.add(typeL, 0, 1);
+        grid.add(typeC, 1, 1);
+
+        TextField pathF = createStyledField(event != null ? event.path() : "");
+        pathF.setEditable(false);
+        pathF.setAlignment(Pos.CENTER_LEFT);
+        pathF.setPrefWidth(250);
+        HBox.setHgrow(pathF, Priority.ALWAYS);
+        
+        Button browseFile = createPrimaryActionButton("ФАЙЛ", ICON_MUSIC);
+        Button browseFolder = createPrimaryActionButton("ПАПКА", ICON_FOLDER);
+        browseFile.setPadding(new Insets(10, 20, 10, 20));
+        browseFolder.setPadding(new Insets(10, 20, 10, 20));
+
+        browseFile.setOnAction(e -> {
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Оберіть аудіофайл");
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Аудіо файли (MP3, WAV)", "*.mp3", "*.wav"));
+            File f = fc.showOpenDialog(stage);
+            if (f != null) pathF.setText(f.getAbsolutePath());
+        });
+
+        browseFolder.setOnAction(e -> {
+            javafx.stage.DirectoryChooser dc = new javafx.stage.DirectoryChooser();
+            dc.setTitle("Оберіть папку з аудіо");
+            File f = dc.showDialog(stage);
+            if (f != null) pathF.setText(f.getAbsolutePath());
+        });
+
+        HBox pathBox = new HBox(12, pathF, browseFile, browseFolder);
+        pathBox.setAlignment(Pos.CENTER_LEFT);
+        Label pathL = new Label("ДЖЕРЕЛО ЗВУКУ");
+        pathL.setStyle(HEADER_STYLE);
+        grid.add(pathL, 0, 2);
+        grid.add(pathBox, 1, 2);
+
+        TextField timeF = createStyledField(event != null ? event.time() : "12:00");
+        timeF.setPrefWidth(120);
+        
+        DatePicker dateP = new DatePicker(event != null && event.date() != null && !event.date().isEmpty() ? java.time.LocalDate.parse(event.date()) : java.time.LocalDate.now());
+        dateP.setStyle(MODERN_DATE_PICKER_STYLE);
+        dateP.setPrefWidth(200);
+
+        ComboBox<String> breakAnchorC = new ComboBox<>();
+        breakAnchorC.getItems().addAll("Початок перерви", "Кінець перерви", "Середина перерви", "Зі зміщенням (хв)");
+        breakAnchorC.setValue(event != null ? (switch(event.breakAnchor() != null ? event.breakAnchor() : "START") {
+            case "START" -> "Початок перерви";
+            case "END" -> "Кінець перерви";
+            case "MIDDLE" -> "Середина перерви";
+            case "OFFSET" -> "Зі зміщенням (хв)";
+            default -> "Початок перерви";
+        }) : "Початок перерви");
+        breakAnchorC.setStyle(COMBO_STYLE);
+        breakAnchorC.setPrefWidth(200);
+
+        TextField offsetF = createStyledField(String.valueOf(event != null ? event.breakOffset() : 0));
+        offsetF.setPrefWidth(80);
+
+        VBox dynamicFields = new VBox(20);
+        dynamicFields.setAlignment(Pos.CENTER_LEFT);
+        
+        Runnable updateFields = () -> {
+            dynamicFields.getChildren().clear();
+            if (typeC.getValue().equals("На перервах")) {
+                Label anchorL = new Label("КОЛИ ГРАТИ:");
+                anchorL.setStyle(HEADER_STYLE);
+                HBox h = new HBox(15, anchorL, breakAnchorC);
+                h.setAlignment(Pos.CENTER_LEFT);
+                if (breakAnchorC.getValue().equals("Зі зміщенням (хв)")) {
+                    h.getChildren().add(offsetF);
+                }
+                dynamicFields.getChildren().add(h);
+            } else if (typeC.getValue().equals("У конкретний час")) {
+                Label timeL = new Label("ЧАС ВІДТВОРЕННЯ:");
+                timeL.setStyle(HEADER_STYLE);
+                HBox h = new HBox(20, timeL, timeF);
+                h.setAlignment(Pos.CENTER_LEFT);
+                dynamicFields.getChildren().add(h);
+            } else if (typeC.getValue().equals("Разово")) {
+                VBox v = new VBox(15);
+                Label dateL = new Label("ДАТА:");
+                dateL.setStyle(HEADER_STYLE);
+                HBox d = new HBox(20, dateL, dateP);
+                d.setAlignment(Pos.CENTER_LEFT);
+                Label timeL = new Label("ЧАС:");
+                timeL.setStyle(HEADER_STYLE);
+                HBox t = new HBox(20, timeL, timeF);
+                t.setAlignment(Pos.CENTER_LEFT);
+                v.getChildren().addAll(d, t);
+                dynamicFields.getChildren().add(v);
+            }
+            if (stage.isShowing()) stage.sizeToScene();
+        };
+        
+        typeC.valueProperty().addListener((obs, oldV, newV) -> updateFields.run());
+        breakAnchorC.valueProperty().addListener((obs, oldV, newV) -> updateFields.run());
+        updateFields.run();
+
+        Button saveBtn = new Button("ЗБЕРЕГТИ ПОДІЮ");
+        saveBtn.setStyle(BTN_BASE + "-fx-background-color: " + COLOR_SUCCESS + "; -fx-padding: 12 60;");
+        saveBtn.setOnAction(ev -> {
+            String type = switch(typeC.getValue()) {
+                case "На перервах" -> "BREAKS";
+                case "У конкретний час" -> "TIME";
+                case "Разово" -> "ONCE";
+                default -> "BREAKS";
+            };
+            String anchor = switch(breakAnchorC.getValue()) {
+                case "Початок перерви" -> "START";
+                case "Кінець перерви" -> "END";
+                case "Середина перерви" -> "MIDDLE";
+                case "Зі зміщенням (хв)" -> "OFFSET";
+                default -> "START";
+            };
+            int offset = 0;
+            try { offset = Integer.parseInt(offsetF.getText().trim()); } catch (Exception ignored) {}
+
+            boolean isFolder = pathF.getText().equals(event != null ? event.path() : "") ? (event != null && event.isFolder()) : new File(pathF.getText()).isDirectory();
+            MediaEvent newEv = new MediaEvent(event != null ? event.id() : null, nameF.getText(), pathF.getText(), type, timeF.getText(), "1,2,3,4,5", dateP.getValue().toString(), true, isFolder, 0, anchor, offset);
+            
+            if (event == null) mainApp.getMediaSchedulerService().addEvent(newEv);
+            else mainApp.getMediaSchedulerService().updateEvent(newEv);
+            
+            mainApp.showNotifications();
+            stage.close();
+        });
+
+        HBox footer = new HBox(saveBtn);
+        footer.setAlignment(Pos.CENTER);
+        footer.setPadding(new Insets(10, 0, 0, 0));
+
+        root.getChildren().addAll(header, grid, dynamicFields, footer);
+        
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add("data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"));
+        stage.setScene(scene);
+        stage.showAndWait();
     }
 }
