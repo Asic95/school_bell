@@ -126,17 +126,10 @@ public class SettingsView {
         simDesc.setStyle("-fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
         sec5.getChildren().addAll(simulationModeCb, simDesc);
 
-        // Section 4: Announcement
-        VBox sec4 = createSettingsSection("ТЕКСТ ОГОЛОШЕННЯ НА ДАШБОРДІ", "#f39c12", ICON_MESSAGE);
-        sec4.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
-        announcementArea.setStyle(FIELD_STYLE + "-fx-font-size: 14px;");
-        sec4.getChildren().add(announcementArea);
-
         grid.add(sec1, 0, 0);
         grid.add(sec2, 1, 0);
         grid.add(sec3, 0, 1);
         grid.add(sec5, 1, 1);
-        grid.add(sec4, 0, 2, 2, 1);
 
         content.getChildren().addAll(grid);
         root.getChildren().addAll(headerArea, content);

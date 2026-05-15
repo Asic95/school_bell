@@ -184,7 +184,7 @@ public class SignalService {
                     } catch (InterruptedException ignored) {
                     } finally {
                         if ("SILENCE".equals(currentAlertType)) {
-                            currentAlertType = null;
+                            currentAlertType = "NONE";
                         }
                     }
                 }).start();

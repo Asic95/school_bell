@@ -2,16 +2,13 @@ package com.schoolbell.ui;
 
 import com.schoolbell.MainApp;
 import com.schoolbell.service.ConfigService;
+import com.schoolbell.service.SystemService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.stage.FileChooser;
-
-import javax.sound.sampled.*;
-import java.io.File;
 
 import static com.schoolbell.ui.UIComponents.*;
 import static com.schoolbell.ui.UIStyles.*;
@@ -19,64 +16,50 @@ import static com.schoolbell.ui.UIStyles.*;
 public class SystemView {
     private final MainApp mainApp;
     private final ConfigService config;
+    private final SystemService systemService;
 
-    // Identity
+    // Profile
     private final TextField schoolNameField;
     private final TextField cityNameField;
 
-    // Hardware
-    private final TextField regField;
-    private final TextField arRingField;
-    private final TextField arPauseField;
-    private final TextField emField;
-    private final CheckBox simulationModeCb;
-
-    // Audio
-    private ComboBox<String> audioDeviceCombo;
-    private final Slider volumeSlider;
-    private final CheckBox arAudioCb;
-    private final TextField arAudioPath;
-    private final CheckBox emAudioCb;
-    private final TextField emAudioPath;
-    private final CheckBox siAudioCb;
-    private final TextField siAudioPath;
+    // Operation
+    private ToggleButton autostartTg;
+    private ToggleButton trayTg;
+    private ToggleButton simulationTg;
+    private ComboBox<String> themeCombo;
 
     // Network
     private final TextField portField;
+    private Label firewallStatus;
 
     public SystemView(MainApp mainApp) {
         this.mainApp = mainApp;
         this.config = mainApp.getConfigService();
+        this.systemService = mainApp.getSystemService();
 
-        // Identity
+        // Profile
         schoolNameField = createStyledField(config.getSchoolName());
         cityNameField = createStyledField(config.getCityName());
+        schoolNameField.setPrefWidth(450);
+        cityNameField.setPrefWidth(300);
 
-        // Hardware
-        regField = createStyledField(String.valueOf(config.getRegularBellDuration()));
-        arRingField = createStyledField(String.valueOf(config.getAirRaidRingDuration()));
-        arPauseField = createStyledField(String.valueOf(config.getAirRaidPauseDuration()));
-        emField = createStyledField(String.valueOf(config.getEmergencyDuration()));
-        simulationModeCb = new CheckBox("РЕЖИМ СИМУЛЯЦІЇ (без фізичного реле)");
-        simulationModeCb.setSelected(config.isSimulationMode());
-        simulationModeCb.setStyle("-fx-font-weight: bold; -fx-text-fill: " + COLOR_PRIMARY + ";");
-
-        // Audio
-        volumeSlider = new Slider(0, 100, config.getSystemVolume());
-        arAudioCb = new CheckBox("Аудіо для тривоги");
-        arAudioCb.setSelected(config.isAudioAirRaidEnabled());
-        arAudioPath = new TextField(config.getAudioAirRaidPath());
+        // Operation
+        autostartTg = createToggleSwitch(config.isAutostartEnabled());
+        trayTg = createToggleSwitch(config.isMinimizeToTray());
+        simulationTg = createToggleSwitch(config.isSimulationMode());
         
-        emAudioCb = new CheckBox("Аудіо для НС");
-        emAudioCb.setSelected(config.isAudioEmergencyEnabled());
-        emAudioPath = new TextField(config.getAudioEmergencyPath());
-        
-        siAudioCb = new CheckBox("Хвилина мовчання (09:00)");
-        siAudioCb.setSelected(config.isAudioSilenceEnabled());
-        siAudioPath = new TextField(config.getAudioSilencePath());
+        themeCombo = new ComboBox<>();
+        themeCombo.getItems().addAll("classic", "modern", "cyber");
+        themeCombo.setValue(config.getDashboardTheme());
+        themeCombo.setStyle(COMBO_STYLE);
+        themeCombo.setPrefWidth(150);
 
         // Network
         portField = createStyledField(String.valueOf(config.getBroadcastPort()));
+        portField.setMaxWidth(100);
+        
+        firewallStatus = new Label("ПЕРЕВІРКА...");
+        updateFirewallStatusLabel();
     }
 
     public Node build() {
@@ -88,177 +71,239 @@ public class SystemView {
         saveBtn.setOnAction(e -> save());
 
         VBox headerArea = createSectionHeader(
-                "Системні налаштування",
-                "Конфігурація обладнання, звуку та мережевих параметрів",
+                "Системна конфігурація",
+                "Глобальні параметри роботи програми, мережі та профілю закладу",
                 "#2d3436",
                 ICON_SETTINGS,
                 saveBtn
         );
 
-        TabPane tabPane = new TabPane();
-        tabPane.setStyle(TAB_STYLE);
-        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-        VBox.setVgrow(tabPane, Priority.ALWAYS);
+        HBox contentLayout = new HBox(25);
+        VBox mainCol = new VBox(25);
+        HBox.setHgrow(mainCol, Priority.ALWAYS);
 
-        tabPane.getTabs().addAll(
-                createTab("АПАРАТУРА", ICON_BELL, buildHardwareTab()),
-                createTab("ЗВУК", ICON_VOLUME, buildAudioTab()),
-                createTab("СИСТЕМА ТА МЕРЕЖА", ICON_BROADCAST, buildSystemTab())
+        // --- PROFILE CARD ---
+        mainCol.getChildren().add(buildProfileCard());
+
+        // --- OPERATION CARD ---
+        mainCol.getChildren().add(buildOperationCard());
+
+        // --- NETWORK CARD ---
+        mainCol.getChildren().add(buildNetworkCard());
+
+        // --- HELP PANEL ---
+        VBox helpPanel = createSideHelpPanel(
+            createHelpCard(ICON_PERSON, "Профіль", "Ці дані використовуються для заголовків у звітах та на веб-табло.", COLOR_PRIMARY),
+            createHelpCard(ICON_BROADCAST, "Автостарт", "Рекомендуємо увімкнути автостарт, щоб система відновлювалась після вимкнення світла.", COLOR_SUCCESS),
+            createHelpCard(ICON_MONITOR, "Мережа", "Якщо табло не відкривається на інших ПК, спробуйте кнопку 'Оптимізувати Firewall'.", COLOR_PURPLE)
         );
 
-        root.getChildren().addAll(headerArea, tabPane);
+        contentLayout.getChildren().addAll(mainCol, helpPanel);
+        root.getChildren().addAll(headerArea, contentLayout);
+
+        // Update firewall status when building the view
+        updateFirewallStatusLabel();
+
+        ScrollPane scroll = new ScrollPane(root);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        return scroll;
+    }
+
+    private VBox buildProfileCard() {
+        VBox card = createCard("ПРОФІЛЬ ЗАКЛАДУ", ICON_PERSON, COLOR_PRIMARY);
         
-        return root;
-    }
-
-    private Tab createTab(String title, String icon, Node content) {
-        Tab tab = new Tab(title);
-        tab.setGraphic(createSVGIcon(icon, Color.web(COLOR_TEXT_DIM), 14));
-        tab.setContent(content);
-        return tab;
-    }
-
-    private Node buildHardwareTab() {
-        VBox content = new VBox(25);
-        content.setPadding(new Insets(30));
-        content.setStyle("-fx-background-color: white; -fx-background-radius: 0 0 16 16;");
-
-        VBox durationsCard = createSettingsSection("ТРИВАЛІСТЬ СИГНАЛІВ", COLOR_PRIMARY, ICON_CLOCK);
         GridPane grid = new GridPane();
         grid.setHgap(30); grid.setVgap(20);
-        grid.add(new Label("Стандартний дзвінок (сек):"), 0, 0); grid.add(regField, 1, 0);
-        grid.add(new Label("Тривога: звук (сек):"), 0, 1); grid.add(arRingField, 1, 1);
-        grid.add(new Label("Тривога: пауза (сек):"), 0, 2); grid.add(arPauseField, 1, 2);
-        grid.add(new Label("Екстрений сигнал (сек):"), 0, 3); grid.add(emField, 1, 3);
-        durationsCard.getChildren().add(grid);
-
-        VBox diagCard = createSettingsSection("ДІАГНОСТИКА РЕЛЕ", COLOR_SUCCESS, ICON_SETTINGS);
-        Label relayStatus = new Label("Статус: " + (mainApp.getRelayController().isConnected() ? "ПІДКЛЮЧЕНО" : "НЕМАЄ ЗВ'ЯЗКУ"));
-        relayStatus.setStyle("-fx-font-weight: bold; -fx-text-fill: " + (mainApp.getRelayController().isConnected() ? COLOR_SUCCESS : COLOR_DANGER) + ";");
         
-        Button testRelay = new Button("ТЕСТ РЕЛЕ (1 СЕК)");
-        testRelay.setStyle(BTN_BASE + "-fx-background-color: " + COLOR_TEXT + "; -fx-padding: 8 20;");
-        testRelay.setOnAction(e -> mainApp.getSignalService().testRelay());
+        grid.add(createLabel("Назва закладу:"), 0, 0);
+        grid.add(schoolNameField, 1, 0);
         
-        diagCard.getChildren().addAll(relayStatus, simulationModeCb, testRelay);
-
-        content.getChildren().addAll(durationsCard, diagCard);
-        return new ScrollPane(content);
+        grid.add(createLabel("Місто / Населений пункт:"), 0, 1);
+        grid.add(cityNameField, 1, 1);
+        
+        card.getChildren().add(grid);
+        return card;
     }
 
-    private Node buildAudioTab() {
-        VBox content = new VBox(25);
-        content.setPadding(new Insets(30));
-        content.setStyle("-fx-background-color: white; -fx-background-radius: 0 0 16 16;");
+    private VBox buildOperationCard() {
+        VBox card = createCard("ЗАПУСК ТА РОБОТА", ICON_CLOCK, COLOR_SUCCESS);
+        
+        VBox rows = new VBox(15);
+        
+        rows.getChildren().add(createToggleRow("Автозапуск разом з Windows", 
+            "Програма буде автоматично запускатись при вході в систему", autostartTg));
+        
+        rows.getChildren().add(createSeparator());
+        
+        rows.getChildren().add(createToggleRow("Згортати у системний трей", 
+            "При закритті вікно буде ховатись у трей замість виходу", trayTg));
 
-        VBox outputCard = createSettingsSection("ВИХІД ТА ГУЧНІСТЬ", COLOR_SUCCESS, ICON_VOLUME);
-        audioDeviceCombo = new ComboBox<>();
-        audioDeviceCombo.getItems().add("За замовчуванням");
-        try {
-            for (Mixer.Info info : AudioSystem.getMixerInfo()) {
-                if (AudioSystem.getMixer(info).isLineSupported(new DataLine.Info(SourceDataLine.class, new AudioFormat(44100, 16, 2, true, false)))) {
-                    audioDeviceCombo.getItems().add(info.getName());
-                }
+        rows.getChildren().add(createSeparator());
+
+        rows.getChildren().add(createToggleRow("Режим симуляції", 
+            "Робота без фізичного підключення до реле (тільки логування)", simulationTg));
+
+        rows.getChildren().add(createSeparator());
+
+        HBox themeRow = new HBox(20);
+        themeRow.setAlignment(Pos.CENTER_LEFT);
+        VBox themeTexts = new VBox(2);
+        Label tt = new Label("Дизайн веб-табло");
+        tt.setStyle("-fx-font-weight: 700; -fx-font-size: 14px;");
+        Label td = new Label("Виберіть візуальний стиль для зовнішніх моніторів");
+        td.setStyle("-fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        themeTexts.getChildren().addAll(tt, td);
+        Region ts = new Region(); HBox.setHgrow(ts, Priority.ALWAYS);
+        themeRow.getChildren().addAll(themeTexts, ts, themeCombo);
+        rows.getChildren().add(themeRow);
+        
+        card.getChildren().add(rows);
+        return card;
+    }
+
+    private VBox buildNetworkCard() {
+        VBox card = createCard("МЕРЕЖА ТА БЕЗПЕКА", ICON_BROADCAST, "#6c5ce7");
+        
+        HBox portRow = new HBox(20);
+        portRow.setAlignment(Pos.CENTER_LEFT);
+        portRow.getChildren().addAll(createLabel("Порт веб-табло:"), portField);
+        
+        HBox firewallRow = new HBox(20);
+        firewallRow.setAlignment(Pos.CENTER_LEFT);
+        firewallRow.setPadding(new Insets(10, 0, 0, 0));
+        
+        VBox fwInfo = new VBox(5);
+        Label fwTitle = new Label("СТАТУС ПОРТУ В БРАНДМАУЕРІ:");
+        fwTitle.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        firewallStatus.setStyle("-fx-font-weight: 900; -fx-font-size: 14px;");
+        fwInfo.getChildren().addAll(fwTitle, firewallStatus);
+        
+        Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
+        
+        Button optimizeBtn = new Button("ОПТИМІЗУВАТИ FIREWALL");
+        optimizeBtn.setStyle(BTN_BASE + "-fx-background-color: #6c5ce7; -fx-padding: 8 20;");
+        optimizeBtn.setGraphic(createSVGIcon(ICON_SAVE, Color.WHITE, 16));
+        optimizeBtn.setOnAction(e -> {
+            try {
+                int port = Integer.parseInt(portField.getText());
+                systemService.optimizeFirewall(port);
+                
+                // Wait a bit for the elevated process to finish before re-checking
+                new Thread(() -> {
+                    try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
+                    javafx.application.Platform.runLater(this::updateFirewallStatusLabel);
+                }).start();
+                
+                ToastService.showSuccess("Запит на оптимізацію надіслано!");
+            } catch (Exception ex) {
+                ToastService.showError("Помилка: " + ex.getMessage());
             }
-        } catch (Exception e) {}
-        audioDeviceCombo.setValue(config.getSelectedAudioDeviceName());
-        audioDeviceCombo.setStyle(COMBO_STYLE);
-        audioDeviceCombo.setMaxWidth(400);
-
-        Label volVal = new Label((int)volumeSlider.getValue() + "%");
-        volVal.setStyle("-fx-font-weight: bold;");
-        volumeSlider.valueProperty().addListener((o, ov, nv) -> volVal.setText(nv.intValue() + "%"));
-        
-        HBox volRow = new HBox(15, volumeSlider, volVal);
-        volRow.setAlignment(Pos.CENTER_LEFT);
-
-        Button testAudio = new Button("ТЕСТ ЗВУКУ");
-        testAudio.setStyle(BTN_BASE + "-fx-background-color: " + COLOR_SUCCESS + "; -fx-padding: 8 20;");
-        testAudio.setOnAction(e -> java.awt.Toolkit.getDefaultToolkit().beep());
-
-        Label infoLabel = new Label("Додаткові налаштування файлів та табло перенесено у розділ \"Сповіщення\"");
-        infoLabel.setStyle("-fx-font-style: italic; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-padding: 10 0 0 0;");
-
-        outputCard.getChildren().addAll(
-            new Label("Пристрій відтворення:"), 
-            audioDeviceCombo, 
-            new Label("Загальна гучність:"), 
-            volRow, 
-            testAudio,
-            infoLabel
-        );
-
-        content.getChildren().add(outputCard);
-        return new ScrollPane(content);
-    }
-
-    private Node buildSystemTab() {
-        VBox content = new VBox(25);
-        content.setPadding(new Insets(30));
-        content.setStyle("-fx-background-color: white; -fx-background-radius: 0 0 16 16;");
-
-        VBox identityCard = createSettingsSection("ПРОФІЛЬ ЗАКЛАДУ", COLOR_PRIMARY, ICON_PERSON);
-        GridPane grid = new GridPane();
-        grid.setHgap(20); grid.setVgap(15);
-        grid.add(new Label("Назва школи:"), 0, 0); grid.add(schoolNameField, 1, 0);
-        grid.add(new Label("Місто:"), 0, 1); grid.add(cityNameField, 1, 1);
-        schoolNameField.setPrefWidth(400);
-        identityCard.getChildren().add(grid);
-
-        VBox netCard = createSettingsSection("МЕРЕЖА", "#6c5ce7", ICON_BROADCAST);
-        netCard.getChildren().addAll(
-            new Label("Порт веб-табло:"),
-            portField
-        );
-        portField.setMaxWidth(100);
-
-        content.getChildren().addAll(identityCard, netCard);
-        return new ScrollPane(content);
-    }
-
-    private Node createAudioRow(CheckBox cb, TextField path, String label) {
-        path.setEditable(false);
-        path.setStyle(FIELD_STYLE + "-fx-background-color: #f1f2f6;");
-        HBox.setHgrow(path, Priority.ALWAYS);
-        
-        Button browse = new Button("...");
-        browse.setStyle(BTN_BASE + "-fx-background-color: " + COLOR_TEXT_DIM + "; -fx-padding: 5 15;");
-        browse.setOnAction(e -> {
-            FileChooser fc = new FileChooser();
-            File f = fc.showOpenDialog(mainApp.getStage());
-            if (f != null) path.setText(f.getAbsolutePath());
         });
-
-        HBox row = new HBox(10, path, browse);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(0, 0, 10, 25));
         
-        return new VBox(5, cb, row);
+        firewallRow.getChildren().addAll(fwInfo, spacer, optimizeBtn);
+        
+        card.getChildren().addAll(portRow, createSeparator(), firewallRow);
+        return card;
+    }
+
+    private VBox createCard(String title, String icon, String color) {
+        VBox card = new VBox(20);
+        card.setPadding(new Insets(30));
+        card.setStyle(SOFT_CARD);
+        
+        HBox header = new HBox(15);
+        header.setAlignment(Pos.CENTER_LEFT);
+        
+        VBox iconBox = new VBox(createSVGIcon(icon, Color.web(color), 24));
+        iconBox.setAlignment(Pos.CENTER);
+        iconBox.setPrefSize(48, 48);
+        iconBox.setStyle("-fx-background-color: " + color + "15; -fx-background-radius: 12;");
+        
+        Label t = new Label(title);
+        t.setStyle("-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + "; -fx-letter-spacing: 1px;");
+        
+        header.getChildren().addAll(iconBox, t);
+        card.getChildren().add(header);
+        
+        return card;
+    }
+
+    private HBox createToggleRow(String title, String desc, ToggleButton toggle) {
+        VBox texts = new VBox(2);
+        Label t = new Label(title);
+        t.setStyle("-fx-font-weight: 700; -fx-font-size: 14px;");
+        Label d = new Label(desc);
+        d.setStyle("-fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        texts.getChildren().addAll(t, d);
+        
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        
+        HBox row = new HBox(20, texts, spacer, toggle);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+    }
+
+    private Label createLabel(String text) {
+        Label l = new Label(text);
+        l.setStyle("-fx-font-weight: 700; -fx-font-size: 13px; -fx-text-fill: " + COLOR_TEXT + ";");
+        return l;
+    }
+
+    private Separator createSeparator() {
+        Separator s = new Separator();
+        s.setStyle("-fx-opacity: 0.4;");
+        return s;
+    }
+
+    private void updateFirewallStatusLabel() {
+        firewallStatus.setText("ПЕРЕВІРКА...");
+        firewallStatus.setTextFill(Color.GRAY);
+        
+        new Thread(() -> {
+            try {
+                int port = Integer.parseInt(portField.getText());
+                boolean allowed = systemService.isPortAllowedInFirewall(port);
+                
+                javafx.application.Platform.runLater(() -> {
+                    firewallStatus.setText(allowed ? "ВІДКРИТИЙ" : "ЗАБЛОКОВАНИЙ");
+                    firewallStatus.setTextFill(Color.web(allowed ? COLOR_SUCCESS : COLOR_DANGER));
+                });
+            } catch (Exception e) {
+                javafx.application.Platform.runLater(() -> {
+                    firewallStatus.setText("НЕВІДОМО");
+                    firewallStatus.setTextFill(Color.GRAY);
+                });
+            }
+        }).start();
     }
 
     private void save() {
         try {
             config.setSchoolName(schoolNameField.getText());
             config.setCityName(cityNameField.getText());
-            config.setRegularBellDuration(Integer.parseInt(regField.getText()));
-            config.setAirRaidRingDuration(Integer.parseInt(arRingField.getText()));
-            config.setAirRaidPauseDuration(Integer.parseInt(arPauseField.getText()));
-            config.setEmergencyDuration(Integer.parseInt(emField.getText()));
-            config.setSimulationMode(simulationModeCb.isSelected());
-            config.setSystemVolume((int) volumeSlider.getValue());
-            config.setSelectedAudioDeviceName(audioDeviceCombo.getValue());
-            config.setAudioAirRaidEnabled(arAudioCb.isSelected());
-            config.setAudioAirRaidPath(arAudioPath.getText());
-            config.setAudioEmergencyEnabled(emAudioCb.isSelected());
-            config.setAudioEmergencyPath(emAudioPath.getText());
-            config.setAudioSilenceEnabled(siAudioCb.isSelected());
-            config.setAudioSilencePath(siAudioPath.getText());
-            config.setBroadcastPort(Integer.parseInt(portField.getText()));
+            
+            boolean autostartChanged = config.isAutostartEnabled() != autostartTg.isSelected();
+            config.setAutostartEnabled(autostartTg.isSelected());
+            config.setMinimizeToTray(trayTg.isSelected());
+            config.setSimulationMode(simulationTg.isSelected());
+            config.setDashboardTheme(themeCombo.getValue());
+            
+            int oldPort = config.getBroadcastPort();
+            int newPort = Integer.parseInt(portField.getText());
+            config.setBroadcastPort(newPort);
 
             mainApp.saveConfig();
-            mainApp.addLog("Всі системні налаштування збережено", "SUCCESS");
             
+            if (autostartChanged) {
+                systemService.updateAutostart(config.isAutostartEnabled());
+            }
+
+            mainApp.addLog("Системні налаштування оновлено", "SUCCESS");
             ToastService.showSuccess("Налаштування збережено!");
+            updateFirewallStatusLabel();
+            
         } catch (Exception e) {
             ToastService.showError("Помилка при збереженні: " + e.getMessage());
         }

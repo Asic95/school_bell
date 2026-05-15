@@ -580,7 +580,6 @@ public class DashboardView {
         Map<String, Object> data = new HashMap<>();
         data.put("schoolName", config.getSchoolName());
         data.put("cityName", config.getCityName());
-        data.put("announcement", config.getAnnouncementText());
         
         String alert = signalService.getCurrentAlertType();
         if ("AIR_RAID".equals(alert) && !config.isVisualAirRaidEnabled()) alert = "NONE";
@@ -648,13 +647,32 @@ public class DashboardView {
         }
         data.put("stages", stages);
         data.put("currentStageIndex", currentStageIndex);
+        if (currentStageIndex != -1) {
+            data.put("schoolStatus", stages.get(currentStageIndex));
+        }
 
         List<Map<String, Object>> classStatuses = new ArrayList<>();
         int currentLessonNum = -1;
+        boolean isBreak = false;
+        
+        // Find if a lesson is currently active
         for (int i = 0; i < activeDs.getLessons().size(); i++) {
             DaySchedule.LessonInfo li = activeDs.getLessons().get(i);
             if (li.start != null && li.end != null && !now.isBefore(li.start) && !now.isAfter(li.end)) {
-                currentLessonNum = i + 1; break;
+                currentLessonNum = i + 1;
+                break;
+            }
+        }
+
+        // If no lesson is active, check if it's a break before a lesson
+        if (currentLessonNum == -1) {
+            for (int i = 0; i < activeDs.getLessons().size(); i++) {
+                DaySchedule.LessonInfo li = activeDs.getLessons().get(i);
+                if (li.start != null && now.isBefore(li.start)) {
+                    currentLessonNum = i + 1;
+                    isBreak = true;
+                    break;
+                }
             }
         }
 
@@ -664,46 +682,70 @@ public class DashboardView {
             List<SubstitutionEntry> subs = academicService.getSubstitutionsForDate(today);
             
             for (SchoolClass sc : mainApp.getClassCache()) {
+                List<com.schoolbell.model.ScheduleEntry> baseSched = academicService.getScheduleForClass(sc.id());
+                
+                // Find the first lesson for this class that is >= currentLessonNum
+                int targetLNum = -1;
+                boolean foundReplacement = false;
+                SubstitutionEntry targetSub = null;
+                com.schoolbell.model.ScheduleEntry targetBase = null;
+
+                for (int l = currentLessonNum; l <= 15; l++) { // Check up to 15 lessons
+                    final int checkL = l;
+                    SubstitutionEntry sub = subs.stream()
+                            .filter(s -> s.classId() == sc.id() && s.lessonNumber() == checkL)
+                            .findFirst().orElse(null);
+                    
+                    if (sub != null) {
+                        targetLNum = l;
+                        targetSub = sub;
+                        foundReplacement = true;
+                        break;
+                    }
+
+                    com.schoolbell.model.ScheduleEntry base = baseSched.stream()
+                            .filter(e -> e.dayOfWeek() == dayOfWeek && e.lessonNumber() == checkL)
+                            .findFirst().orElse(null);
+                    
+                    if (base != null) {
+                        targetLNum = l;
+                        targetBase = base;
+                        break;
+                    }
+                }
+
+                // If no more lessons today for this class, skip it
+                if (targetLNum == -1) continue;
+
                 Map<String, Object> cs = new HashMap<>();
                 cs.put("className", sc.name());
-                cs.put("lessonNumber", currentLessonNum);
-                cs.put("statusClass", "current");
-
-                final int lNum = currentLessonNum;
-                SubstitutionEntry sub = subs.stream()
-                        .filter(s -> s.classId() == sc.id() && s.lessonNumber() == lNum)
-                        .findFirst().orElse(null);
+                cs.put("lessonNumber", targetLNum);
                 
-                if (sub != null) {
+                // Determine status: 
+                // - If school is currently in lesson AND class is in that same lesson -> "current"
+                // - Otherwise (it's a break OR class has a window) -> "upcoming"
+                boolean isClassInCurrentSchoolLesson = (!isBreak && targetLNum == currentLessonNum);
+                cs.put("statusClass", isClassInCurrentSchoolLesson ? "current" : "upcoming");
+
+                if (foundReplacement && targetSub != null) {
                     cs.put("isReplacement", true);
-                    cs.put("subject", mainApp.getSubjectName(sub.subjectId()));
-                    cs.put("teacher", mainApp.getTeacherName(sub.teacherId()));
-                    cs.put("room", mainApp.getClassroomName(sub.classroomId()));
+                    cs.put("subject", mainApp.getSubjectName(targetSub.subjectId()));
+                    cs.put("teacher", mainApp.getTeacherName(targetSub.teacherId()));
+                    cs.put("room", mainApp.getClassroomName(targetSub.classroomId()));
                     
-                    // Find original teacher for the replacement view
-                    List<com.schoolbell.model.ScheduleEntry> sched = academicService.getScheduleForClass(sc.id());
-                    sched.stream()
-                        .filter(e -> e.dayOfWeek() == dayOfWeek && e.lessonNumber() == lNum)
+                    final int finalTargetLNum = targetLNum;
+                    baseSched.stream()
+                        .filter(e -> e.dayOfWeek() == dayOfWeek && e.lessonNumber() == finalTargetLNum)
                         .findFirst()
                         .ifPresent(orig -> cs.put("originalTeacher", mainApp.getTeacherName(orig.teacherId())));
                     
                     if (!cs.containsKey("originalTeacher")) cs.put("originalTeacher", "—");
-                } else {
-                    List<com.schoolbell.model.ScheduleEntry> sched = academicService.getScheduleForClass(sc.id());
-                    com.schoolbell.model.ScheduleEntry entry = sched.stream()
-                            .filter(e -> e.dayOfWeek() == dayOfWeek && e.lessonNumber() == lNum)
-                            .findFirst().orElse(null);
-                    
-                    if (entry != null) {
-                        cs.put("subject", mainApp.getSubjectName(entry.subjectId()));
-                        cs.put("teacher", mainApp.getTeacherName(entry.teacherId()));
-                        cs.put("room", mainApp.getClassroomName(entry.classroomId()));
-                    } else {
-                        cs.put("subject", "—");
-                        cs.put("teacher", "—");
-                        cs.put("room", "—");
-                    }
+                } else if (targetBase != null) {
+                    cs.put("subject", mainApp.getSubjectName(targetBase.subjectId()));
+                    cs.put("teacher", mainApp.getTeacherName(targetBase.teacherId()));
+                    cs.put("room", mainApp.getClassroomName(targetBase.classroomId()));
                 }
+                
                 classStatuses.add(cs);
             }
         }
@@ -715,7 +757,7 @@ public class DashboardView {
             DaySchedule.LessonInfo li = activeDs.getLessons().get(currentLessonNum - 1);
             Map<String, Object> cl = new HashMap<>();
             cl.put("number", currentLessonNum);
-            cl.put("subject", firstClass.get("subject"));
+            cl.put("subject", isBreak ? "Наступний: " + firstClass.get("subject") : firstClass.get("subject"));
             cl.put("teacher", firstClass.get("teacher"));
             cl.put("room", firstClass.get("room"));
             cl.put("className", firstClass.get("className"));

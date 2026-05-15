@@ -185,6 +185,16 @@ public class SubstitutionsEditorTab {
         monthPicker.setValue(LocalDate.now().getMonth());
         monthPicker.setStyle(COMBO_STYLE);
         monthPicker.setMaxWidth(Double.MAX_VALUE);
+        monthPicker.setConverter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(Month m) {
+                if (m == null) return "";
+                String name = m.getDisplayName(java.time.format.TextStyle.FULL_STANDALONE, ukLocale);
+                return name.substring(0, 1).toUpperCase() + name.substring(1);
+            }
+            @Override
+            public Month fromString(String s) { return null; }
+        });
 
         Spinner<Integer> yearPicker = new Spinner<>(2024, 2030, LocalDate.now().getYear());
         yearPicker.setEditable(true);
@@ -200,7 +210,10 @@ public class SubstitutionsEditorTab {
             stage.close();
         });
 
-        root.getChildren().addAll(header, new Label("Місяць:"), monthPicker, new Label("Рік:"), yearPicker, generateBtn);
+        Label monthL = new Label("Місяць:"); monthL.setStyle(HEADER_STYLE);
+        Label yearL = new Label("Рік:"); yearL.setStyle(HEADER_STYLE);
+        
+        root.getChildren().addAll(header, monthL, monthPicker, yearL, yearPicker, generateBtn);
         stage.setScene(new Scene(root, 350, 350));
         stage.show();
     }
@@ -221,15 +234,17 @@ public class SubstitutionsEditorTab {
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Зберегти звіт");
-        fileChooser.setInitialFileName("report_substitutions_" + year + "_" + month.getValue() + ".txt");
+        String mName = month.getDisplayName(java.time.format.TextStyle.FULL_STANDALONE, ukLocale);
+        mName = mName.substring(0, 1).toUpperCase() + mName.substring(1);
+        fileChooser.setInitialFileName("звіт_замін_" + mName + "_" + year + ".txt");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
         
         File file = fileChooser.showSaveDialog(mainApp.getStage());
         if (file != null) {
             try (PrintWriter writer = new PrintWriter(file, StandardCharsets.UTF_8)) {
                 writer.println("ЗВІТ ПРО ЗАМІНИ ВЧИТЕЛІВ");
-                writer.println("Період: " + month.name() + " " + year);
-                writer.println("Згенеровано: " + LocalDate.now());
+                writer.println("Період: " + mName + " " + year);
+                writer.println("Згенеровано: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
                 writer.println("==========================================");
                 writer.println();
 

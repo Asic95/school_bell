@@ -34,6 +34,9 @@ public class ConfigService {
     
     private String selectedScheduleName;
     private boolean isSimulationMode = false;
+    private boolean isAutostartEnabled = false;
+    private boolean isMinimizeToTray = false;
+    private String dashboardTheme = "classic";
 
     public void loadConfig() {
         selectedScheduleName = DatabaseManager.getSetting("selectedSchedule", null);
@@ -58,6 +61,9 @@ public class ConfigService {
         cityName = DatabaseManager.getSetting("school.city", "Київ");
         announcementText = DatabaseManager.getSetting("school.announcement", "Вітаємо у системі School Bell!");
         isSimulationMode = Boolean.parseBoolean(DatabaseManager.getSetting("system.simulation", "false"));
+        isAutostartEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("system.autostart", "false"));
+        isMinimizeToTray = Boolean.parseBoolean(DatabaseManager.getSetting("system.tray", "false"));
+        dashboardTheme = DatabaseManager.getSetting("system.dashboardTheme", "classic");
         logger.info("Configuration loaded from database.");
     }
 
@@ -84,6 +90,9 @@ public class ConfigService {
         DatabaseManager.saveSetting("school.city", cityName);
         DatabaseManager.saveSetting("school.announcement", announcementText);
         DatabaseManager.saveSetting("system.simulation", String.valueOf(isSimulationMode));
+        DatabaseManager.saveSetting("system.autostart", String.valueOf(isAutostartEnabled));
+        DatabaseManager.saveSetting("system.tray", String.valueOf(isMinimizeToTray));
+        DatabaseManager.saveSetting("system.dashboardTheme", dashboardTheme);
         logger.info("Configuration saved to database.");
     }
 
@@ -134,4 +143,10 @@ public class ConfigService {
     public void setSelectedScheduleName(String selectedScheduleName) { this.selectedScheduleName = selectedScheduleName; }
     public boolean isSimulationMode() { return isSimulationMode; }
     public void setSimulationMode(boolean simulationMode) { isSimulationMode = simulationMode; }
+    public boolean isAutostartEnabled() { return isAutostartEnabled; }
+    public void setAutostartEnabled(boolean autostartEnabled) { isAutostartEnabled = autostartEnabled; }
+    public boolean isMinimizeToTray() { return isMinimizeToTray; }
+    public void setMinimizeToTray(boolean minimizeToTray) { isMinimizeToTray = minimizeToTray; }
+    public String getDashboardTheme() { return dashboardTheme; }
+    public void setDashboardTheme(String dashboardTheme) { this.dashboardTheme = dashboardTheme; }
 }
