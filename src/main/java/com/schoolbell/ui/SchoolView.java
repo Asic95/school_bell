@@ -41,7 +41,7 @@ public class SchoolView {
             createManagementCard("Вчителі", "Керування списком вчителів та їх спеціалізацією", ICON_PERSON, "#0984e3", "#e3f2fd", () -> mainApp.showEditorTab(1)),
             createManagementCard("Предмети", "Довідник навчальних предметів", ICON_BOOK, "#00b894", "#e8f8f5", () -> mainApp.showEditorTab(2)),
             createManagementCard("Класи", "Список навчальних класів та груп", ICON_CLASS, "#a29bfe", "#f3efff", () -> mainApp.showEditorTab(3)),
-            createManagementCard("Аудиторії", "Перелік кабінетів та залів", ICON_ROOM, "#e84393", "#fff0f6", () -> mainApp.showEditorTab(7))
+            createManagementCard("Аудиторії", "Перелік кабінетів та залів", ICON_ROOM, "#00cec9", "#e0fcfb", () -> mainApp.showEditorTab(7))
         );
         
         root.getChildren().addAll(headerArea, grid);

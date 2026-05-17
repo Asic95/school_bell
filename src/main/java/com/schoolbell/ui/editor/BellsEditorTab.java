@@ -37,7 +37,7 @@ public class BellsEditorTab {
         VBox headerArea = createSectionHeader(
                 "Налаштування дзвінків",
                 "Створюйте та редагуйте розклади уроків для вашого закладу",
-                "#2d3436",
+                "#0984e3",
                 ICON_BELL,
                 saveBtn
         );

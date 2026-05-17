@@ -113,8 +113,16 @@ public class ClassesEditorTab {
                 refreshClasses.run();
             }
         });
-        content.getChildren().addAll(headerArea, new HBox(15, addField, addBtn), scroll);
+
+        VBox contentLayout = new VBox(25, headerArea, new HBox(15, addField, addBtn), scroll);
+        contentLayout.setPadding(new Insets(30));
+        contentLayout.setStyle("-fx-background-color: #f8f9fa;");
+
         refreshClasses.run();
-        return content;
+        
+        ScrollPane mainScroll = new ScrollPane(contentLayout);
+        mainScroll.setFitToWidth(true);
+        mainScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+        return mainScroll;
     }
 }

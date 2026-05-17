@@ -9,6 +9,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
+import java.util.List;
+
 import static com.schoolbell.ui.UIComponents.*;
 import static com.schoolbell.ui.UIStyles.*;
 
@@ -23,6 +25,16 @@ public class SettingsView {
     private final CheckBox broadcastEnabledCb;
     private final CheckBox simulationModeCb;
     private final TextArea announcementArea;
+
+    // Signal Durations
+    private Spinner<Integer> regularBellDur;
+    private Spinner<Integer> airRaidRingDur;
+    private Spinner<Integer> airRaidPauseDur;
+    private Spinner<Integer> emergencyDur;
+    
+    private HBox regularPreview;
+    private HBox airRaidPreview;
+    private HBox emergencyPreview;
 
     public SettingsView(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -44,6 +56,22 @@ public class SettingsView {
         announcementArea.setPrefRowCount(3);
         announcementArea.setWrapText(true);
         announcementArea.setStyle("-fx-font-size: 14px; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #dfe6e9; -fx-padding: 10;");
+
+        // Signal Durations
+        regularBellDur = createStyledSpinner(1, 60, config.getRegularBellDuration());
+        airRaidRingDur = createStyledSpinner(1, 30, config.getAirRaidRingDuration());
+        airRaidPauseDur = createStyledSpinner(1, 30, config.getAirRaidPauseDuration());
+        emergencyDur = createStyledSpinner(1, 120, config.getEmergencyDuration());
+        
+        regularPreview = new HBox();
+        airRaidPreview = new HBox();
+        emergencyPreview = new HBox();
+        
+        javafx.beans.value.ChangeListener<Integer> previewUpdater = (o, ov, nv) -> refreshPreviews();
+        regularBellDur.valueProperty().addListener(previewUpdater);
+        airRaidRingDur.valueProperty().addListener(previewUpdater);
+        airRaidPauseDur.valueProperty().addListener(previewUpdater);
+        emergencyDur.valueProperty().addListener(previewUpdater);
     }
 
     public Node build() {
@@ -107,16 +135,44 @@ public class SettingsView {
         volLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
         sec2.getChildren().addAll(volLabel, volRow);
 
-        // Section 3: Network
-        VBox sec3 = createSettingsSection("МЕРЕЖА ТА ТРАНСЛЯЦІЯ", "#6c5ce7", ICON_BROADCAST);
+        // Section 3: Signal Durations
+        VBox sec3 = createSettingsSection("ПАРАМЕТРИ ДЗВІНКІВ", "#f39c12", ICON_WAVEFORM);
         sec3.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
+        
+        GridPane durGrid = new GridPane();
+        durGrid.setHgap(30); durGrid.setVgap(15);
+        
+        durGrid.add(new Label("ЗВИЧАЙНИЙ ДЗВІНОК (СЕК):"), 0, 0);
+        durGrid.add(regularBellDur, 1, 0);
+        
+        durGrid.add(new Label("ТРИВОГА: ЦИКЛ ДЗВОНУ (СЕК):"), 0, 1);
+        durGrid.add(airRaidRingDur, 1, 1);
+        
+        durGrid.add(new Label("ТРИВОГА: ПАУЗА (СЕК):"), 0, 2);
+        durGrid.add(airRaidPauseDur, 1, 2);
+        
+        durGrid.add(new Label("ЕКСТРЕНА СИТУАЦІЯ (СЕК):"), 0, 3);
+        durGrid.add(emergencyDur, 1, 3);
+        
+        for (Node n : durGrid.getChildren()) {
+            if (n instanceof Label l) l.setStyle("-fx-font-weight: 900; -fx-font-size: 10px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        }
+        
+        VBox previews = new VBox(5, regularPreview, airRaidPreview, emergencyPreview);
+        previews.setPadding(new Insets(10, 0, 0, 0));
+        
+        sec3.getChildren().addAll(durGrid, createSeparator(), previews);
+
+        // Section 4: Network
+        VBox sec4 = createSettingsSection("МЕРЕЖА ТА ТРАНСЛЯЦІЯ", "#6c5ce7", ICON_BROADCAST);
+        sec4.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
         broadcastEnabledCb.setStyle("-fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT + "; -fx-font-size: 13px;");
         
         HBox portRow = createFieldRow("ПОРТ ТРАНСЛЯЦІЇ:", portField);
         ((Label)portRow.getChildren().get(0)).setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
         portField.setPrefWidth(120);
         
-        sec3.getChildren().addAll(broadcastEnabledCb, portRow);
+        sec4.getChildren().addAll(broadcastEnabledCb, portRow);
 
         // Section 5: System
         VBox sec5 = createSettingsSection("СИСТЕМНІ ПАРАМЕТРИ", "#636e72", ICON_SETTINGS);
@@ -128,16 +184,32 @@ public class SettingsView {
 
         grid.add(sec1, 0, 0);
         grid.add(sec2, 1, 0);
-        grid.add(sec3, 0, 1);
-        grid.add(sec5, 1, 1);
+        grid.add(sec3, 0, 1, 1, 2); // Span 2 rows
+        grid.add(sec4, 1, 1);
+        grid.add(sec5, 1, 2);
 
         content.getChildren().addAll(grid);
         root.getChildren().addAll(headerArea, content);
+
+        refreshPreviews();
 
         ScrollPane scroll = new ScrollPane(root);
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         return scroll;
+    }
+
+    private void refreshPreviews() {
+        updatePreview(regularPreview, "ЗВИЧАЙНИЙ", List.of(regularBellDur.getValue()), 0, COLOR_PRIMARY);
+        updatePreview(airRaidPreview, "ТРИВОГА", List.of(airRaidRingDur.getValue(), airRaidRingDur.getValue(), airRaidRingDur.getValue()), airRaidPauseDur.getValue(), "#f39c12");
+        updatePreview(emergencyPreview, "ЕКСТРЕНА", List.of(emergencyDur.getValue()), 0, COLOR_DANGER);
+    }
+
+    private Separator createSeparator() {
+        Separator s = new Separator();
+        s.setStyle("-fx-opacity: 0.3;");
+        s.setPadding(new Insets(10, 0, 10, 0));
+        return s;
     }
 
     private void save() {
@@ -150,9 +222,16 @@ public class SettingsView {
             config.setBroadcastPort(Integer.parseInt(portField.getText()));
             config.setAnnouncementText(announcementArea.getText());
             
+            // Signal Durations
+            config.setRegularBellDuration(regularBellDur.getValue());
+            config.setAirRaidRingDuration(airRaidRingDur.getValue());
+            config.setAirRaidPauseDuration(airRaidPauseDur.getValue());
+            config.setEmergencyDuration(emergencyDur.getValue());
+            
             mainApp.saveConfig();
             ToastService.showSuccess("Загальні налаштування збережено!");
-            } catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             ToastService.showError("Некоректні дані: порт має бути числом.");
-            }    }
+        }
+    }
 }

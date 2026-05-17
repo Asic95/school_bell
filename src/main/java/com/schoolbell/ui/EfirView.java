@@ -193,6 +193,42 @@ public class EfirView {
 
         rightCol.getChildren().add(devicesCard);
 
+        // --- SYSTEM LOGS ---
+        VBox logsCard = createSettingsSection("ЖУРНАЛ СИСТЕМИ", COLOR_NEUTRAL, ICON_INFO);
+        logsCard.setStyle(SOFT_CARD);
+        logsCard.setPadding(new Insets(25));
+        logsCard.setCache(true);
+        logsCard.setCacheHint(javafx.scene.CacheHint.SPEED);
+
+        ListView<String> logList = new ListView<>(mainApp.getSystemLogs());
+        logList.setPrefHeight(250);
+        logList.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0; -fx-border-color: #f1f2f6; -fx-border-radius: 12;");
+        logList.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("-fx-background-color: transparent;");
+                } else {
+                    Label lbl = new Label(item);
+                    lbl.setWrapText(true);
+                    lbl.setMaxWidth(450);
+                    
+                    if (item.contains("[SUCCESS]")) lbl.setStyle("-fx-text-fill: " + COLOR_SUCCESS + "; -fx-font-weight: bold; -fx-font-size: 12px;");
+                    else if (item.contains("[WARNING]")) lbl.setStyle("-fx-text-fill: #f39c12; -fx-font-weight: bold; -fx-font-size: 12px;");
+                    else if (item.contains("[ERROR]")) lbl.setStyle("-fx-text-fill: " + COLOR_DANGER + "; -fx-font-weight: bold; -fx-font-size: 12px;");
+                    else lbl.setStyle("-fx-text-fill: " + COLOR_TEXT + "; -fx-font-size: 12px;");
+                    
+                    setGraphic(lbl);
+                    setStyle("-fx-background-color: " + (getIndex() % 2 == 0 ? "#fcfcfc" : "white") + "; -fx-padding: 8 12; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 1 0;");
+                }
+            }
+        });
+        logsCard.getChildren().add(logList);
+        rightCol.getChildren().add(logsCard);
+
         content.getChildren().addAll(leftCol, rightCol);
         root.getChildren().addAll(headerArea, heroCard, content);
 

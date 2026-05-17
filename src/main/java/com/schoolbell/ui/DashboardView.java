@@ -64,6 +64,10 @@ public class DashboardView {
     private Label activeScheduleValue;
     private Label topActiveScheduleLabel;
     private HBox scheduleFlowContainer;
+
+    private int currentVolumeValue;
+    private Label volStatusLabel;
+    private HBox volumePresetBox;
     
     private int lastLessonIdx = -2;
     private boolean lastIsBreak = false;
@@ -169,6 +173,8 @@ public class DashboardView {
         titleRow.setAlignment(Pos.CENTER_LEFT);
         
         curLessonSubjectLabel = new Label("Завантаження даних...");
+        curLessonSubjectLabel.setWrapText(true);
+        curLessonSubjectLabel.setMaxWidth(400);
         curLessonSubjectLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
         sessionText.getChildren().addAll(titleRow, curLessonSubjectLabel);
         
@@ -182,6 +188,9 @@ public class DashboardView {
         countdownLabel = new Label("00:00:00");
         countdownLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + ";");
         nextBellTypeLabel = new Label("—");
+        nextBellTypeLabel.setWrapText(true);
+        nextBellTypeLabel.setTextAlignment(javafx.scene.text.TextAlignment.RIGHT);
+        nextBellTypeLabel.setMaxWidth(220);
         nextBellTypeLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
         countdownBox.getChildren().addAll(countdownTitle, countdownLabel, nextBellTypeLabel);
         
@@ -249,13 +258,10 @@ public class DashboardView {
         HBox actionsBox = new HBox(25);
         airRaidBtn = createActionButton("ПОВІТРЯНА ТРИВОГА", "Активація режиму загальної небезпеки", ICON_AIR_RAID, GRADIENT_WARNING);
         airRaidBtn.setOnAction(e -> {
+            airRaidBtn.setDisable(true);
             if ("AIR_RAID".equals(signalService.getCurrentAlertType())) {
-                // Миттєвий зворотній зв'язок в UI
-                updateActionButton(airRaidBtn, "ПОВІТРЯНА ТРИВОГА", "Активація режиму загальної небезпеки", ICON_AIR_RAID, GRADIENT_WARNING);
                 signalService.runAirRaidClearSignal();
             } else {
-                // Миттєвий зворотній зв'язок в UI
-                updateActionButton(airRaidBtn, "ВІДБІЙ ТРИВОГИ", "Сигнал про завершення небезпеки", ICON_ALL_CLEAR, GRADIENT_SUCCESS);
                 signalService.runAirRaidSignal();
             }
         });
@@ -263,13 +269,10 @@ public class DashboardView {
         
         emergencyBtn = createActionButton("ЕКСТРЕНА СИТУАЦІЯ", "Сигнал термінової евакуації закладу", ICON_LIFEBUOY, GRADIENT_DANGER);
         emergencyBtn.setOnAction(e -> {
+            emergencyBtn.setDisable(true);
             if ("EMERGENCY".equals(signalService.getCurrentAlertType())) {
-                // Миттєвий зворотній зв'язок в UI
-                updateActionButton(emergencyBtn, "ЕКСТРЕНА СИТУАЦІЯ", "Сигнал термінової евакуації закладу", ICON_LIFEBUOY, GRADIENT_DANGER);
                 signalService.runEmergencyClearSignal();
             } else {
-                // Миттєвий зворотній зв'язок в UI
-                updateActionButton(emergencyBtn, "СКАСУВАТИ НС", "Повернення до штатного режиму", ICON_ALL_CLEAR, GRADIENT_SUCCESS);
                 signalService.runEmergencySignal();
             }
         });
@@ -291,12 +294,32 @@ public class DashboardView {
         activeScheduleValue = new Label(config.getSelectedScheduleName() != null ? config.getSelectedScheduleName() : "Не вибрано");
         VBox schCard = createSmallInfoCard("АКТИВНИЙ РОЗКЛАД", activeScheduleValue, "Змінити", () -> mainApp.showEditorTab(0), ICON_CALENDAR, COLOR_BLUE_LIGHT, COLOR_PRIMARY, false, 0, null);
         
-        Label volValue = new Label("Гучність: " + config.getSystemVolume() + "%");
-        VBox volCard = createSmallInfoCard("ВІДТВОРЕННЯ ЗВУКУ", volValue, null, null, ICON_VOLUME, COLOR_GREEN_LIGHT, COLOR_SUCCESS, true, config.getSystemVolume(), (newValue) -> {
-            config.setSystemVolume(newValue);
-            mainApp.getAudioService().setVolume(newValue);
-            mainApp.saveConfig();
-        });
+        currentVolumeValue = config.getSystemVolume();
+        volStatusLabel = new Label(currentVolumeValue + "%");
+        volStatusLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + ";");
+        
+        volumePresetBox = new HBox(5);
+        volumePresetBox.setAlignment(Pos.CENTER_LEFT);
+        int[] presets = {0, 25, 50, 75, 100};
+        for (int p : presets) {
+            Button pb = new Button(p == 0 ? "0" : p + "");
+            pb.setPrefSize(35, 30);
+            pb.setUserData(p);
+            pb.setOnAction(e -> {
+                currentVolumeValue = p;
+                volStatusLabel.setText(p + "%");
+                updateVolumeStyle();
+                config.setSystemVolume(p);
+                mainApp.getAudioService().setVolume(p);
+                mainApp.getSystemService().setWindowsSystemVolume(p);
+                mainApp.saveConfig();
+            });
+            volumePresetBox.getChildren().add(pb);
+        }
+        updateVolumeStyle();
+
+        VBox volContent = new VBox(5, volStatusLabel, volumePresetBox);
+        VBox volCard = createSmallInfoCard("СИСТЕМНА ГУЧНІСТЬ", volContent, null, null, ICON_VOLUME, COLOR_GREEN_LIGHT, COLOR_SUCCESS, false, 0, null);
         
         VBox brCard = createSmallInfoCard("ТРАНСЛЯЦІЯ ДАШБОРДУ", new Label(config.isBroadcastEnabled() ? "Увімкнено" : "Вимкнено"), "Відкрити в браузері", () -> mainApp.getHostServices().showDocument("http://localhost:" + (config.getBroadcastPort())), ICON_MONITOR, COLOR_PURPLE_LIGHT, "#6c5ce7", false, 0, null);
         
@@ -308,6 +331,20 @@ public class DashboardView {
         
         update(LocalTime.now());
         return mainScroll;
+    }
+
+    private void updateVolumeStyle() {
+        if (volumePresetBox == null) return;
+        for (Node n : volumePresetBox.getChildren()) {
+            if (n instanceof Button b) {
+                int val = (int) b.getUserData();
+                if (val == currentVolumeValue) {
+                    b.setStyle("-fx-background-color: " + COLOR_SUCCESS + "; -fx-text-fill: white; -fx-font-weight: 900; -fx-background-radius: 8; -fx-font-size: 10px; -fx-padding: 0;");
+                } else {
+                    b.setStyle("-fx-background-color: #f1f2f6; -fx-text-fill: #636e72; -fx-font-weight: bold; -fx-background-radius: 8; -fx-font-size: 10px; -fx-padding: 0; -fx-cursor: hand;");
+                }
+            }
+        }
     }
 
     public void update(LocalTime now) {
@@ -359,12 +396,16 @@ public class DashboardView {
 
     private void updateActionButtons() {
         String alert = signalService.getCurrentAlertType();
+        boolean inProgress = signalService.isActionInProgress();
+        
         if ("AIR_RAID".equals(alert)) {
             updateActionButton(airRaidBtn, "ВІДБІЙ ТРИВОГИ", "Сигнал про завершення небезпеки", ICON_ALL_CLEAR, GRADIENT_SUCCESS);
             emergencyBtn.setDisable(true);
+            airRaidBtn.setDisable(inProgress);
         } else if ("EMERGENCY".equals(alert)) {
             updateActionButton(emergencyBtn, "СКАСУВАТИ НС", "Повернення до штатного режиму", ICON_ALL_CLEAR, GRADIENT_SUCCESS);
             airRaidBtn.setDisable(true);
+            emergencyBtn.setDisable(inProgress);
         } else if ("SILENCE".equals(alert)) {
             updateActionButton(airRaidBtn, "ХВИЛИНА МОВЧАННЯ", "Йде відтворення аудіо", ICON_CLOCK, GRADIENT_NEUTRAL);
             airRaidBtn.setDisable(true);
@@ -372,8 +413,8 @@ public class DashboardView {
         } else {
             updateActionButton(airRaidBtn, "ПОВІТРЯНА ТРИВОГА", "Активація режиму загальної небезпеки", ICON_AIR_RAID, GRADIENT_WARNING);
             updateActionButton(emergencyBtn, "ЕКСТРЕНА СИТУАЦІЯ", "Сигнал термінової евакуації закладу", ICON_LIFEBUOY, GRADIENT_DANGER);
-            airRaidBtn.setDisable(false);
-            emergencyBtn.setDisable(false);
+            airRaidBtn.setDisable(inProgress);
+            emergencyBtn.setDisable(inProgress);
         }
     }
 
