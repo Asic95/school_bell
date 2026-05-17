@@ -25,7 +25,7 @@ public class ClassroomsEditorTab {
         content.setPadding(new Insets(30));
         content.setStyle("-fx-background-color: #f8f9fa;");
 
-        VBox headerArea = createSectionHeader("Навчальні аудиторії", "Керуйте списком кабінетів та приміщень школи", "#6c5ce7", ICON_ROOM);
+        VBox headerArea = createSectionHeader("Навчальні аудиторії", "Керуйте списком кабінетів та приміщень школи", "#00cec9", ICON_ROOM);
         
         TextField addField = new TextField();
         addField.setPromptText("Введіть назву або номер кабінету (наприклад, Каб. 301)...");
@@ -33,7 +33,7 @@ public class ClassroomsEditorTab {
         addField.setPrefWidth(550);
 
         Button addBtn = createPrimaryActionButton("ДОДАТИ КАБІНЕТ", ICON_PLUS);
-        addBtn.setStyle(addBtn.getStyle().replace(COLOR_PRIMARY, "#6c5ce7"));
+        addBtn.setStyle(addBtn.getStyle().replace(COLOR_PRIMARY, "#00cec9"));
 
         FlowPane classroomsContainer = new FlowPane(20, 20);
         classroomsContainer.setPadding(new Insets(10));
@@ -51,12 +51,12 @@ public class ClassroomsEditorTab {
                 HBox topRow = new HBox(12);
                 topRow.setAlignment(Pos.CENTER_LEFT);
                 
-                VBox iconBox = new VBox(createSVGIcon(ICON_ROOM, Color.web("#6c5ce7"), 18));
+                VBox iconBox = new VBox(createSVGIcon(ICON_ROOM, Color.web("#00cec9"), 18));
                 iconBox.setAlignment(Pos.CENTER);
                 iconBox.setPrefSize(40, 40);
                 iconBox.setMinSize(40, 40);
                 iconBox.setMaxSize(40, 40);
-                iconBox.setStyle("-fx-background-color: #6c5ce715; -fx-background-radius: 12;");
+                iconBox.setStyle("-fx-background-color: #00cec915; -fx-background-radius: 12;");
 
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -116,8 +116,15 @@ public class ClassroomsEditorTab {
             }
         });
 
-        content.getChildren().addAll(headerArea, new HBox(15, addField, addBtn), scroll);
+        VBox contentLayout = new VBox(25, headerArea, new HBox(15, addField, addBtn), scroll);
+        contentLayout.setPadding(new Insets(30));
+        contentLayout.setStyle("-fx-background-color: #f8f9fa;");
+
         refreshClassrooms.run();
-        return content;
+
+        ScrollPane mainScroll = new ScrollPane(contentLayout);
+        mainScroll.setFitToWidth(true);
+        mainScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+        return mainScroll;
     }
 }

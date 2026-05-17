@@ -50,7 +50,7 @@ public class SubstitutionsEditorTab {
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
-        VBox headerArea = createSectionHeader("Керування замінами", "Переглядайте, фільтруйте та керуйте замінами вчителів", COLOR_PRIMARY, ICON_CALENDAR);
+        VBox headerArea = createSectionHeader("Керування замінами", "Переглядайте, фільтруйте та керуйте замінами вчителів", "#e67e22", ICON_CLOCK);
 
         // Filter & Search Bar
         HBox actionToolbar = new HBox(20);
@@ -86,7 +86,7 @@ public class SubstitutionsEditorTab {
         archiveBtn.setToggleGroup(group);
         activeBtn.setSelected(true);
 
-        String activeStyle = "-fx-background-color: white; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 20; -fx-cursor: hand;";
+        String activeStyle = "-fx-background-color: white; -fx-text-fill: #e67e22; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 20; -fx-cursor: hand;";
         String inactiveStyle = "-fx-background-color: transparent; -fx-text-fill: " + COLOR_NEUTRAL + "; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 20; -fx-cursor: hand;";
 
         activeBtn.setStyle(activeStyle);
@@ -351,15 +351,15 @@ public class SubstitutionsEditorTab {
         // --- DECORATIVE TRANSITION ---
         VBox transitionBox = new VBox();
         transitionBox.setAlignment(Pos.CENTER);
-        Node arrow = createSVGIcon("M14,16.94V12.94H5.08L5.05,10.93H14V6.94L19,11.94L14,16.94Z", Color.web(COLOR_PRIMARY), 24);
-        arrow.setStyle("-fx-effect: dropshadow(three-pass-box, " + COLOR_PRIMARY + "30, 10, 0, 0, 0);");
+        Node arrow = createSVGIcon("M14,16.94V12.94H5.08L5.05,10.93H14V6.94L19,11.94L14,16.94Z", Color.web("#e67e22"), 24);
+        arrow.setStyle("-fx-effect: dropshadow(three-pass-box, #e67e2230, 10, 0, 0, 0);");
         transitionBox.getChildren().add(arrow);
 
         // --- REPLACEMENT BLOCK ---
         VBox toBox = new VBox(8);
         toBox.setAlignment(Pos.CENTER_LEFT);
         Label toLabel = new Label("СТАЛО (ЗАМІНА)");
-        toLabel.setStyle("-fx-font-size: 9px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-letter-spacing: 0.5px;");
+        toLabel.setStyle("-fx-font-size: 9px; -fx-font-weight: 900; -fx-text-fill: #e67e22; -fx-letter-spacing: 0.5px;");
         
         HBox toInfo = new HBox(12);
         toInfo.setAlignment(Pos.CENTER_LEFT);
@@ -370,7 +370,7 @@ public class SubstitutionsEditorTab {
         Label ntName = new Label(nt != null ? nt.name() : "Немає вчителя");
         ntName.setStyle("-fx-font-weight: 900; -fx-font-size: 14px; -fx-text-fill: " + COLOR_TEXT + ";");
         Label nsName = new Label(ns != null ? ns.name().toUpperCase() : "ЗАМІНА");
-        nsName.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + ";");
+        nsName.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: #e67e22;");
         ntStack.getChildren().addAll(ntName, nsName);
 
         // Add classroom badge
@@ -378,7 +378,7 @@ public class SubstitutionsEditorTab {
             String roomName = mainApp.getClassroomName(sub.classroomId());
             Label roomBadge = new Label(roomName);
             roomBadge.setGraphic(createSVGIcon(ICON_ROOM, Color.WHITE, 10));
-            roomBadge.setStyle("-fx-font-size: 10px; -fx-text-fill: white; -fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 6; -fx-padding: 2 8; -fx-font-weight: 900;");
+            roomBadge.setStyle("-fx-font-size: 10px; -fx-text-fill: white; -fx-background-color: #e67e22; -fx-background-radius: 6; -fx-padding: 2 8; -fx-font-weight: 900;");
             HBox roomWrapper = new HBox(roomBadge);
             roomWrapper.setPadding(new Insets(2, 0, 0, 0));
             ntStack.getChildren().add(roomWrapper);

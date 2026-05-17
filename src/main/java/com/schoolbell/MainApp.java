@@ -70,6 +70,7 @@ public class MainApp extends Application {
     private final Map<Integer, String> subjectCache = new HashMap<>();
     private final Map<Integer, String> classroomCache = new HashMap<>();
     private final List<SchoolClass> classCache = new ArrayList<>();
+    private final javafx.collections.ObservableList<String> systemLogs = javafx.collections.FXCollections.observableArrayList();
 
     // UI
     private StackPane contentArea;
@@ -101,7 +102,7 @@ public class MainApp extends Application {
         relayController.setMainApp(this);
         audioService = new AudioService(configService);
         signalService = new SignalService(relayController, audioService, configService);
-        signalService.setLogConsumer(msg -> logger.info(msg));
+        signalService.setLogConsumer(msg -> addLog(msg, "INFO"));
         systemService = new SystemService(configService);
         mediaSchedulerService = new MediaSchedulerService(this);
 
@@ -320,8 +321,16 @@ public class MainApp extends Application {
     }
 
     public void addLog(String message, String level) {
-        logger.info("[" + level + "] " + message);
+        String timestamp = LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+        String fullMsg = "[" + timestamp + "] [" + level + "] " + message;
+        logger.info(fullMsg);
+        Platform.runLater(() -> {
+            systemLogs.add(0, fullMsg);
+            if (systemLogs.size() > 100) systemLogs.remove(100, systemLogs.size());
+        });
     }
+
+    public javafx.collections.ObservableList<String> getSystemLogs() { return systemLogs; }
 
     public void reloadSchedule() {
         String name = configService.getSelectedScheduleName();

@@ -23,13 +23,19 @@ public class UIComponents {
         } 
     }
 
-    public static void updatePreview(HBox box, List<Integer> rings, int pause, String hexColor) {
+    public static void updatePreview(HBox box, String title, List<Integer> rings, int pause, String hexColor) {
         box.getChildren().clear(); 
-        box.setPadding(new Insets(15, 0, 15, 0)); 
+        box.setPadding(new Insets(5, 0, 5, 0)); 
         box.setSpacing(8);
-        double scale = 30.0;
+        box.setAlignment(Pos.CENTER_LEFT);
         
-        // Визначаємо градієнт на основі базового кольору
+        if (title != null && !title.isEmpty()) {
+            Label titleLbl = new Label(title + ": ");
+            titleLbl.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-min-width: 120;");
+            box.getChildren().add(titleLbl);
+        }
+        
+        double scale = 20.0;
         String gradient = String.format("linear-gradient(to bottom, %s, derive(%s, -20%%))", hexColor, hexColor);
         
         for (int i = 0; i < rings.size(); i++) {
@@ -38,13 +44,13 @@ public class UIComponents {
                 VBox block = new VBox(5); 
                 block.setAlignment(Pos.CENTER);
                 
-                Rectangle r = new Rectangle(Math.max(40, d * scale), 42); 
-                r.setArcWidth(12); 
-                r.setArcHeight(12); 
+                Rectangle r = new Rectangle(Math.max(30, d * scale), 30); 
+                r.setArcWidth(10); 
+                r.setArcHeight(10); 
                 r.setStyle("-fx-fill: " + gradient + "; -fx-effect: dropshadow(three-pass-box, " + hexColor + "44, 8, 0, 0, 4);");
                 
-                Label l = new Label(d + " сек"); 
-                l.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: #2d3436; -fx-text-transform: uppercase;");
+                Label l = new Label(d + "с"); 
+                l.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + ";");
                 
                 block.getChildren().addAll(r, l); 
                 box.getChildren().add(block);
@@ -53,19 +59,27 @@ public class UIComponents {
                 VBox pBlock = new VBox(5); 
                 pBlock.setAlignment(Pos.CENTER);
                 
-                Rectangle p = new Rectangle(Math.max(20, pause * scale), 12); 
-                p.setArcWidth(6);
-                p.setArcHeight(6);
+                Rectangle p = new Rectangle(Math.max(15, pause * scale), 8); 
+                p.setArcWidth(4);
+                p.setArcHeight(4);
                 p.setFill(Color.web("#dfe6e9"));
                 p.setOpacity(0.5);
                 
                 Label l = new Label(pause + "с"); 
-                l.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #bdc3c7;");
+                l.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: #bdc3c7;");
                 
                 pBlock.getChildren().addAll(p, l); 
                 box.getChildren().add(pBlock);
             }
         }
+    }
+
+    public static Spinner<Integer> createStyledSpinner(int min, int max, int initial) {
+        Spinner<Integer> s = new Spinner<>(min, max, initial);
+        s.setEditable(true);
+        s.setPrefWidth(90);
+        s.getStylesheets().add("data:text/css," + MODERN_SPINNER_STYLE.replace(" ", "%20"));
+        return s;
     }
 
     public static VBox createHelpCard(String iconPath, String title, String description, String iconColor) {
@@ -243,7 +257,9 @@ public class UIComponents {
 
     public static VBox createManagementCard(String title, String description, String iconPath, String iconColor, String bgColor, Runnable action) {
         VBox card = new VBox(16);
-        card.setPrefSize(280, 200);
+        card.setMinWidth(280);
+        card.setPrefWidth(280);
+        card.setMinHeight(200);
         card.setPadding(new Insets(24));
         card.setAlignment(Pos.CENTER);
         card.setStyle("-fx-background-color: white; -fx-background-radius: 24; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 5);");
@@ -259,7 +275,9 @@ public class UIComponents {
         titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2d3436;");
 
         Label descLabel = new Label(description);
-        descLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #636e72; -fx-wrap-text: true; -fx-text-alignment: center;");
+        descLabel.setWrapText(true);
+        descLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+        descLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #636e72; -fx-line-spacing: 1.2px;");
 
         card.getChildren().addAll(iconBox, titleLabel, descLabel);
         card.setOnMouseClicked(e -> action.run());
@@ -303,28 +321,10 @@ public class UIComponents {
         
         textStack.getChildren().addAll(t, valueNode);
         
-        if (hasSlider) {
-            Slider slider = new Slider(0, 100, volumeValue);
-            slider.setPrefWidth(200);
-            slider.setMaxWidth(250);
-            slider.getStylesheets().add("data:text/css," + SLIDER_STYLE.replace(" ", "%20"));
-            
-            slider.valueProperty().addListener((obs, oldVal, newVal) -> {
-                int val = newVal.intValue();
-                if (valueNode instanceof Label l) {
-                    l.setText("Гучність: " + val + "%");
-                }
-                if (sliderAction != null) {
-                    sliderAction.accept(val);
-                }
-            });
-
-            VBox sliderBox = new VBox(8, slider);
-            sliderBox.setPadding(new Insets(5, 0, 0, 0));
-            textStack.getChildren().add(sliderBox);
-        } else if (actionText != null) {
+        if (actionText != null && action != null) {
             Hyperlink link = new Hyperlink(actionText + "  →");
             link.setStyle("-fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 13px; -fx-padding: 5 0 0 0; -fx-underline: false; -fx-font-weight: 800;");
+            link.setFocusTraversable(false);
             link.setOnAction(e -> action.run());
             textStack.getChildren().add(link);
         }
@@ -333,8 +333,8 @@ public class UIComponents {
         card.getChildren().add(layout);
         
         card.setOnMouseEntered(e -> {
-            card.setStyle(baseStyle + "-fx-background-color: #fcfcfc; -fx-translate-y: -3;");
-            card.setEffect(new DropShadow(javafx.scene.effect.BlurType.THREE_PASS_BOX, Color.rgb(0,0,0,0.1), 25, 0, 0, 10));
+            card.setStyle(baseStyle + "-fx-background-color: #fcfcfc;");
+            card.setEffect(new DropShadow(javafx.scene.effect.BlurType.THREE_PASS_BOX, Color.rgb(0,0,0,0.08), 20, 0, 0, 8));
         });
         card.setOnMouseExited(e -> {
             card.setStyle(baseStyle);

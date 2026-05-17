@@ -29,7 +29,8 @@ public class NotificationsView {
     private final ConfigService config;
 
     private ComboBox<String> deviceCombo;
-    private Slider volumeSlider;
+    private int currentVolumeValue;
+    private HBox volumePresetBox;
 
     // Air Raid
     private ToggleButton arAudioTg;
@@ -159,46 +160,50 @@ public class NotificationsView {
         
         devBox.getChildren().addAll(devLabel, devInput);
 
-        // --- Right: Volume Control ---
+        // --- Right: Volume Presets ---
         VBox volBox = new VBox(12);
-        volBox.setMinWidth(300);
+        volBox.setMinWidth(350);
         
         Label volLabel = new Label("ЗАГАЛЬНА ГУЧНІСТЬ СПОВІЩЕНЬ");
         volLabel.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 1px;");
 
-        volumeSlider = new Slider(0, 100, config.getSystemVolume());
-        volumeSlider.getStylesheets().add("data:text/css," + SLIDER_STYLE.replace(" ", "%20"));
-        HBox.setHgrow(volumeSlider, Priority.ALWAYS);
+        currentVolumeValue = config.getSystemVolume();
+        volumePresetBox = new HBox(8);
+        volumePresetBox.setAlignment(Pos.CENTER_LEFT);
         
-        Label volVal = new Label(config.getSystemVolume() + "%");
-        volVal.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 18px; -fx-min-width: 50;");
+        int[] presets = {0, 25, 50, 75, 100};
+        for (int p : presets) {
+            Button pb = new Button(p == 0 ? "ВИМК" : p + "%");
+            pb.setPrefWidth(60);
+            pb.setUserData(p);
+            pb.setOnAction(e -> {
+                currentVolumeValue = p;
+                updateVolumeStyle();
+                mainApp.getAudioService().setVolume(p);
+                mainApp.getSystemService().setWindowsSystemVolume(p);
+            });
+            volumePresetBox.getChildren().add(pb);
+        }
         
-        volumeSlider.valueProperty().addListener((o, ov, nv) -> {
-            int val = nv.intValue();
-            volVal.setText(val + "%");
-            config.setSystemVolume(val);
-            mainApp.getAudioService().setVolume(val);
-            
-            // Proactively try to sync with Windows system volume if on Windows
-            if (val % 2 == 0) { // Only every 2% to reduce command spam
-                mainApp.getSystemService().setWindowsSystemVolume(val);
-            }
-        });
-        
-        // Also sync on drag end for precision
-        volumeSlider.valueChangingProperty().addListener((obs, wasChanging, isChanging) -> {
-            if (!wasChanging && isChanging) return;
-            mainApp.getSystemService().setWindowsSystemVolume((int)volumeSlider.getValue());
-        });
-        
-        HBox volInput = new HBox(20, volumeSlider, volVal);
-        volInput.setAlignment(Pos.CENTER_LEFT);
-        
-        volBox.getChildren().addAll(volLabel, volInput);
+        updateVolumeStyle();
+        volBox.getChildren().addAll(volLabel, volumePresetBox);
 
         layout.getChildren().addAll(devBox, volBox);
         card.getChildren().add(layout);
         return card;
+    }
+
+    private void updateVolumeStyle() {
+        for (Node n : volumePresetBox.getChildren()) {
+            if (n instanceof Button b) {
+                int val = (int) b.getUserData();
+                if (val == currentVolumeValue) {
+                    b.setStyle("-fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white; -fx-font-weight: 900; -fx-background-radius: 10; -fx-padding: 8 0;");
+                } else {
+                    b.setStyle("-fx-background-color: #f1f2f6; -fx-text-fill: #636e72; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 8 0; -fx-cursor: hand;");
+                }
+            }
+        }
     }
 
     private VBox createAlertRow(String title, String icon, String color, ToggleButton audioTg, TextField pathField, ToggleButton visualTg, String alertType, boolean showSeparator) {
@@ -217,7 +222,7 @@ public class NotificationsView {
         
         VBox titleBox = new VBox(2);
         Label tType = new Label("ТИП СИГНАЛУ");
-        tType.setStyle("-fx-font-size: 9px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 0.5px;");
+        tType.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 0.5px;");
         Label tMain = new Label(title);
         tMain.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + ";");
         titleBox.getChildren().addAll(tType, tMain);
@@ -233,11 +238,11 @@ public class NotificationsView {
         
         VBox audioToggleBox = new VBox(4, audioTg, new Label("АУДІО"));
         audioToggleBox.setAlignment(Pos.CENTER);
-        ((Label)audioToggleBox.getChildren().get(1)).setStyle("-fx-font-size: 8px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        ((Label)audioToggleBox.getChildren().get(1)).setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
         
         pathField.setEditable(false);
         pathField.setPromptText("Шлях до аудіофайлу...");
-        pathField.setStyle(FIELD_STYLE + "-fx-background-color: #f8f9fa; -fx-font-size: 12px; -fx-border-color: #f1f2f6;");
+        pathField.setStyle(FIELD_STYLE + "-fx-background-color: #f8f9fa; -fx-font-size: 13px; -fx-border-color: #f1f2f6;");
         HBox.setHgrow(pathField, Priority.ALWAYS);
         
         Button browse = createCardActionButton(ICON_FOLDER, "#f1f2f6", COLOR_PRIMARY);
@@ -260,7 +265,7 @@ public class NotificationsView {
 
         VBox visualToggleBox = new VBox(4, visualTg, new Label("ЕКРАН"));
         visualToggleBox.setAlignment(Pos.CENTER);
-        ((Label)visualToggleBox.getChildren().get(1)).setStyle("-fx-font-size: 8px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        ((Label)visualToggleBox.getChildren().get(1)).setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
 
         HBox testButtons = new HBox(12);
         testButtons.setAlignment(Pos.CENTER_LEFT);
@@ -295,7 +300,7 @@ public class NotificationsView {
 
     private void save() {
         config.setSelectedAudioDeviceName(deviceCombo.getValue());
-        config.setSystemVolume((int) volumeSlider.getValue());
+        config.setSystemVolume(currentVolumeValue);
 
         config.setAudioAirRaidEnabled(arAudioTg.isSelected());
         config.setAudioAirRaidPath(arAudioPath.getText());
@@ -366,13 +371,22 @@ public class NotificationsView {
         name.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_TEXT + ";");
         
         String desc = switch(event.type()) {
-            case "BREAKS" -> "На всіх перервах";
+            case "BREAKS" -> {
+                String anchor = switch(event.breakAnchor() != null ? event.breakAnchor() : "START") {
+                    case "START" -> "Початок перерви";
+                    case "END" -> "Кінець перерви";
+                    case "MIDDLE" -> "Середина перерви";
+                    case "OFFSET" -> "Зі зміщенням " + event.breakOffset() + " хв";
+                    default -> "На перервах";
+                };
+                yield "Автоматично: " + anchor;
+            }
             case "TIME" -> "Щодня о " + event.time();
             case "ONCE" -> "Разово: " + event.date() + " " + event.time();
             default -> "";
         };
         Label detail = new Label(desc);
-        detail.setStyle("-fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        detail.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #636e72;");
         info.getChildren().addAll(name, detail);
         HBox.setHgrow(info, Priority.ALWAYS);
 

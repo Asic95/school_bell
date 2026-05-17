@@ -64,16 +64,24 @@ public class SignalsView {
         // Section 1: Regular Bell
         VBox card1 = createModernSignalCard("СТАНДАРТНИЙ ДЗВІНОК", "Для автоматичних сигналів", ICON_BELL, "#0984e3");
         HBox prev1 = new HBox(); prev1.setAlignment(Pos.CENTER_LEFT);
-        updatePreview(prev1, List.of(config.getRegularBellDuration()), 0, "#0984e3");
-        regField.textProperty().addListener((o, ov, nv) -> updatePreview(prev1, parseSafe(nv), 0, "#0984e3"));
+        updatePreview(prev1, "ЗВИЧАЙНИЙ", List.of(config.getRegularBellDuration()), 0, "#0984e3");
+        regField.textProperty().addListener((o, ov, nv) -> updatePreview(prev1, "ЗВИЧАЙНИЙ", parseSafe(nv), 0, "#0984e3"));
         card1.getChildren().addAll(createModernInputRow("Тривалість дзвінка (сек):", regField), prev1);
 
         // Section 2: Air Raid
         VBox card2 = createModernSignalCard("ПОВІТРЯНА ТРИВОГА", "Циклічний сигнал небезпеки", ICON_MEGAPHONE, "#f39c12");
         HBox prev2 = new HBox(); prev2.setAlignment(Pos.CENTER_LEFT);
-        updatePreview(prev2, List.of(config.getAirRaidRingDuration(), config.getAirRaidRingDuration(), config.getAirRaidRingDuration()), config.getAirRaidPauseDuration(), "#f39c12");
-        arRingField.textProperty().addListener((o, ov, nv) -> updatePreview(prev2, List.of(parseSafe(nv).get(0), parseSafe(nv).get(0), parseSafe(nv).get(0)), parseSafe(arPauseField.getText()).get(0), "#f39c12"));
-        arPauseField.textProperty().addListener((o, ov, nv) -> updatePreview(prev2, List.of(parseSafe(arRingField.getText()).get(0), parseSafe(arRingField.getText()).get(0), parseSafe(arRingField.getText()).get(0)), parseSafe(nv).get(0), "#f39c12"));
+        updatePreview(prev2, "ТРИВОГА", List.of(config.getAirRaidRingDuration(), config.getAirRaidRingDuration(), config.getAirRaidRingDuration()), config.getAirRaidPauseDuration(), "#f39c12");
+        arRingField.textProperty().addListener((o, ov, nv) -> {
+            int ring = parseSafe(nv).get(0);
+            int pause = parseSafe(arPauseField.getText()).get(0);
+            updatePreview(prev2, "ТРИВОГА", List.of(ring, ring, ring), pause, "#f39c12");
+        });
+        arPauseField.textProperty().addListener((o, ov, nv) -> {
+            int ring = parseSafe(arRingField.getText()).get(0);
+            int pause = parseSafe(nv).get(0);
+            updatePreview(prev2, "ТРИВОГА", List.of(ring, ring, ring), pause, "#f39c12");
+        });
         card2.getChildren().addAll(
             createModernInputRow("Тривалість звуку (сек):", arRingField),
             createModernInputRow("Тривалість паузи (сек):", arPauseField),
@@ -83,8 +91,8 @@ public class SignalsView {
         // Section 3: Emergency
         VBox card3 = createModernSignalCard("НАДЗВИЧАЙНА СИТУАЦІЯ", "Екстрений сигнал евакуації", ICON_ALERT, "#d63031");
         HBox prev3 = new HBox(); prev3.setAlignment(Pos.CENTER_LEFT);
-        updatePreview(prev3, List.of(config.getEmergencyDuration()), 0, "#d63031");
-        emField.textProperty().addListener((o, ov, nv) -> updatePreview(prev3, parseSafe(nv), 0, "#d63031"));
+        updatePreview(prev3, "ЕКСТРЕНА", List.of(config.getEmergencyDuration()), 0, "#d63031");
+        emField.textProperty().addListener((o, ov, nv) -> updatePreview(prev3, "ЕКСТРЕНА", parseSafe(nv), 0, "#d63031"));
         card3.getChildren().addAll(createModernInputRow("Тривалість сигналу (сек):", emField), prev3);
 
         leftSide.getChildren().addAll(card1, card2, card3);

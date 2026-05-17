@@ -45,17 +45,17 @@ public class SubjectsEditorTab {
             for (Subject s : mainApp.getAcademicService().getAllSubjects()) {
                 VBox card = new VBox(15);
                 card.setStyle(SOFT_CARD + "-fx-padding: 20; -fx-border-color: #f1f2f6; -fx-border-radius: 20;");
-                card.setPrefWidth(340);
+                card.setPrefWidth(300);
                 
                 HBox topRow = new HBox(12);
                 topRow.setAlignment(Pos.CENTER_LEFT);
                 
-                VBox iconBox = new VBox(createSVGIcon(ICON_BOOK, Color.web(COLOR_SUCCESS), 20));
+                VBox iconBox = new VBox(createSVGIcon(ICON_BOOK, Color.web("#00b894"), 18));
                 iconBox.setAlignment(Pos.CENTER);
                 iconBox.setPrefSize(40, 40);
                 iconBox.setMinSize(40, 40);
                 iconBox.setMaxSize(40, 40);
-                iconBox.setStyle("-fx-background-color: " + COLOR_SUCCESS + "15; -fx-background-radius: 12;");
+                iconBox.setStyle("-fx-background-color: #00b89415; -fx-background-radius: 12;");
 
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -69,8 +69,8 @@ public class SubjectsEditorTab {
                 VBox nameArea = new VBox(5);
                 Label nameLabel = new Label(s.name());
                 nameLabel.setWrapText(true);
-                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_TEXT + ";");
-                nameLabel.setMaxWidth(300);
+                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: #2d3436;");
+                nameLabel.setMaxWidth(260);
                 
                 TextField nameEdit = new TextField(s.name());
                 nameEdit.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-background-color: #f1f2f6; -fx-background-radius: 8; -fx-padding: 8 12;");
@@ -113,6 +113,10 @@ public class SubjectsEditorTab {
         });
         content.getChildren().addAll(headerArea, new HBox(15, addField, addBtn), scroll);
         refreshSubjects.run();
-        return content;
+
+        ScrollPane mainScroll = new ScrollPane(content);
+        mainScroll.setFitToWidth(true);
+        mainScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+        return mainScroll;
     }
 }
