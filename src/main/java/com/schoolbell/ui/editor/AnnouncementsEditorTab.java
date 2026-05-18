@@ -20,8 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.schoolbell.ui.UIComponents.createPrimaryActionButton;
-import static com.schoolbell.ui.UIComponents.createSectionHeader;
+import static com.schoolbell.ui.CardFactory.createCardActionButton;
+import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
+import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
+import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class AnnouncementsEditorTab {
@@ -176,10 +178,10 @@ public class AnnouncementsEditorTab {
         HBox actions = new HBox(10);
         actions.setAlignment(Pos.TOP_RIGHT);
         
-        Button editBtn = com.schoolbell.ui.UIComponents.createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
+        Button editBtn = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
         editBtn.setOnAction(e -> openEditDialog(a));
         
-        Button delBtn = com.schoolbell.ui.UIComponents.createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
+        Button delBtn = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
         delBtn.setOnAction(e -> {
             announcementService.deleteAnnouncement(a.id());
             refreshList.run();

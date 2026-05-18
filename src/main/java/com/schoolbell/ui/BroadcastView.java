@@ -1,23 +1,20 @@
 package com.schoolbell.ui;
 
 import com.schoolbell.MainApp;
-import com.schoolbell.model.BroadcastDevice;
 import com.schoolbell.service.ConfigService;
-import com.schoolbell.service.DatabaseManager;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static com.schoolbell.ui.UIComponents.*;
+import static com.schoolbell.ui.CardFactory.createHelpCard;
+import static com.schoolbell.ui.CardFactory.createSideHelpPanel;
+import static com.schoolbell.ui.ControlFactory.createSettingsSection;
+import static com.schoolbell.ui.ControlFactory.createStyledField;
+import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
+import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class BroadcastView {
@@ -27,11 +24,12 @@ public class BroadcastView {
     private final TextField schoolNameField;
     private final TextField cityField;
     private final TextField portField;
-    private final VBox deviceListContainer;
+    private final DeviceMonitor deviceMonitor;
 
     public BroadcastView(MainApp mainApp) {
         this.mainApp = mainApp;
         this.config = mainApp.getConfigService();
+        this.deviceMonitor = new DeviceMonitor(mainApp);
 
         broadcastEnableCb = new CheckBox("Увімкнути трансляцію розкладу");
         broadcastEnableCb.setSelected(config.isBroadcastEnabled());
@@ -52,8 +50,6 @@ public class BroadcastView {
         portField.setAlignment(Pos.BASELINE_LEFT);
         portField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> 
             change.getControlNewText().matches("\\d*") ? change : null));
-        
-        deviceListContainer = new VBox(10);
     }
 
     private void updateFirewallButtonStatus(Button btn) {
@@ -78,7 +74,6 @@ public class BroadcastView {
 
     private boolean isFirewallRuleActive(int port) {
         try {
-            // Check if a rule exists that is enabled AND matches the specific port
             String script = String.format(
                 "if (Get-NetFirewallRule -DisplayName 'SchoolBell Dashboard' -Enabled True -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -eq '%d' }) { exit 0 } else { exit 1 }", 
                 port
@@ -134,7 +129,6 @@ public class BroadcastView {
 
         String localIp = getLocalIp();
         
-        // --- ADDR BOX (Unified Layout) ---
         VBox addrBox = new VBox(15);
         addrBox.setPadding(new Insets(20, 0, 0, 0));
         addrBox.setStyle("-fx-border-color: #f1f2f6; -fx-border-width: 1 0 0 0;");
@@ -142,7 +136,6 @@ public class BroadcastView {
         Label addrHeader = new Label("МЕРЕЖЕВИЙ ДОСТУП");
         addrHeader.setStyle(HEADER_STYLE + "-fx-font-size: 10px;");
 
-        // Info Card
         HBox infoCard = new HBox(15);
         infoCard.setAlignment(Pos.CENTER_LEFT);
         infoCard.setStyle("-fx-background-color: #f8f9fa; -fx-padding: 15; -fx-background-radius: 12; -fx-border-color: #dfe6e9; -fx-border-radius: 12;");
@@ -168,7 +161,6 @@ public class BroadcastView {
         
         infoCard.getChildren().addAll(urlGroup, spacer2, openBrowserBtn);
 
-        // Firewall Status Row
         HBox firewallRow = new HBox(10);
         firewallRow.setAlignment(Pos.CENTER_LEFT);
         Button firewallBtn = new Button();
@@ -198,23 +190,7 @@ public class BroadcastView {
         );
         settingsCard.getChildren().add(form);
 
-
-        // --- DEVICE MANAGEMENT ---
-        VBox deviceCard = createSettingsSection("КЕРУВАННЯ ПРИСТРОЯМИ", "#8e44ad", ICON_MONITOR);
-        deviceCard.setStyle(SOFT_CARD);
-        deviceCard.setPadding(new Insets(25));
-        
-        Button refreshBtn = new Button("ОНОВИТИ СПИСОК");
-        refreshBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #3498db; -fx-font-weight: bold; -fx-font-size: 12px; -fx-cursor: hand;");
-        refreshBtn.setOnAction(e -> refreshDevices());
-
-        HBox header = (HBox) deviceCard.getChildren().get(0);
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        header.getChildren().addAll(spacer, refreshBtn);
-
-        deviceCard.getChildren().add(deviceListContainer);
-        refreshDevices();
+        VBox deviceMonitorNode = (VBox) deviceMonitor.build();
 
         Button saveBtn = new Button("ЗБЕРЕГТИ НАЛАШТУВАННЯ");
         saveBtn.setGraphic(createSVGIcon(ICON_SAVE, Color.WHITE, 18));
@@ -222,9 +198,8 @@ public class BroadcastView {
         saveBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: 900; -fx-padding: 14 50; -fx-background-radius: 12; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(39, 174, 96, 0.3), 10, 0, 0, 5);");
         saveBtn.setOnAction(e -> save());
 
-        mainContent.getChildren().addAll(settingsCard, deviceCard, new HBox(saveBtn));
+        mainContent.getChildren().addAll(settingsCard, deviceMonitorNode, new HBox(saveBtn));
 
-        // --- SIDE PANEL (Help & Tips - Standardized) ---
         VBox rightColumn = createSideHelpPanel(
             createHelpCard(ICON_INFO, "Обмін даними", "Порт " + config.getBroadcastPort() + " використовується для синхронізації даних. Він відкривається автоматично.", "#2980b9"),
             createHelpCard(ICON_MONITOR, "Веб-панель", "Табло доступне за вказаною HTTP-адресою. Будь-який пристрій з браузером може стати табло.", "#8e44ad"),
@@ -238,155 +213,6 @@ public class BroadcastView {
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         return scroll;
-    }
-
-
-    private void refreshDevices() {
-        deviceListContainer.getChildren().clear();
-        
-        HBox listHeader = new HBox(20);
-        listHeader.setPadding(new Insets(10, 20, 10, 20));
-        listHeader.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 12;");
-        
-        Label hDevice = new Label("ПРИСТРІЙ"); hDevice.setPrefWidth(300);
-        Label hNetwork = new Label("МЕРЕЖА"); hNetwork.setPrefWidth(180);
-        Label hLastSeen = new Label("ОСТАННЯ АКТИВНІСТЬ"); hLastSeen.setPrefWidth(200);
-        Label hActions = new Label("ДІЇ");
-        
-        String hStyle = "-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: #95a5a6; -fx-letter-spacing: 1px;";
-        hDevice.setStyle(hStyle); hNetwork.setStyle(hStyle); hLastSeen.setStyle(hStyle); hActions.setStyle(hStyle);
-        
-        listHeader.getChildren().addAll(hDevice, hNetwork, hLastSeen, hActions);
-        deviceListContainer.getChildren().add(listHeader);
-
-        List<String> activeIps = mainApp.getBroadcastService() != null ? mainApp.getBroadcastService().getConnectedClients() : List.of();
-        List<BroadcastDevice> savedDevices = DatabaseManager.getAllBroadcastDevices();
-        
-        if (savedDevices.isEmpty() && activeIps.isEmpty()) {
-            Label none = new Label("Немає підключених пристроїв");
-            none.setStyle("-fx-font-style: italic; -fx-text-fill: #95a5a6; -fx-padding: 30;");
-            deviceListContainer.getChildren().add(none);
-        } else {
-            for (BroadcastDevice device : savedDevices) {
-                deviceListContainer.getChildren().add(createModernDeviceRow(device, activeIps.contains(device.ip())));
-            }
-        }
-    }
-
-    private Node createModernDeviceRow(BroadcastDevice device, boolean isActive) {
-        HBox row = new HBox(20);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(15, 20, 15, 20));
-        row.setStyle("-fx-background-color: white; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 1 0;");
-        
-        // --- DEVICE INFO ---
-        VBox deviceBox = new VBox(4);
-        deviceBox.setPrefWidth(300);
-        
-        String iconPath = ICON_MONITOR;
-        if ("MOBILE".equals(device.deviceType())) iconPath = ICON_PHONE;
-        else if ("TABLET".equals(device.deviceType())) iconPath = ICON_TABLET;
-        
-        HBox nameLine = new HBox(12);
-        nameLine.setAlignment(Pos.CENTER_LEFT);
-        
-        VBox iconCircle = new VBox(createSVGIcon(iconPath, Color.web(isActive ? COLOR_PRIMARY : COLOR_TEXT_DIM), 20));
-        iconCircle.setAlignment(Pos.CENTER);
-        iconCircle.setPrefSize(40, 40);
-        iconCircle.setStyle("-fx-background-color: " + (isActive ? COLOR_BLUE_LIGHT : "#f1f2f6") + "; -fx-background-radius: 10;");
-        
-        VBox labels = new VBox(2);
-        Label name = new Label(device.name());
-        name.setStyle("-fx-font-weight: 900; -fx-font-size: 14px; -fx-text-fill: " + COLOR_TEXT + ";");
-        Label os = new Label(device.os() + " • " + device.deviceType());
-        os.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
-        labels.getChildren().addAll(name, os);
-        
-        nameLine.getChildren().addAll(iconCircle, labels);
-        deviceBox.getChildren().add(nameLine);
-
-        // --- NETWORK ---
-        VBox netBox = new VBox(4);
-        netBox.setPrefWidth(180);
-        Label ip = new Label(device.ip());
-        ip.setStyle("-fx-font-family: 'Monospaced'; -fx-font-weight: bold; -fx-font-size: 13px;");
-        
-        HBox statusLine = new HBox(6);
-        statusLine.setAlignment(Pos.CENTER_LEFT);
-        Circle dot = new Circle(4, Color.web(isActive ? COLOR_SUCCESS : COLOR_DANGER));
-        Label status = new Label(device.isBanned() ? "ЗАБЛОКОВАНО" : (isActive ? "В мережі" : "Поза мережею"));
-        status.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: " + (isActive ? COLOR_SUCCESS : COLOR_TEXT_DIM) + ";");
-        statusLine.getChildren().addAll(dot, status);
-        netBox.getChildren().addAll(ip, statusLine);
-
-        // --- LAST SEEN ---
-        Label lastSeen = new Label(device.lastSeen());
-        lastSeen.setPrefWidth(200);
-        lastSeen.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-font-weight: bold;");
-
-        // --- ACTIONS ---
-        HBox actions = new HBox(8);
-        actions.setAlignment(Pos.CENTER_RIGHT);
-        
-        Button editBtn = createIconButton(ICON_EDIT, COLOR_PRIMARY, () -> editDeviceName(device));
-        Button banBtn = new Button(device.isBanned() ? "ДОЗВОЛИТИ" : "БЛОКУВАТИ");
-        banBtn.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-background-color: " + (device.isBanned() ? COLOR_SUCCESS : COLOR_DANGER) + "; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 5 10; -fx-cursor: hand;");
-        banBtn.setOnAction(e -> toggleBan(device));
-        
-        Button delBtn = createIconButton(ICON_TRASH, COLOR_DANGER, () -> deleteDevice(device));
-        
-        actions.getChildren().addAll(editBtn, banBtn, delBtn);
-        
-        row.getChildren().addAll(deviceBox, netBox, lastSeen, actions);
-        
-        row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: #fafafa; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 1 0; -fx-cursor: hand;"));
-        row.setOnMouseExited(e -> row.setStyle("-fx-background-color: white; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 1 0;"));
-        
-        return row;
-    }
-
-    private Button createIconButton(String icon, String color, Runnable action) {
-        Button btn = new Button();
-        btn.setGraphic(createSVGIcon(icon, Color.web(color), 16));
-        btn.setStyle("-fx-background-color: " + color + "10; -fx-background-radius: 8; -fx-padding: 8; -fx-cursor: hand;");
-        btn.setOnAction(e -> action.run());
-        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: " + color + "25; -fx-background-radius: 8; -fx-padding: 8;"));
-        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: " + color + "10; -fx-background-radius: 8; -fx-padding: 8;"));
-        return btn;
-    }
-
-    private void editDeviceName(BroadcastDevice device) {
-        TextInputDialog dialog = new TextInputDialog(device.name());
-        dialog.setTitle("Налаштування пристрою");
-        dialog.setHeaderText("Змінити назву для " + device.ip());
-        dialog.setContentText("Назва:");
-        dialog.showAndWait().ifPresent(newName -> {
-            DatabaseManager.saveBroadcastDevice(new BroadcastDevice(device.ip(), newName, device.isBanned(), device.deviceType(), device.os(), device.lastSeen()));
-            refreshDevices();
-        });
-    }
-
-    private void toggleBan(BroadcastDevice device) {
-        DatabaseManager.saveBroadcastDevice(new BroadcastDevice(device.ip(), device.name(), !device.isBanned(), device.deviceType(), device.os(), device.lastSeen()));
-        if (mainApp.getBroadcastService() != null) {
-            mainApp.getBroadcastService().loadBannedIps();
-            if (!device.isBanned()) {
-                mainApp.getBroadcastService().getConnections().stream()
-                        .filter(c -> c.getRemoteSocketAddress().getAddress().getHostAddress().equals(device.ip()))
-                        .forEach(c -> c.close(4003, "IP is banned"));
-            }
-        }
-        refreshDevices();
-    }
-
-    private void deleteDevice(BroadcastDevice device) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Видалити історію для " + device.ip() + "?", ButtonType.YES, ButtonType.NO);
-        alert.showAndWait().ifPresent(type -> {
-            if (type == ButtonType.YES) {
-                DatabaseManager.deleteBroadcastDevice(device.ip());
-                refreshDevices();
-            }
-        });
     }
 
     private void save() {
@@ -436,7 +262,6 @@ public class BroadcastView {
                 port, port + 2
         );
 
-        // Escape double quotes for PowerShell argument
         String escapedScript = script.replace("\"", "\\\"");
         String psCommand = "Start-Process powershell -Verb RunAs -ArgumentList '-Command \"" + escapedScript + "\"'";
 

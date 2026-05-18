@@ -16,7 +16,7 @@ import javafx.stage.Stage;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.schoolbell.ui.UIComponents.createSectionHeader;
+import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class ScheduleEditorDialog {
@@ -80,13 +80,13 @@ public class ScheduleEditorDialog {
         grid.getColumnConstraints().addAll(col1, new ColumnConstraints());
 
         ComboBox<Teacher> teacherCombo = new ComboBox<>();
-        teacherCombo.getItems().addAll(allTeachers);
+        teacherCombo.getItems().addAll(mainApp.getStaffService().getAllTeachers());
         teacherCombo.setPromptText("Оберіть вчителя");
         teacherCombo.setMaxWidth(Double.MAX_VALUE);
         teacherCombo.setStyle(COMBO_STYLE);
 
         ComboBox<Subject> subjectCombo = new ComboBox<>();
-        subjectCombo.getItems().addAll(allSubjects);
+        subjectCombo.getItems().addAll(mainApp.getStaffService().getAllSubjects());
         subjectCombo.setPromptText("Оберіть предмет");
         subjectCombo.setMaxWidth(Double.MAX_VALUE);
         subjectCombo.setStyle(COMBO_STYLE);
@@ -106,7 +106,7 @@ public class ScheduleEditorDialog {
         teacherCombo.setOnAction(e -> {
             Teacher selected = teacherCombo.getValue();
             if (selected != null) {
-                List<Subject> teacherSubjects = mainApp.getAcademicService().getSubjectsForTeacher(selected.id());
+                List<Subject> teacherSubjects = mainApp.getStaffService().getSubjectsForTeacher(selected.id());
                 Subject currentSub = subjectCombo.getValue();
                 subjectCombo.getItems().setAll(teacherSubjects);
                 if (currentSub != null && teacherSubjects.contains(currentSub)) {
@@ -119,11 +119,11 @@ public class ScheduleEditorDialog {
         mainApp.getAcademicService().getScheduleForClass(schoolClass.id()).stream()
                 .filter(e -> e.dayOfWeek() == day && e.lessonNumber() == lesson && (e.parity() == parity || e.parity() == 0))
                 .findFirst().ifPresent(e -> {
-                    allTeachers.stream().filter(t -> t.id() == e.teacherId()).findFirst().ifPresent(t -> {
+                    mainApp.getStaffService().getAllTeachers().stream().filter(t -> t.id() == e.teacherId()).findFirst().ifPresent(t -> {
                         teacherCombo.setValue(t);
-                        List<Subject> ts = mainApp.getAcademicService().getSubjectsForTeacher(t.id());
+                        List<Subject> ts = mainApp.getStaffService().getSubjectsForTeacher(t.id());
                         subjectCombo.getItems().setAll(ts);
-                        allSubjects.stream().filter(s -> s.id() == e.subjectId()).findFirst().ifPresent(subjectCombo::setValue);
+                        mainApp.getStaffService().getAllSubjects().stream().filter(s -> s.id() == e.subjectId()).findFirst().ifPresent(subjectCombo::setValue);
                     });
                     allClasses.stream().filter(c -> c.id() == e.classroomId()).findFirst().ifPresent(classroomCombo::setValue);
                 });
@@ -217,12 +217,12 @@ public class ScheduleEditorDialog {
         classCombo.setMaxWidth(Double.MAX_VALUE);
 
         ComboBox<Teacher> teacherCombo = new ComboBox<>();
-        teacherCombo.getItems().addAll(mainApp.getAcademicService().getAllTeachers());
+        teacherCombo.getItems().addAll(mainApp.getStaffService().getAllTeachers());
         teacherCombo.setStyle(COMBO_STYLE);
         teacherCombo.setMaxWidth(Double.MAX_VALUE);
 
         ComboBox<Subject> subjectCombo = new ComboBox<>();
-        subjectCombo.getItems().addAll(mainApp.getAcademicService().getAllSubjects());
+        subjectCombo.getItems().addAll(mainApp.getStaffService().getAllSubjects());
         subjectCombo.setStyle(COMBO_STYLE);
         subjectCombo.setMaxWidth(Double.MAX_VALUE);
 
@@ -235,7 +235,7 @@ public class ScheduleEditorDialog {
         teacherCombo.setOnAction(e -> {
             Teacher selected = teacherCombo.getValue();
             if (selected != null) {
-                List<Subject> teacherSubjects = mainApp.getAcademicService().getSubjectsForTeacher(selected.id());
+                List<Subject> teacherSubjects = mainApp.getStaffService().getSubjectsForTeacher(selected.id());
                 Subject currentSub = subjectCombo.getValue();
                 subjectCombo.getItems().setAll(teacherSubjects);
                 if (currentSub != null && teacherSubjects.contains(currentSub)) {
@@ -246,11 +246,11 @@ public class ScheduleEditorDialog {
 
         if (entry != null) {
             classCombo.getItems().stream().filter(c -> c.id() == entry.classId()).findFirst().ifPresent(classCombo::setValue);
-            teacherCombo.getItems().stream().filter(t -> t.id() == entry.teacherId()).findFirst().ifPresent(t -> {
+            mainApp.getStaffService().getAllTeachers().stream().filter(t -> t.id() == entry.teacherId()).findFirst().ifPresent(t -> {
                 teacherCombo.setValue(t);
-                List<Subject> ts = mainApp.getAcademicService().getSubjectsForTeacher(t.id());
+                List<Subject> ts = mainApp.getStaffService().getSubjectsForTeacher(t.id());
                 subjectCombo.getItems().setAll(ts);
-                mainApp.getAcademicService().getAllSubjects().stream().filter(s -> s.id() == entry.subjectId()).findFirst().ifPresent(subjectCombo::setValue);
+                mainApp.getStaffService().getAllSubjects().stream().filter(s -> s.id() == entry.subjectId()).findFirst().ifPresent(subjectCombo::setValue);
             });
             allClasses.stream().filter(c -> c.id() == entry.classroomId()).findFirst().ifPresent(classroomCombo::setValue);
         }

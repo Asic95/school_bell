@@ -13,9 +13,9 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -27,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.Graphics2D;
-import java.awt.MenuItem;
-import java.awt.PopupMenu;
 import java.awt.RenderingHints;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
@@ -45,6 +43,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.swing.SwingUtilities;
 
+import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class MainApp extends Application {
@@ -54,6 +53,7 @@ public class MainApp extends Application {
     private final RelayController relayController = new RelayController();
     private final ScheduleService scheduleService = new ScheduleService();
     private final AcademicService academicService = new AcademicService();
+    private final StaffService staffService = new StaffService();
     private final AnnouncementService announcementService = new AnnouncementService();
     private ConfigService configService;
     private AudioService audioService;
@@ -63,6 +63,10 @@ public class MainApp extends Application {
     private BroadcastService broadcastService;
     private HttpServer httpServer;
 
+    // Controllers
+    private final SystemJournal journal = new SystemJournal();
+    private AppNavigation navigation;
+
     // Data
     private List<BellEntry> schedule = Collections.emptyList();
     private List<DaySchedule> internalSchedules = new ArrayList<>();
@@ -70,12 +74,10 @@ public class MainApp extends Application {
     private final Map<Integer, String> subjectCache = new HashMap<>();
     private final Map<Integer, String> classroomCache = new HashMap<>();
     private final List<SchoolClass> classCache = new ArrayList<>();
-    private final javafx.collections.ObservableList<String> systemLogs = javafx.collections.FXCollections.observableArrayList();
 
     // UI
     private StackPane contentArea;
     private VBox sidebar;
-    private final Map<String, Button> navButtons = new HashMap<>();
     private Label sidebarStatusTime;
     private Circle sidebarStatusDot;
     private DashboardView dashboardView;
@@ -102,7 +104,7 @@ public class MainApp extends Application {
         relayController.setMainApp(this);
         audioService = new AudioService(configService);
         signalService = new SignalService(relayController, audioService, configService);
-        signalService.setLogConsumer(msg -> addLog(msg, "INFO"));
+        signalService.setLogConsumer(msg -> journal.addLog(msg, "INFO"));
         systemService = new SystemService(configService);
         mediaSchedulerService = new MediaSchedulerService(this);
 
@@ -151,18 +153,8 @@ public class MainApp extends Application {
         logoContainer.setAlignment(Pos.CENTER);
         sidebar.getChildren().add(logoContainer);
 
-        createNavButton("DASHBOARD", "Головна", ICON_DASHBOARD, this::showDashboard);
-        createNavButton("SCHEDULE", "Розклад", ICON_CALENDAR, this::showSchedule);
-        createNavButton("NOTIFICATIONS", "Сповіщення", ICON_NOTIFICATIONS, this::showNotifications);
-        createNavButton("EFIR", "Ефір", ICON_BROADCAST, this::showEfir);
-        createNavButton("SCHOOL", "Школа", ICON_FOLDER, this::showSchool);
-        createNavButton("IMPORT", "Імпорт", ICON_PLUS, this::showImport);
-
         Region spacer = new Region(); VBox.setVgrow(spacer, Priority.ALWAYS);
-        sidebar.getChildren().add(spacer);
-
-        createNavButton("SYSTEM", "Система", ICON_SETTINGS, this::showSystem);
-
+        
         // System Status Indicator at bottom
         sidebarStatusDot = new Circle(4, Color.web(COLOR_SUCCESS));
         sidebarStatusDot.setCache(true);
@@ -184,12 +176,18 @@ public class MainApp extends Application {
         );
         pulseIndicator.setCycleCount(Animation.INDEFINITE);
         pulseIndicator.play();
-        sidebar.getChildren().add(statusInfo);
 
         // --- CONTENT AREA ---
         contentArea = new StackPane();
         contentArea.setStyle(DEPTH_1);
         HBox.setHgrow(contentArea, Priority.ALWAYS);
+
+        // Initialize Navigation
+        navigation = new AppNavigation(this, sidebar, contentArea);
+        navigation.init();
+        
+        sidebar.getChildren().add(spacer);
+        sidebar.getChildren().add(statusInfo);
 
         HBox mainLayout = new HBox(sidebar, contentArea);
         StackPane root = new StackPane(mainLayout);
@@ -202,6 +200,7 @@ public class MainApp extends Application {
         primaryStage.setMaximized(true);
         primaryStage.show();
 
+        // Initialize Views
         dashboardView = new DashboardView(this);
         schoolView = new SchoolView(this);
         scheduleView = new ScheduleView(this);
@@ -210,7 +209,7 @@ public class MainApp extends Application {
         systemView = new SystemView(this);
         importView = new ImportView(this);
 
-        showDashboard();
+        navigation.showDashboard();
 
         relayController.scanDevices();
         relayController.connect();
@@ -221,77 +220,27 @@ public class MainApp extends Application {
         logger.info("System ready.");
     }
 
-    private void createNavButton(String id, String text, String iconPath, Runnable action) {
-        Button btn = new Button(text);
-        btn.setGraphic(createSVGIcon(iconPath, Color.web("#b2bec3"), 20));
-        btn.setGraphicTextGap(15);
-        btn.setMaxWidth(Double.MAX_VALUE);
-        btn.setStyle(NAV_BTN_BASE);
-        VBox.setMargin(btn, new Insets(2, 15, 2, 15));
-        btn.setOnAction(e -> {
-            setActiveNav(id);
-            action.run();
-        });
-        btn.setOnMouseEntered(e -> { if (!btn.getStyle().contains(NAV_BTN_ACTIVE)) btn.setStyle(NAV_BTN_BASE + NAV_BTN_HOVER); });
-        btn.setOnMouseExited(e -> { if (!btn.getStyle().contains(NAV_BTN_ACTIVE)) btn.setStyle(NAV_BTN_BASE); });
-        sidebar.getChildren().add(btn);
-        navButtons.put(id, btn);
-    }
+    public void addLog(String message, String level) { journal.addLog(message, level); }
+    public ObservableList<String> getSystemLogs() { return journal.getSystemLogs(); }
 
-    private void setActiveNav(String id) {
-        navButtons.forEach((k, v) -> {
-            v.setStyle(NAV_BTN_BASE);
-            if (v.getGraphic() instanceof javafx.scene.shape.SVGPath icon) icon.setFill(Color.web("#b2bec3"));
-        });
-        Button active = navButtons.get(id);
-        if (active != null) {
-            active.setStyle(NAV_BTN_BASE + NAV_BTN_ACTIVE);
-            if (active.getGraphic() instanceof javafx.scene.shape.SVGPath icon) icon.setFill(Color.WHITE);
-        }
-    }
+    public void showDashboard() { navigation.showDashboard(); }
+    public void showSchool() { navigation.showSchool(); }
+    public void showSchedule() { navigation.showSchedule(); }
+    public void showEditorTab(int tabIndex) { navigation.showEditorTab(tabIndex); }
+    public void showEfir() { navigation.showEfir(); }
+    public void showNotifications() { navigation.showNotifications(); }
+    public void showSystem() { navigation.showSystem(); }
+    public void showImport() { navigation.showImport(); }
 
-    public void showDashboard() {
-        setActiveNav("DASHBOARD");
-        contentArea.getChildren().setAll(dashboardView.build());
-    }
+    public DashboardView getDashboardView() { return dashboardView; }
+    public SchoolView getSchoolView() { return schoolView; }
+    public ScheduleView getScheduleView() { return scheduleView; }
+    public EfirView getEfirView() { return efirView; }
+    public NotificationsView getNotificationsView() { return notificationsView; }
+    public SystemView getSystemView() { return systemView; }
+    public ImportView getImportView() { return importView; }
 
-    public void showSchool() {
-        setActiveNav("SCHOOL");
-        contentArea.getChildren().setAll(schoolView.build());
-    }
-
-    public void showSchedule() {
-        setActiveNav("SCHEDULE");
-        contentArea.getChildren().setAll(scheduleView.build());
-    }
-
-    public void showEditorTab(int tabIndex) {
-        ScheduleEditorDialog editor = new ScheduleEditorDialog(this);
-        Node content = editor.createTabContent(tabIndex);
-        contentArea.getChildren().setAll(content);
-    }
-
-    public void showEfir() { 
-        setActiveNav("EFIR"); 
-        contentArea.getChildren().setAll(efirView.build()); 
-    }
-
-    public void showNotifications() {
-        setActiveNav("NOTIFICATIONS");
-        contentArea.getChildren().setAll(notificationsView.build());
-    }
-
-    public void showSystem() {
-        setActiveNav("SYSTEM");
-        contentArea.getChildren().setAll(systemView.build());
-    }
-
-    public void showImport() {
-        setActiveNav("IMPORT");
-        contentArea.getChildren().setAll(importView.build());
-    }
     public Stage getStage() { return primaryStage; }
-
 
     private void startScheduler() {
         scheduler.scheduleAtFixedRate(() -> {
@@ -309,28 +258,13 @@ public class MainApp extends Application {
                 
                 if (broadcastService != null && broadcastService.isBroadcasting()) {
                     Map<String, Object> data = dashboardView.getExtendedDashboardData(now);
-                    
-                    // Logic for announcements: only show active ones from the dedicated system
                     String activeAnnouncement = announcementService.getActiveAnnouncementText(today, now);
                     data.put("announcement", activeAnnouncement != null ? activeAnnouncement : "");
-                    
                     broadcastService.broadcastUpdate(data);
                 }
             });
         }, 0, 1, TimeUnit.SECONDS);
     }
-
-    public void addLog(String message, String level) {
-        String timestamp = LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
-        String fullMsg = "[" + timestamp + "] [" + level + "] " + message;
-        logger.info(fullMsg);
-        Platform.runLater(() -> {
-            systemLogs.add(0, fullMsg);
-            if (systemLogs.size() > 100) systemLogs.remove(100, systemLogs.size());
-        });
-    }
-
-    public javafx.collections.ObservableList<String> getSystemLogs() { return systemLogs; }
 
     public void reloadSchedule() {
         String name = configService.getSelectedScheduleName();
@@ -351,9 +285,9 @@ public class MainApp extends Application {
 
     public void refreshCaches() {
         teacherCache.clear();
-        academicService.getAllTeachers().forEach(t -> teacherCache.put(t.id(), t.name()));
+        staffService.getAllTeachers().forEach(t -> teacherCache.put(t.id(), t.name()));
         subjectCache.clear();
-        academicService.getAllSubjects().forEach(s -> subjectCache.put(s.id(), s.name()));
+        staffService.getAllSubjects().forEach(s -> subjectCache.put(s.id(), s.name()));
         classroomCache.clear();
         academicService.getAllClassrooms().forEach(c -> classroomCache.put(c.id(), c.name()));
         classCache.clear();
@@ -373,6 +307,7 @@ public class MainApp extends Application {
     public BroadcastService getBroadcastService() { return broadcastService; }
     public RelayController getRelayController() { return relayController; }
     public AcademicService getAcademicService() { return academicService; }
+    public StaffService getStaffService() { return staffService; }
     public ScheduleService getScheduleService() { return scheduleService; }
     public List<DaySchedule> getInternalSchedules() { return internalSchedules; }
     public List<BellEntry> getSchedule() { return schedule; }
@@ -388,7 +323,6 @@ public class MainApp extends Application {
                 
                 try (InputStream is = getClass().getResourceAsStream(resourceName)) {
                     if (is == null) {
-                        // Fallback to classic if theme not found
                         try (InputStream fis = getClass().getResourceAsStream("/dashboard_classic.html")) {
                             if (fis == null) {
                                 exchange.sendResponseHeaders(404, 0);
@@ -424,44 +358,28 @@ public class MainApp extends Application {
     }
     private void initTray() {
         if (!SystemTray.isSupported()) return;
-
         Platform.runLater(() -> Platform.setImplicitExit(false));
-
         SwingUtilities.invokeLater(() -> {
             try {
                 SystemTray tray = SystemTray.getSystemTray();
-                
-                // Create a high-quality bell icon from SVG path
-                int size = 32; // Use larger size for better scaling
+                int size = 32;
                 BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g2 = image.createGraphics();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-                
-                // Draw a soft rounded background (optional, but looks modern)
-                g2.setColor(new java.awt.Color(9, 132, 227)); // COLOR_PRIMARY
+                g2.setColor(new java.awt.Color(9, 132, 227));
                 g2.fillRoundRect(0, 0, size, size, 8, 8);
-                
-                // Render the SVG Bell Icon
                 g2.setColor(java.awt.Color.WHITE);
-                java.awt.geom.Path2D bellPath = new java.awt.geom.Path2D.Double();
-                // ICON_BELL path parsed to AWT Path
-                // M12,2A2,2 0 0,0 10,4A2,2 0 0,0 10,4.29C7.12,5.14 5,7.82 5,11V17L3,19V20H21V19L19,17V11C19,7.82 16.88,5.14 14,4.29C14,4.19 14,4.1 14,4A2,2 0 0,0 12,2M10,21A2,2 0 0,0 12,23A2,2 0 0,0 14,21H10Z
-                // Simplified manual drawing or using a shape to match the brand
                 double s = size / 24.0;
                 g2.scale(s, s);
-                
-                // Draw the bell shape manually to match ICON_BELL exactly
                 g2.fill(new java.awt.geom.Area(createBellShape()));
                 g2.dispose();
-
-                PopupMenu popup = new PopupMenu();
+                java.awt.PopupMenu popup = new java.awt.PopupMenu();
                 java.awt.MenuItem showItem = new java.awt.MenuItem("Відкрити");
                 showItem.addActionListener(e -> Platform.runLater(() -> {
                     primaryStage.show();
                     primaryStage.toFront();
                 }));
-                
                 java.awt.MenuItem exitItem = new java.awt.MenuItem("Вихід");
                 exitItem.addActionListener(e -> {
                     Platform.runLater(() -> {
@@ -470,11 +388,9 @@ public class MainApp extends Application {
                         System.exit(0);
                     });
                 });
-
                 popup.add(showItem);
                 popup.addSeparator();
                 popup.add(exitItem);
-
                 trayIcon = new TrayIcon(image, "SchoolBell", popup);
                 trayIcon.setImageAutoSize(true);
                 trayIcon.addMouseListener(new MouseAdapter() {
@@ -492,7 +408,6 @@ public class MainApp extends Application {
                         }
                     }
                 });
-
                 tray.add(trayIcon);
             } catch (Exception e) {
                 logger.error("Failed to initialize tray icon", e);
@@ -502,9 +417,8 @@ public class MainApp extends Application {
 
     private java.awt.Shape createBellShape() {
         java.awt.geom.Path2D.Double path = new java.awt.geom.Path2D.Double();
-        // M12,2 A2,2 0 0,0 10,4 A2,2 0 0,0 10,4.29 C7.12,5.14 5,7.82 5,11 V17 L3,19 V20 H21 V19 L19,17 V11 C19,7.82 16.88,5.14 14,4.29 C14,4.19 14,4.1 14,4 A2,2 0 0,0 12,2 M10,21 A2,2 0 0,0 12,23 A2,2 0 0,0 14,21 H10 Z
         path.moveTo(12, 2);
-        path.curveTo(11.45, 2, 10.95, 2.22, 10.59, 2.59); // Simplified A2,2 arc
+        path.curveTo(11.45, 2, 10.95, 2.22, 10.59, 2.59);
         path.lineTo(10, 4);
         path.curveTo(10, 4.1, 10, 4.2, 10, 4.29);
         path.curveTo(7.12, 5.14, 5, 7.82, 5, 11);
@@ -519,7 +433,6 @@ public class MainApp extends Application {
         path.curveTo(14, 4.19, 14, 4.1, 14, 4);
         path.curveTo(14, 2.9, 13.1, 2, 12, 2);
         path.closePath();
-        
         path.moveTo(10, 21);
         path.curveTo(10, 22.1, 10.9, 23, 12, 23);
         path.curveTo(13.1, 23, 14, 22.1, 14, 21);

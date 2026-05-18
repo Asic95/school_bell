@@ -5,35 +5,32 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 
 public class UIStyles {
-    // Colors
-    public static final String COLOR_PRIMARY = "#0984e3";
-    public static final String COLOR_SUCCESS = "#00b894";
-    public static final String COLOR_WARNING = "#fdcb6e";
-    public static final String COLOR_DANGER = "#e74c3c";
+    // Colors (Zinc-based palette)
+    public static final String COLOR_BG = "#f9f9fb";
+    public static final String COLOR_WHITE = "#ffffff";
+    public static final String COLOR_ZINC_200 = "#e4e4e7";
+    public static final String COLOR_ZINC_500 = "#71717a";
+    public static final String COLOR_ZINC_900 = "#18181b";
+
+
+    public static final String COLOR_PRIMARY = "#2563eb";
+    public static final String COLOR_SUCCESS = "#16a34a";
+    public static final String COLOR_WARNING = "#d97706";
+    public static final String COLOR_DANGER = "#dc2626";
     public static final String COLOR_NEUTRAL = "#636e72";
-    public static final String COLOR_BG = "#f1f2f6";
     public static final String COLOR_TEXT = "#2d3436";
     public static final String COLOR_TEXT_DIM = "#95a5a6";
     public static final String COLOR_PURPLE = "#a29bfe";
-    
-    // Light Solid Backgrounds for Icon Circles
     public static final String COLOR_BLUE_LIGHT = "#e3f2fd";
     public static final String COLOR_GREEN_LIGHT = "#e8f8f5";
     public static final String COLOR_PURPLE_LIGHT = "#f3efff";
 
-    // Effects & Cards
-    public static final String SLIDER_STYLE = 
-        ".slider .track { -fx-background-color: #dfe6e9; -fx-background-radius: 2; -fx-pref-height: 4; } " +
-        ".slider .thumb { -fx-background-color: " + COLOR_SUCCESS + "; -fx-background-radius: 50; -fx-pref-width: 12; -fx-pref-height: 12; } ";
-
-    public static final String DEPTH_1 = "-fx-background-color: " + COLOR_BG + ";";
+    public static final String DEPTH_1 = "-fx-background-color: #f1f2f6;";
     public static final String DEPTH_2 = "-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 8, 0, 0, 3);";
-    public static final String SOFT_CARD = "-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);";
-    public static final String DEPTH_3 = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 6, 0, 0, 2);";
-
-    // Styles
-    public static final String HEADER_STYLE = "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 1.5px;";
+    public static final String SOFT_CARD = "-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e4e4e7; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 8, 0, 0, 2);";
+    public static final String HEADER_STYLE = "-fx-font-size: 10px; -fx-font-weight: 600; -fx-text-fill: " + COLOR_ZINC_500 + "; -fx-text-transform: uppercase; -fx-letter-spacing: 0.05em;";
     public static final String SUB_HEADER_STYLE = "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + "; -fx-letter-spacing: 0.5px;";
+
     public static final String VALUE_STYLE = "-fx-font-size: 26px; -fx-font-family: 'Monospaced'; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + ";";
     public static final String BTN_BASE = "-fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 12; -fx-cursor: hand;";
     public static final String COMBO_STYLE = "-fx-font-size: 14px; -fx-background-color: white; -fx-background-insets: 0; -fx-background-radius: 8; -fx-border-color: #dfe6e9; -fx-border-radius: 8; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;";
@@ -61,6 +58,8 @@ public class UIStyles {
     public static final String NAV_BTN_BASE = "-fx-background-color: transparent; -fx-padding: 12 20; -fx-cursor: hand; -fx-background-radius: 12; -fx-text-fill: #b2bec3; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; -fx-font-size: 14px;";
     public static final String NAV_BTN_ACTIVE = "-fx-background-color: #0984e3; -fx-text-fill: white;";
     public static final String NAV_BTN_HOVER = "-fx-background-color: rgba(255,255,255,0.05);";
+
+    public static final double ICON_SCALE = 1.0;
 
     public static final String SIDEBAR_STATUS_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20; -fx-border-color: rgba(255,255,255,0.05); -fx-border-width: 1 0 0 0;";
 
@@ -131,14 +130,4 @@ public class UIStyles {
     public static final String GRADIENT_INFO = "linear-gradient(to bottom right, #3498db, #2980b9)";
     public static final String GRADIENT_PURPLE = "linear-gradient(to bottom right, #9b59b6, #8e44ad)";
     public static final String GRADIENT_NEUTRAL = "linear-gradient(to bottom right, #636e72, #2d3436)";
-
-    public static Node createSVGIcon(String pathData, Color color, double size) {
-        SVGPath path = new SVGPath();
-        path.setContent(pathData);
-        path.setFill(color);
-        double scale = size / 24.0;
-        path.setScaleX(scale);
-        path.setScaleY(scale);
-        return path;
-    }
 }

@@ -9,8 +9,8 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import static com.schoolbell.ui.UIComponents.createManagementCard;
-import static com.schoolbell.ui.UIComponents.createSectionHeader;
+import static com.schoolbell.ui.CardFactory.createManagementCard;
+import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class ScheduleView {

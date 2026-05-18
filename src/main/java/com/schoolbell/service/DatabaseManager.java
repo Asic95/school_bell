@@ -1,15 +1,13 @@
 package com.schoolbell.service;
 
 import com.schoolbell.model.BroadcastDevice;
+import com.schoolbell.model.MediaEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseManager {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
@@ -23,6 +21,15 @@ public class DatabaseManager {
             throw new SQLException("SQLite driver not found", e);
         }
         return DriverManager.getConnection(DB_URL);
+    }
+
+    public static void initialize() {
+        try (Connection conn = getConnection()) {
+            DatabaseMigrations.run(conn);
+            logger.info("Database initialized successfully.");
+        } catch (SQLException e) {
+            logger.error("Failed to initialize database", e);
+        }
     }
 
     public static BroadcastDevice getDeviceByIp(String ip) {
@@ -60,14 +67,14 @@ public class DatabaseManager {
         return defaultValue;
     }
 
-    public static java.util.List<com.schoolbell.model.BroadcastDevice> getAllBroadcastDevices() {
-        java.util.List<com.schoolbell.model.BroadcastDevice> devices = new java.util.ArrayList<>();
+    public static List<BroadcastDevice> getAllBroadcastDevices() {
+        List<BroadcastDevice> devices = new ArrayList<>();
         String sql = "SELECT ip, name, is_banned, device_type, os, last_seen FROM broadcast_devices";
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                devices.add(new com.schoolbell.model.BroadcastDevice(
+                devices.add(new BroadcastDevice(
                         rs.getString("ip"),
                         rs.getString("name"),
                         rs.getInt("is_banned") == 1,
@@ -82,7 +89,7 @@ public class DatabaseManager {
         return devices;
     }
 
-    public static void saveBroadcastDevice(com.schoolbell.model.BroadcastDevice device) {
+    public static void saveBroadcastDevice(BroadcastDevice device) {
         String sql = "INSERT OR REPLACE INTO broadcast_devices (ip, name, is_banned, device_type, os, last_seen) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -109,14 +116,14 @@ public class DatabaseManager {
         }
     }
 
-    public static java.util.List<com.schoolbell.model.MediaEvent> getAllMediaEvents() {
-        java.util.List<com.schoolbell.model.MediaEvent> events = new java.util.ArrayList<>();
+    public static List<MediaEvent> getAllMediaEvents() {
+        List<MediaEvent> events = new ArrayList<>();
         String sql = "SELECT * FROM media_events";
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                events.add(new com.schoolbell.model.MediaEvent(
+                events.add(new MediaEvent(
                         rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("path"),
@@ -137,7 +144,7 @@ public class DatabaseManager {
         return events;
     }
 
-    public static void saveMediaEvent(com.schoolbell.model.MediaEvent event) {
+    public static void saveMediaEvent(MediaEvent event) {
         String sql;
         if (event.id() == null) {
             sql = "INSERT INTO media_events (name, path, type, time, days_of_week, date, is_active, is_folder, duration_minutes, break_anchor, break_offset) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -172,205 +179,6 @@ public class DatabaseManager {
             pstmt.executeUpdate();
         } catch (SQLException e) {
             logger.error("Failed to delete media event: " + id, e);
-        }
-    }
-
-    public static void initialize() {
-        try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement()) {
-            
-            // Settings table
-            stmt.execute("CREATE TABLE IF NOT EXISTS settings (" +
-                    "key TEXT PRIMARY KEY," +
-                    "value TEXT" +
-                    ")");
-
-            // Teachers table
-            stmt.execute("CREATE TABLE IF NOT EXISTS teachers (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "name TEXT NOT NULL" +
-                    ")");
-
-            // Subjects table
-            stmt.execute("CREATE TABLE IF NOT EXISTS subjects (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "name TEXT NOT NULL" +
-                    ")");
-
-            // Teacher-Subject mapping
-            stmt.execute("CREATE TABLE IF NOT EXISTS teacher_subjects (" +
-                    "teacher_id INTEGER," +
-                    "subject_id INTEGER," +
-                    "PRIMARY KEY (teacher_id, subject_id)," +
-                    "FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE," +
-                    "FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE" +
-                    ")");
-
-            // Classes table
-            stmt.execute("CREATE TABLE IF NOT EXISTS classes (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "name TEXT NOT NULL" +
-                    ")");
-
-            // Schedule table
-            stmt.execute("CREATE TABLE IF NOT EXISTS schedule (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "class_id INTEGER," +
-                    "day_of_week INTEGER," +
-                    "lesson_number INTEGER," +
-                    "teacher_id INTEGER," +
-                    "subject_id INTEGER," +
-                    "classroom_id INTEGER DEFAULT 0," +
-                    "parity INTEGER DEFAULT 0," +
-                    "UNIQUE(class_id, day_of_week, lesson_number, parity)," +
-                    "FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE," +
-                    "FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL," +
-                    "FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL" +
-                    ")");
-
-            // Substitutions table
-            stmt.execute("CREATE TABLE IF NOT EXISTS substitutions (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "class_id INTEGER," +
-                    "date TEXT NOT NULL," +
-                    "lesson_number INTEGER," +
-                    "teacher_id INTEGER," +
-                    "subject_id INTEGER," +
-                    "classroom_id INTEGER DEFAULT 0," +
-                    "UNIQUE(class_id, date, lesson_number)," +
-                    "FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE," +
-                    "FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL," +
-                    "FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL" +
-                    ")");
-            
-            // Broadcast Devices table
-            stmt.execute("CREATE TABLE IF NOT EXISTS broadcast_devices (" +
-                    "ip TEXT PRIMARY KEY," +
-                    "name TEXT," +
-                    "is_banned INTEGER DEFAULT 0," +
-                    "device_type TEXT," +
-                    "os TEXT," +
-                    "last_seen TEXT" +
-                    ")");
-
-            // Announcements table
-            stmt.execute("CREATE TABLE IF NOT EXISTS announcements (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "text TEXT NOT NULL," +
-                    "start_date TEXT," +
-                    "end_date TEXT," +
-                    "start_time TEXT," +
-                    "end_time TEXT," +
-                    "days_of_week TEXT," +
-                    "is_active INTEGER DEFAULT 1" +
-                    ")");
-
-            // Classrooms table
-            stmt.execute("CREATE TABLE IF NOT EXISTS classrooms (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "name TEXT NOT NULL" +
-                    ")");
-
-            // Media Events table
-            stmt.execute("CREATE TABLE IF NOT EXISTS media_events (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "name TEXT NOT NULL," +
-                    "path TEXT NOT NULL," +
-                    "type TEXT NOT NULL," +
-                    "time TEXT," +
-                    "days_of_week TEXT," +
-                    "date TEXT," +
-                    "is_active INTEGER DEFAULT 1," +
-                    "is_folder INTEGER DEFAULT 0," +
-                    "duration_minutes INTEGER DEFAULT 0," +
-                    "break_anchor TEXT DEFAULT 'START'," +
-                    "break_offset INTEGER DEFAULT 0" +
-                    ")");
-
-            // Migration: Add break_anchor and break_offset to media_events if they don't exist
-            try (ResultSet rs = conn.getMetaData().getColumns(null, null, "media_events", "break_anchor")) {
-                if (!rs.next()) {
-                    logger.info("Adding break_anchor and break_offset to media_events table...");
-                    stmt.execute("ALTER TABLE media_events ADD COLUMN break_anchor TEXT DEFAULT 'START'");
-                    stmt.execute("ALTER TABLE media_events ADD COLUMN break_offset INTEGER DEFAULT 0");
-                }
-            } catch (Exception e) {
-                logger.warn("Media events migration skipped: " + e.getMessage());
-            }
-
-            // Migration: Check if we need to add new columns to broadcast_devices
-            try (ResultSet rs = conn.getMetaData().getColumns(null, null, "broadcast_devices", "device_type")) {
-                if (!rs.next()) {
-                    logger.info("Migrating broadcast_devices table...");
-                    stmt.execute("ALTER TABLE broadcast_devices ADD COLUMN device_type TEXT");
-                    stmt.execute("ALTER TABLE broadcast_devices ADD COLUMN os TEXT");
-                    stmt.execute("ALTER TABLE broadcast_devices ADD COLUMN last_seen TEXT");
-                }
-            } catch (Exception e) {
-                logger.warn("Broadcast devices migration skipped: " + e.getMessage());
-            }
-
-            // ... rest of initialize ...
-            // SQLite doesn't support ALTER TABLE for constraints, so we need a recreation approach
-            try (ResultSet rs = conn.getMetaData().getIndexInfo(null, null, "schedule", true, false)) {
-                boolean hasParityInUnique = false;
-                while (rs.next()) {
-                    if ("parity".equalsIgnoreCase(rs.getString("COLUMN_NAME"))) {
-                        hasParityInUnique = true;
-                        break;
-                    }
-                }
-                
-                if (!hasParityInUnique) {
-                    logger.info("Migrating schedule table to support multi-parity UNIQUE constraint...");
-                    stmt.execute("BEGIN TRANSACTION");
-                    stmt.execute("CREATE TABLE schedule_new (" +
-                            "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                            "class_id INTEGER," +
-                            "day_of_week INTEGER," +
-                            "lesson_number INTEGER," +
-                            "teacher_id INTEGER," +
-                            "subject_id INTEGER," +
-                            "parity INTEGER DEFAULT 0," +
-                            "UNIQUE(class_id, day_of_week, lesson_number, parity)," +
-                            "FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE," +
-                            "FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL," +
-                            "FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL" +
-                            ")");
-                    stmt.execute("INSERT INTO schedule_new (class_id, day_of_week, lesson_number, teacher_id, subject_id, parity) " +
-                                 "SELECT class_id, day_of_week, lesson_number, teacher_id, subject_id, parity FROM schedule");
-                    stmt.execute("DROP TABLE schedule");
-                    stmt.execute("ALTER TABLE schedule_new RENAME TO schedule");
-                    stmt.execute("COMMIT");
-                    logger.info("Migration completed successfully.");
-                }
-            } catch (Exception e) {
-                logger.warn("Parity migration skipped or already done: " + e.getMessage());
-            }
-
-            // Migration: Add classroom_id to schedule if it doesn't exist
-            try (ResultSet rs = conn.getMetaData().getColumns(null, null, "schedule", "classroom_id")) {
-                if (!rs.next()) {
-                    logger.info("Adding classroom_id to schedule table...");
-                    stmt.execute("ALTER TABLE schedule ADD COLUMN classroom_id INTEGER DEFAULT 0");
-                }
-            } catch (Exception e) {
-                logger.warn("Schedule classroom_id migration skipped: " + e.getMessage());
-            }
-
-            // Migration: Add classroom_id to substitutions if it doesn't exist
-            try (ResultSet rs = conn.getMetaData().getColumns(null, null, "substitutions", "classroom_id")) {
-                if (!rs.next()) {
-                    logger.info("Adding classroom_id to substitutions table...");
-                    stmt.execute("ALTER TABLE substitutions ADD COLUMN classroom_id INTEGER DEFAULT 0");
-                }
-            } catch (Exception e) {
-                logger.warn("Substitutions classroom_id migration skipped: " + e.getMessage());
-            }
-
-            logger.info("Database initialized successfully.");
-        } catch (SQLException e) {
-            logger.error("Failed to initialize database", e);
         }
     }
 }
