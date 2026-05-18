@@ -22,7 +22,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.schoolbell.ui.UIComponents.*;
+import static com.schoolbell.ui.CardFactory.createHelpCard;
+import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
+import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
+import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class ImportView {
@@ -43,7 +46,7 @@ public class ImportView {
     public ImportView(MainApp mainApp) {
         this.mainApp = mainApp;
         this.pdfParserService = new PdfParserService();
-        this.normalizer = new ScheduleDataNormalizer(mainApp.getAcademicService());
+        this.normalizer = new ScheduleDataNormalizer(mainApp.getAcademicService(), mainApp.getStaffService());
     }
 
     public Node build() {

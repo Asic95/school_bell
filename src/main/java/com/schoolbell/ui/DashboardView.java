@@ -2,13 +2,9 @@ package com.schoolbell.ui;
 
 import com.schoolbell.MainApp;
 import com.schoolbell.model.DaySchedule;
-import com.schoolbell.model.SchoolClass;
-import com.schoolbell.model.SubstitutionEntry;
 import com.schoolbell.service.AcademicService;
 import com.schoolbell.service.ConfigService;
 import com.schoolbell.service.SignalService;
-import javafx.animation.*;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -16,14 +12,15 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.util.Duration;
 import javafx.scene.CacheHint;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static com.schoolbell.ui.UIComponents.*;
+import static com.schoolbell.ui.CardFactory.createSmallInfoCard;
+import static com.schoolbell.ui.ControlFactory.*;
+import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class DashboardView {
@@ -38,6 +35,8 @@ public class DashboardView {
     private final ConfigService config;
     private final SignalService signalService;
     private final AcademicService academicService;
+    private final DashboardDataModel dataModel;
+    private DashboardTimeline timeline;
 
     private Label currentTimeLabel;
     private Label relayStatusLabel;
@@ -72,17 +71,16 @@ public class DashboardView {
     private int lastLessonIdx = -2;
     private boolean lastIsBreak = false;
     private String lastScheduleName = "__INITIAL__";
-    private final List<Animation> activeAnimations = new ArrayList<>();
 
     public DashboardView(MainApp mainApp) {
         this.mainApp = mainApp;
         this.config = mainApp.getConfigService();
         this.signalService = mainApp.getSignalService();
         this.academicService = mainApp.getAcademicService();
+        this.dataModel = new DashboardDataModel(mainApp);
     }
 
     public Node build() {
-        // Скидаємо стан для примусового оновлення таймлайну при кожній побудові UI
         lastLessonIdx = -2;
         lastIsBreak = false;
         lastScheduleName = "__INITIAL__";
@@ -121,7 +119,7 @@ public class DashboardView {
         relaySubtext.setStyle("-fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-font-weight: bold; -fx-letter-spacing: 0.5px;");
         
         HBox statusRow = new HBox(12, relayIndicator, relayStatusLabel);
-        statusRow.setAlignment(Pos.CENTER_LEFT); // Центрування по вертикалі всередині рядка
+        statusRow.setAlignment(Pos.CENTER_LEFT);
         
         VBox relayContent = new VBox(4, statusRow, relaySubtext);
         relayContent.setAlignment(Pos.CENTER_LEFT);
@@ -215,6 +213,7 @@ public class DashboardView {
         scheduleFlowContainer = new HBox(40); 
         scheduleFlowContainer.setAlignment(Pos.CENTER);
         scheduleFlowContainer.setPadding(new Insets(20, 0, 10, 0));
+        timeline = new DashboardTimeline(scheduleFlowContainer);
         
         heroCard.getChildren().addAll(heroHeader, currentSessionInfo, progressArea, scheduleFlowContainer);
         grid.add(heroCard, 0, 1);
@@ -441,7 +440,7 @@ public class DashboardView {
         }
 
         if (curLessonIdx != lastLessonIdx || isBreak != lastIsBreak || !Objects.equals(scheduleName, lastScheduleName)) {
-            rebuildTimeline(activeDs, curLessonIdx, isBreak, now);
+            timeline.rebuild(activeDs, curLessonIdx, isBreak, now);
             lastLessonIdx = curLessonIdx;
             lastIsBreak = isBreak;
             lastScheduleName = scheduleName;
@@ -509,309 +508,12 @@ public class DashboardView {
         }
     }
 
-    private void rebuildTimeline(DaySchedule ds, int curIdx, boolean isBreak, LocalTime now) {
-        activeAnimations.forEach(Animation::stop);
-        activeAnimations.clear();
-        scheduleFlowContainer.getChildren().clear();
-        
-        if (curIdx == -1) {
-            if (now.isBefore(ds.getLessons().get(0).start)) {
-                for (int i = 0; i < Math.min(3, ds.getLessons().size()); i++) {
-                    addTimelinePoint(i + 1, ds.getLessons().get(i), "upcoming");
-                }
-            } else {
-                int total = ds.getLessons().size();
-                for (int i = Math.max(0, total - 3); i < total; i++) {
-                    addTimelinePoint(i + 1, ds.getLessons().get(i), "completed");
-                }
-            }
-        } else if (isBreak) {
-            addTimelinePoint(curIdx + 1, ds.getLessons().get(curIdx), "completed");
-            addTimelineBreakPoint();
-            addTimelinePoint(curIdx + 2, ds.getLessons().get(curIdx + 1), "upcoming");
-        } else {
-            if (curIdx > 0) addTimelinePoint(curIdx, ds.getLessons().get(curIdx - 1), "completed");
-            addTimelinePoint(curIdx + 1, ds.getLessons().get(curIdx), "active");
-            if (curIdx < ds.getLessons().size() - 1) addTimelinePoint(curIdx + 2, ds.getLessons().get(curIdx + 1), "upcoming");
-        }
-    }
-
-    private void addTimelinePoint(int number, DaySchedule.LessonInfo li, String status) {
-        VBox node = new VBox(8);
-        node.setAlignment(Pos.CENTER);
-        node.setMinWidth(120);
-        
-        StackPane box = new StackPane();
-        box.setPrefSize(44, 44);
-        box.setCache(true);
-        box.setCacheHint(CacheHint.SCALE);
-        
-        Label num = new Label(String.valueOf(number));
-        num.setStyle("-fx-font-weight: 900; -fx-font-size: 15px;");
-        
-        if ("active".equals(status)) {
-            box.setStyle("-fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(9, 132, 227, 0.4), 12, 0, 0, 0);");
-            num.setTextFill(Color.WHITE);
-            
-            ScaleTransition st = new ScaleTransition(Duration.millis(1000), box);
-            st.setFromX(1.0); st.setFromY(1.0);
-            st.setToX(1.1); st.setToY(1.1);
-            st.setCycleCount(Animation.INDEFINITE);
-            st.setAutoReverse(true);
-            st.play();
-            activeAnimations.add(st);
-        } else if ("completed".equals(status)) {
-            box.setStyle("-fx-background-color: " + COLOR_GREEN_LIGHT + "; -fx-background-radius: 14; -fx-border-color: " + COLOR_SUCCESS + "; -fx-border-width: 1.5; -fx-border-radius: 14;");
-            num.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: #16a085;"); 
-            Node check = createSVGIcon(ICON_CHECK, Color.web(COLOR_SUCCESS), 14);
-            StackPane.setAlignment(check, Pos.TOP_RIGHT);
-            StackPane.setMargin(check, new Insets(5, 5, 0, 0));
-            box.getChildren().add(check);
-        } else {
-            box.setStyle("-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: #dfe6e9; -fx-border-width: 1.5; -fx-border-radius: 14; -fx-opacity: 0.8;");
-            num.setTextFill(Color.web(COLOR_TEXT_DIM));
-        }
-        
-        box.getChildren().add(num);
-        
-        Label time = new Label(li.start.toString());
-        time.setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
-        
-        Label label = new Label("УРОК");
-        label.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: #b2bec3; -fx-letter-spacing: 1px;");
-        
-        node.getChildren().addAll(label, box, time);
-        scheduleFlowContainer.getChildren().add(node);
-    }
-
-    private void addTimelineBreakPoint() {
-        VBox node = new VBox(8);
-        node.setAlignment(Pos.CENTER);
-        node.setMinWidth(120);
-        
-        StackPane box = new StackPane();
-        box.setPrefSize(44, 44);
-        box.setCache(true);
-        box.setCacheHint(CacheHint.SCALE);
-        box.setStyle("-fx-background-color: " + COLOR_WARNING + "; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(253, 203, 110, 0.3), 10, 0, 0, 0);");
-        
-        Node icon = createSVGIcon(ICON_CLOCK, Color.WHITE, 20);
-        box.getChildren().add(icon);
-        
-        ScaleTransition st = new ScaleTransition(Duration.millis(1000), box);
-        st.setFromX(1.0); st.setFromY(1.0);
-        st.setToX(1.1); st.setToY(1.1);
-        st.setCycleCount(Animation.INDEFINITE);
-        st.setAutoReverse(true);
-        st.play();
-        activeAnimations.add(st);
-        
-        Label time = new Label("ПЕРЕРВА");
-        time.setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_WARNING + ";");
-        
-        Label label = new Label("ЗАРАЗ");
-        label.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_WARNING + "; -fx-letter-spacing: 1px;");
-        
-        node.getChildren().addAll(label, box, time);
-        scheduleFlowContainer.getChildren().add(node);
-    }
-
     public Map<String, Object> getExtendedDashboardData(LocalTime now) {
-        String countdown = countdownLabel.getText();
-        Map<String, Object> data = new HashMap<>();
-        data.put("schoolName", config.getSchoolName());
-        data.put("cityName", config.getCityName());
-        
-        String alert = signalService.getCurrentAlertType();
-        if ("AIR_RAID".equals(alert) && !config.isVisualAirRaidEnabled()) alert = "NONE";
-        if ("EMERGENCY".equals(alert) && !config.isVisualEmergencyEnabled()) alert = "NONE";
-        if ("SILENCE".equals(alert) && !config.isVisualSilenceEnabled()) alert = "NONE";
-        data.put("alertType", alert);
-
-        data.put("countdown", countdown);
-        data.put("scheduleName", config.getSelectedScheduleName());
-
-        DaySchedule activeDs = mainApp.getInternalSchedules().stream().filter(ds -> ds.getName().equals(config.getSelectedScheduleName())).findFirst().orElse(null);
-        if (activeDs == null) return data;
-
-        List<Map<String, Object>> stages = new ArrayList<>();
-        int currentStageIndex = -1;
-        for (int i = 0; i < activeDs.getLessons().size(); i++) {
-            DaySchedule.LessonInfo li = activeDs.getLessons().get(i);
-            Map<String, Object> lessonStage = new HashMap<>();
-            lessonStage.put("type", "LESSON");
-            lessonStage.put("number", i + 1);
-            lessonStage.put("title", (i + 1) + " урок");
-            lessonStage.put("start", li.start != null ? li.start.toString() : "--:--");
-            lessonStage.put("end", li.end != null ? li.end.toString() : "--:--");
-            
-            if (li.start != null && li.end != null) {
-                if (now.isBefore(li.start)) {
-                    lessonStage.put("status", "upcoming");
-                } else if (now.isAfter(li.end)) {
-                    lessonStage.put("status", "completed");
-                } else {
-                    lessonStage.put("status", "active");
-                    currentStageIndex = stages.size();
-                    long total = java.time.Duration.between(li.start, li.end).toSeconds();
-                    long elapsed = java.time.Duration.between(li.start, now).toSeconds();
-                    lessonStage.put("progress", (elapsed * 100.0) / total);
-                }
-            } else {
-                lessonStage.put("status", "upcoming");
-            }
-            stages.add(lessonStage);
-
-            if (i < activeDs.getLessons().size() - 1) {
-                DaySchedule.LessonInfo nextLi = activeDs.getLessons().get(i + 1);
-                if (li.end != null && nextLi.start != null) {
-                    Map<String, Object> breakStage = new HashMap<>();
-                    breakStage.put("type", "BREAK");
-                    breakStage.put("title", "Перерва");
-                    breakStage.put("start", li.end.toString());
-                    breakStage.put("end", nextLi.start.toString());
-                    
-                    if (now.isBefore(li.end)) {
-                        breakStage.put("status", "upcoming");
-                    } else if (now.isAfter(nextLi.start)) {
-                        breakStage.put("status", "completed");
-                    } else {
-                        breakStage.put("status", "active");
-                        currentStageIndex = stages.size();
-                        long total = java.time.Duration.between(li.end, nextLi.start).toSeconds();
-                        long elapsed = java.time.Duration.between(li.end, now).toSeconds();
-                        breakStage.put("progress", (elapsed * 100.0) / total);
-                    }
-                    stages.add(breakStage);
-                }
-            }
-        }
-        data.put("stages", stages);
-        data.put("currentStageIndex", currentStageIndex);
-        if (currentStageIndex != -1) {
-            data.put("schoolStatus", stages.get(currentStageIndex));
-        }
-
-        List<Map<String, Object>> classStatuses = new ArrayList<>();
-        int currentLessonNum = -1;
-        boolean isBreak = false;
-        
-        // Find if a lesson is currently active
-        for (int i = 0; i < activeDs.getLessons().size(); i++) {
-            DaySchedule.LessonInfo li = activeDs.getLessons().get(i);
-            if (li.start != null && li.end != null && !now.isBefore(li.start) && !now.isAfter(li.end)) {
-                currentLessonNum = i + 1;
-                break;
-            }
-        }
-
-        // If no lesson is active, check if it's a break before a lesson
-        if (currentLessonNum == -1) {
-            for (int i = 0; i < activeDs.getLessons().size(); i++) {
-                DaySchedule.LessonInfo li = activeDs.getLessons().get(i);
-                if (li.start != null && now.isBefore(li.start)) {
-                    currentLessonNum = i + 1;
-                    isBreak = true;
-                    break;
-                }
-            }
-        }
-
-        if (currentLessonNum != -1) {
-            java.time.LocalDate today = java.time.LocalDate.now();
-            int dayOfWeek = today.getDayOfWeek().getValue();
-            List<SubstitutionEntry> subs = academicService.getSubstitutionsForDate(today);
-            
-            for (SchoolClass sc : mainApp.getClassCache()) {
-                List<com.schoolbell.model.ScheduleEntry> baseSched = academicService.getScheduleForClass(sc.id());
-                
-                // Find the first lesson for this class that is >= currentLessonNum
-                int targetLNum = -1;
-                boolean foundReplacement = false;
-                SubstitutionEntry targetSub = null;
-                com.schoolbell.model.ScheduleEntry targetBase = null;
-
-                for (int l = currentLessonNum; l <= 15; l++) { // Check up to 15 lessons
-                    final int checkL = l;
-                    SubstitutionEntry sub = subs.stream()
-                            .filter(s -> s.classId() == sc.id() && s.lessonNumber() == checkL)
-                            .findFirst().orElse(null);
-                    
-                    if (sub != null) {
-                        targetLNum = l;
-                        targetSub = sub;
-                        foundReplacement = true;
-                        break;
-                    }
-
-                    com.schoolbell.model.ScheduleEntry base = baseSched.stream()
-                            .filter(e -> e.dayOfWeek() == dayOfWeek && e.lessonNumber() == checkL)
-                            .findFirst().orElse(null);
-                    
-                    if (base != null) {
-                        targetLNum = l;
-                        targetBase = base;
-                        break;
-                    }
-                }
-
-                // If no more lessons today for this class, skip it
-                if (targetLNum == -1) continue;
-
-                Map<String, Object> cs = new HashMap<>();
-                cs.put("className", sc.name());
-                cs.put("lessonNumber", targetLNum);
-                
-                // Determine status: 
-                // - If school is currently in lesson AND class is in that same lesson -> "current"
-                // - Otherwise (it's a break OR class has a window) -> "upcoming"
-                boolean isClassInCurrentSchoolLesson = (!isBreak && targetLNum == currentLessonNum);
-                cs.put("statusClass", isClassInCurrentSchoolLesson ? "current" : "upcoming");
-
-                if (foundReplacement && targetSub != null) {
-                    cs.put("isReplacement", true);
-                    cs.put("subject", mainApp.getSubjectName(targetSub.subjectId()));
-                    cs.put("teacher", mainApp.getTeacherName(targetSub.teacherId()));
-                    cs.put("room", mainApp.getClassroomName(targetSub.classroomId()));
-                    
-                    final int finalTargetLNum = targetLNum;
-                    baseSched.stream()
-                        .filter(e -> e.dayOfWeek() == dayOfWeek && e.lessonNumber() == finalTargetLNum)
-                        .findFirst()
-                        .ifPresent(orig -> cs.put("originalTeacher", mainApp.getTeacherName(orig.teacherId())));
-                    
-                    if (!cs.containsKey("originalTeacher")) cs.put("originalTeacher", "—");
-                } else if (targetBase != null) {
-                    cs.put("subject", mainApp.getSubjectName(targetBase.subjectId()));
-                    cs.put("teacher", mainApp.getTeacherName(targetBase.teacherId()));
-                    cs.put("room", mainApp.getClassroomName(targetBase.classroomId()));
-                }
-                
-                classStatuses.add(cs);
-            }
-        }
-        data.put("classStatuses", classStatuses);
-        data.put("rows", classStatuses); // dashboard.html expects 'rows'
-
-        if (currentLessonNum != -1 && !classStatuses.isEmpty()) {
-            Map<String, Object> firstClass = classStatuses.get(0);
-            DaySchedule.LessonInfo li = activeDs.getLessons().get(currentLessonNum - 1);
-            Map<String, Object> cl = new HashMap<>();
-            cl.put("number", currentLessonNum);
-            cl.put("subject", isBreak ? "Наступний: " + firstClass.get("subject") : firstClass.get("subject"));
-            cl.put("teacher", firstClass.get("teacher"));
-            cl.put("room", firstClass.get("room"));
-            cl.put("className", firstClass.get("className"));
-            cl.put("start", li.start.toString());
-            cl.put("end", li.end.toString());
-            data.put("currentLesson", cl);
-        }
-
-        return data;
+        return dataModel.getExtendedDashboardData(now);
     }
 
     public void clearFlow() {
-        if (scheduleFlowContainer != null) scheduleFlowContainer.getChildren().clear();
+        if (timeline != null) timeline.clear();
     }
 
     public void refreshActiveScheduleLabel() {

@@ -9,7 +9,10 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
-import static com.schoolbell.ui.UIComponents.*;
+import static com.schoolbell.ui.CardFactory.createCardActionButton;
+import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
+import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
+import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class SubjectsEditorTab {
@@ -42,7 +45,7 @@ public class SubjectsEditorTab {
 
         refreshSubjects = () -> {
             subjectsContainer.getChildren().clear();
-            for (Subject s : mainApp.getAcademicService().getAllSubjects()) {
+            for (Subject s : mainApp.getStaffService().getAllSubjects()) {
                 VBox card = new VBox(15);
                 card.setStyle(SOFT_CARD + "-fx-padding: 20; -fx-border-color: #f1f2f6; -fx-border-radius: 20;");
                 card.setPrefWidth(300);
@@ -62,7 +65,7 @@ public class SubjectsEditorTab {
 
                 Button editBtn = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
                 Button del = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
-                del.setOnAction(e -> { mainApp.getAcademicService().deleteSubject(s.id()); refreshSubjects.run(); });
+                del.setOnAction(e -> { mainApp.getStaffService().deleteSubject(s.id()); refreshSubjects.run(); });
                 
                 topRow.getChildren().addAll(iconBox, spacer, editBtn, del);
 
@@ -90,7 +93,7 @@ public class SubjectsEditorTab {
                 nameEdit.focusedProperty().addListener((obs, ov, nv) -> {
                     if (!nv) {
                         if (!nameEdit.getText().equals(s.name()) && !nameEdit.getText().isEmpty()) {
-                            mainApp.getAcademicService().updateSubject(s.id(), nameEdit.getText());
+                            mainApp.getStaffService().updateSubject(s.id(), nameEdit.getText());
                             refreshSubjects.run();
                         } else {
                             nameEdit.setVisible(false); nameEdit.setManaged(false);
@@ -106,7 +109,7 @@ public class SubjectsEditorTab {
 
         addBtn.setOnAction(e -> {
             if (!addField.getText().isEmpty()) {
-                mainApp.getAcademicService().addSubject(addField.getText());
+                mainApp.getStaffService().addSubject(addField.getText());
                 addField.clear();
                 refreshSubjects.run();
             }

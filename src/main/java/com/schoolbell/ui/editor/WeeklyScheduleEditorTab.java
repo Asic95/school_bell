@@ -15,7 +15,9 @@ import javafx.scene.paint.Color;
 
 import java.util.List;
 
-import static com.schoolbell.ui.UIComponents.*;
+import static com.schoolbell.ui.CardFactory.createHelpCard;
+import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
+import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class WeeklyScheduleEditorTab {
@@ -104,8 +106,8 @@ public class WeeklyScheduleEditorTab {
                 grid.add(dayBox, i, 0);
             }
             
-            List<Teacher> allTeachers = mainApp.getAcademicService().getAllTeachers();
-            List<Subject> allSubjects = mainApp.getAcademicService().getAllSubjects();
+            List<Teacher> allTeachers = mainApp.getStaffService().getAllTeachers();
+            List<Subject> allSubjects = mainApp.getStaffService().getAllSubjects();
             List<Classroom> allClassrooms = mainApp.getAcademicService().getAllClassrooms();
 
             for (int d = 1; d <= currentDays; d++) {

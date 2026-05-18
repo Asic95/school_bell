@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 public class ScheduleDataNormalizer {
     private static final Logger logger = LoggerFactory.getLogger(ScheduleDataNormalizer.class);
     private final AcademicService academicService;
+    private final StaffService staffService;
 
     // Cache to minimize DB hits
     private final Map<String, Integer> teacherCache = new HashMap<>();
@@ -23,8 +24,9 @@ public class ScheduleDataNormalizer {
     private final Map<String, Integer> roomCache = new HashMap<>();
     private final Map<String, Integer> classCache = new HashMap<>();
 
-    public ScheduleDataNormalizer(AcademicService academicService) {
+    public ScheduleDataNormalizer(AcademicService academicService, StaffService staffService) {
         this.academicService = academicService;
+        this.staffService = staffService;
         refreshCaches();
     }
 
@@ -33,8 +35,8 @@ public class ScheduleDataNormalizer {
         subjectCache.clear();
         roomCache.clear();
         classCache.clear();
-        academicService.getAllTeachers().forEach(t -> teacherCache.put(t.name(), t.id()));
-        academicService.getAllSubjects().forEach(s -> subjectCache.put(s.name(), s.id()));
+        staffService.getAllTeachers().forEach(t -> teacherCache.put(t.name(), t.id()));
+        staffService.getAllSubjects().forEach(s -> subjectCache.put(s.name(), s.id()));
         academicService.getAllClassrooms().forEach(r -> roomCache.put(r.name(), r.id()));
         academicService.getAllClasses().forEach(c -> classCache.put(c.name(), c.id()));
     }
@@ -311,15 +313,15 @@ public class ScheduleDataNormalizer {
         int classId = getOrCreateClass(parsed.schoolClass());
 
         if (classId == 0) return;
-        academicService.linkTeacherToSubject(teacherId, subjectId);
+        staffService.linkTeacherToSubject(teacherId, subjectId);
         academicService.saveScheduleEntry(classId, dayOfWeek, lessonIndex, teacherId, subjectId, roomId, 0);
     }
 
     private int getOrCreateTeacher(String name) {
         if (name == null || name.isBlank() || name.equals("Невідомий вчитель")) return 0;
         if (!teacherCache.containsKey(name)) {
-            academicService.addTeacher(name);
-            academicService.getAllTeachers().stream()
+            staffService.addTeacher(name);
+            staffService.getAllTeachers().stream()
                     .filter(t -> t.name().equals(name)).findFirst()
                     .ifPresent(t -> teacherCache.put(name, t.id()));
         }
@@ -329,8 +331,8 @@ public class ScheduleDataNormalizer {
     private int getOrCreateSubject(String name) {
         if (name == null || name.isBlank()) return 0;
         if (!subjectCache.containsKey(name)) {
-            academicService.addSubject(name);
-            academicService.getAllSubjects().stream()
+            staffService.addSubject(name);
+            staffService.getAllSubjects().stream()
                     .filter(s -> s.name().equals(name)).findFirst()
                     .ifPresent(s -> subjectCache.put(name, s.id()));
         }
