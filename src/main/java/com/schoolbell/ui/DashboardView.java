@@ -182,7 +182,7 @@ public class DashboardView {
         VBox countdownBox = new VBox(2);
         countdownBox.setAlignment(Pos.CENTER_RIGHT);
         Label countdownTitle = new Label("ДО НАСТУПНОГО ДЗВІНКА");
-        countdownTitle.setStyle(HEADER_STYLE + "-fx-font-size: 9px;");
+        countdownTitle.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
         countdownLabel = new Label("00:00:00");
         countdownLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + ";");
         nextBellTypeLabel = new Label("—");
@@ -349,7 +349,12 @@ public class DashboardView {
     public void update(LocalTime now) {
         currentTimeLabel.setText(now.format(HH_MM_SS));
         
-        if (mainApp.getRelayController().isConnected()) {
+        if (config.isSimulationMode()) {
+            relayStatusLabel.setText("РЕЖИМ СИМУЛЯЦІЇ");
+            relayStatusLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #4f46e5;");
+            relayIndicator.setFill(Color.web("#4f46e5"));
+            relaySubtext.setText("ФІЗИЧНЕ РЕЛЕ ВІДКЛЮЧЕНО (ЛОГУВАННЯ)");
+        } else if (mainApp.getRelayController().isConnected()) {
             relayStatusLabel.setText("Підключено");
             relayStatusLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SUCCESS + ";");
             relayIndicator.setFill(Color.web(COLOR_SUCCESS));
@@ -424,17 +429,25 @@ public class DashboardView {
                 .findFirst().orElse(null);
         
         if (activeDs == null || scheduleFlowContainer == null) return;
+        List<DaySchedule.LessonInfo> lessons = activeDs.getLessons();
+        if (lessons.isEmpty()) return;
 
         int curLessonIdx = -1;
         boolean isBreak = false;
-        for (int i = 0; i < activeDs.getLessons().size(); i++) {
-            DaySchedule.LessonInfo li = activeDs.getLessons().get(i);
-            if (!now.isBefore(li.start) && now.isBefore(li.end)) {
-                curLessonIdx = i; isBreak = false; break;
-            } else if (i < activeDs.getLessons().size() - 1) {
-                DaySchedule.LessonInfo nextLi = activeDs.getLessons().get(i + 1);
-                if (!now.isBefore(li.end) && now.isBefore(nextLi.start)) {
-                    curLessonIdx = i; isBreak = true; break;
+        boolean isBeforeDay = false;
+
+        if (now.isBefore(lessons.get(0).start)) {
+            isBeforeDay = true;
+        } else {
+            for (int i = 0; i < lessons.size(); i++) {
+                DaySchedule.LessonInfo li = lessons.get(i);
+                if (!now.isBefore(li.start) && now.isBefore(li.end)) {
+                    curLessonIdx = i; isBreak = false; break;
+                } else if (i < lessons.size() - 1) {
+                    DaySchedule.LessonInfo nextLi = lessons.get(i + 1);
+                    if (!now.isBefore(li.end) && now.isBefore(nextLi.start)) {
+                        curLessonIdx = i; isBreak = true; break;
+                    }
                 }
             }
         }
@@ -447,7 +460,22 @@ public class DashboardView {
         }
 
         boolean found = false;
-        if (curLessonIdx != -1) {
+        if (isBeforeDay) {
+            DaySchedule.LessonInfo firstLi = lessons.get(0);
+            curLessonNumLabel.setText("ПЕРЕД ЗАЙНЯТТЯМИ");
+            curLessonStatusBadge.setText("ОЧІКУВАННЯ");
+            curLessonStatusBadge.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: white; -fx-background-color: " + COLOR_NEUTRAL + "; -fx-padding: 3 10; -fx-background-radius: 6;");
+            curLessonTimeLabel.setText("Початок о " + firstLi.start);
+            curLessonSubjectLabel.setText("Система готова до початку дня");
+            curLessonProgress.setProgress(0);
+            curLessonProgressText.setText("0%");
+
+            nextLessonNumLabel.setText("1 УРОК");
+            nextLessonStatusBadge.setText("ПОЧАТОК ДНЯ");
+            nextLessonTimeLabel.setText(firstLi.start + " — " + firstLi.end);
+            nextLessonSubjectLabel.setText("Перше заняття сьогодні");
+            found = true;
+        } else if (curLessonIdx != -1) {
             DaySchedule.LessonInfo li = activeDs.getLessons().get(curLessonIdx);
             if (!isBreak) {
                 curLessonNumLabel.setText((curLessonIdx + 1) + " УРОК");

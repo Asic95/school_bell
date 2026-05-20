@@ -1,10 +1,14 @@
 package com.schoolbell.ui;
 
 import com.schoolbell.MainApp;
+import com.schoolbell.model.Announcement;
 import com.schoolbell.model.BroadcastDevice;
+import com.schoolbell.service.AnnouncementService;
 import com.schoolbell.service.ConfigService;
 import com.schoolbell.service.DatabaseManager;
-import com.schoolbell.ui.editor.AnnouncementsEditorTab;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -12,403 +16,376 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.util.Duration;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static com.schoolbell.ui.CardFactory.createCardActionButton;
-import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
-import static com.schoolbell.ui.ControlFactory.createSettingsSection;
-import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
+import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class EfirView {
     private final MainApp mainApp;
     private final ConfigService config;
-    private final AnnouncementsEditorTab announcementsEditor;
+    private final AnnouncementService announcementService;
     
-    private final CheckBox broadcastEnableCb;
+    private final VBox announcementsContainer;
     private final VBox deviceListContainer;
+    private final Label uptimeLabel;
+    private final Label connectionsLabel;
+    private final Label wsStatusLabel;
+    private final LocalDateTime startTime;
+
+    private final TextField schoolNameField;
+    private final TextField cityNameField;
+    private final TextField portField;
+    private final ComboBox<String> themeCombo;
+    private final Label firewallStatusLabel;
+    private boolean showArchivedAnnouncements = false;
 
     public EfirView(MainApp mainApp) {
         this.mainApp = mainApp;
         this.config = mainApp.getConfigService();
-        this.announcementsEditor = new AnnouncementsEditorTab(mainApp);
+        this.announcementService = new AnnouncementService();
+        this.startTime = LocalDateTime.now();
         
-        this.broadcastEnableCb = new CheckBox("Увімкнути трансляцію");
-        this.broadcastEnableCb.setSelected(config.isBroadcastEnabled());
-        this.broadcastEnableCb.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + ";");
+        this.announcementsContainer = new VBox(15);
+        this.deviceListContainer = new VBox(12);
+        this.uptimeLabel = new Label("00:00:00");
+        this.connectionsLabel = new Label("0 пристроїв");
+        this.wsStatusLabel = new Label("Підключено");
+
+        this.schoolNameField = ControlFactory.createStyledField(config.getSchoolName());
+        this.cityNameField = ControlFactory.createStyledField(config.getCityName());
+        this.portField = ControlFactory.createStyledField(String.valueOf(config.getBroadcastPort()));
         
-        this.deviceListContainer = new VBox(10);
+        this.themeCombo = new ComboBox<>();
+        this.themeCombo.getItems().addAll("classic", "modern", "cyber");
+        this.themeCombo.setValue(config.getDashboardTheme());
+        this.themeCombo.setStyle(COMBO_STYLE + "-fx-background-color: white; -fx-border-color: #e2e8f0; -fx-background-radius: 14; -fx-border-radius: 14;");
+        this.themeCombo.setPrefWidth(160);
+
+        this.firewallStatusLabel = new Label("ПЕРЕВІРКА...");
+        
+        schoolNameField.setPromptText("Назва навчального закладу");
+        cityNameField.setPromptText("Населений пункт");
+        portField.setPrefWidth(80);
+
+        setupAutoRefresh();
+        updateFirewallStatusLabel();
+    }
+
+    private void setupAutoRefresh() {
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+            updateUptime();
+            updateMetrics();
+        }));
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.play();
     }
 
     public Node build() {
-        VBox root = new VBox(25);
+        VBox root = new VBox(28);
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
-        Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ НАЛАШТУВАННЯ", ICON_SAVE);
-        saveBtn.setOnAction(e -> save());
+        // --- STANDARD HEADER ---
+        Button saveBtn = createPrimaryActionButton("Зберегти зміни", ICON_SAVE);
+        saveBtn.setOnAction(e -> {
+            try {
+                config.setSchoolName(schoolNameField.getText());
+                config.setCityName(cityNameField.getText());
+                config.setBroadcastPort(Integer.parseInt(portField.getText()));
+                config.setDashboardTheme(themeCombo.getValue());
+                
+                mainApp.saveConfig();
+                ToastService.showSuccess("Налаштування ефіру збережено");
+                updateFirewallStatusLabel();
+            } catch (Exception ex) {
+                ToastService.showError("Помилка збереження: " + ex.getMessage());
+            }
+        });
 
-        VBox headerArea = createSectionHeader(
-                "Керування ефіром",
-                "Контроль трансляції, планування оголошень та моніторинг пристроїв",
-                "#6c5ce7",
-                ICON_BROADCAST,
-                saveBtn
+        HBox header = createPageHeader(
+            "ЦЕНТР КЕРУВАННЯ ЕФІРОМ",
+            "Керування ефіром",
+            "Контроль трансляції, планування оголошень та моніторинг підключених пристроїв.",
+            ICON_BROADCAST,
+            "#4f46e5",
+            saveBtn
         );
 
-        // --- BROADCAST CONTROL CENTER (REDESIGNED HERO CARD) ---
-        HBox heroCard = new HBox(40);
-        heroCard.setAlignment(Pos.CENTER_LEFT);
-        heroCard.setPadding(new Insets(25, 35, 25, 35));
-        heroCard.setStyle("-fx-background-color: white; -fx-background-radius: 24; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 20, 0, 0, 8); -fx-border-color: #f1f2f6; -fx-border-width: 1;");
-        heroCard.setCache(true);
-        heroCard.setCacheHint(javafx.scene.CacheHint.SPEED);
+        // --- TOP STATUS BAR ---
+        HBox statusBar = createTopStatusBar();
 
-        // 1. Live Indicator Section
-        VBox statusSection = new VBox(8);
-        statusSection.setAlignment(Pos.CENTER);
-        
-        StackPane indicatorStack = new StackPane();
-        Circle pulseCircle = new Circle(12, Color.web(config.isBroadcastEnabled() ? COLOR_SUCCESS : COLOR_DANGER, 0.2));
-        pulseCircle.setCache(true);
-        pulseCircle.setCacheHint(javafx.scene.CacheHint.SPEED);
-        
-        Circle mainCircle = new Circle(6, Color.web(config.isBroadcastEnabled() ? COLOR_SUCCESS : COLOR_DANGER));
-        mainCircle.setCache(true);
-        mainCircle.setCacheHint(javafx.scene.CacheHint.SPEED);
-        
-        if (config.isBroadcastEnabled()) {
-            javafx.animation.Timeline pulseTimeline = new javafx.animation.Timeline(
-                new javafx.animation.KeyFrame(javafx.util.Duration.ZERO, 
-                    new javafx.animation.KeyValue(pulseCircle.scaleXProperty(), 1),
-                    new javafx.animation.KeyValue(pulseCircle.scaleYProperty(), 1),
-                    new javafx.animation.KeyValue(pulseCircle.opacityProperty(), 0.6)
-                ),
-                new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1.5), 
-                    new javafx.animation.KeyValue(pulseCircle.scaleXProperty(), 2.5),
-                    new javafx.animation.KeyValue(pulseCircle.scaleYProperty(), 2.5),
-                    new javafx.animation.KeyValue(pulseCircle.opacityProperty(), 0)
-                )
-            );
-            pulseTimeline.setCycleCount(javafx.animation.Animation.INDEFINITE);
-            pulseTimeline.play();
-        }
-        indicatorStack.getChildren().addAll(pulseCircle, mainCircle);
-        
-        Label statusLbl = new Label(config.isBroadcastEnabled() ? "LIVE" : "OFFLINE");
-        statusLbl.setStyle("-fx-font-weight: 900; -fx-font-size: 10px; -fx-letter-spacing: 1.5; -fx-text-fill: " + (config.isBroadcastEnabled() ? COLOR_SUCCESS : COLOR_DANGER) + ";");
-        
-        statusSection.getChildren().addAll(indicatorStack, statusLbl);
+        // --- MAIN CONTENT AREA ---
+        HBox mainContent = new HBox(28);
+        VBox.setVgrow(mainContent, Priority.ALWAYS);
 
-        // 2. Metrics Grid
-        HBox metricsGrid = new HBox(50);
-        metricsGrid.setAlignment(Pos.CENTER_LEFT);
+        // Left Column: Announcements (Flexible)
+        VBox leftCol = createAnnouncementsSection();
+        HBox.setHgrow(leftCol, Priority.ALWAYS);
+        leftCol.setMinWidth(400);
 
-        // Connections
-        int connectedCount = mainApp.getBroadcastService() != null ? mainApp.getBroadcastService().getConnections().size() : 0;
-        VBox m1 = createMetricItem("ПІДКЛЮЧЕНО", connectedCount + " ПРИСТРОЇВ", ICON_MONITOR, COLOR_PURPLE);
-        
-        // IP Address
-        VBox m2 = createMetricItem("АДРЕСА ТАБЛО", "http://" + getLocalIp() + ":" + config.getBroadcastPort(), ICON_BROADCAST, COLOR_PRIMARY);
-        
-        metricsGrid.getChildren().addAll(m1, m2);
+        // Right Column: Devices (Stable Sidebar)
+        VBox rightCol = createSideSection();
+        rightCol.setPrefWidth(480); // Increased stable width
+        rightCol.setMinWidth(480);
+        rightCol.setMaxWidth(480);
+
+        mainContent.getChildren().addAll(leftCol, rightCol);
+
+        // --- BOTTOM NETWORK SECTION ---
+        VBox networkSection = createNetworkSection();
+
+        root.getChildren().addAll(header, statusBar, mainContent, networkSection);
+
+        refreshAll();
+
+        ScrollPane scrollPane = new ScrollPane(root);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        return scrollPane;
+    }
+
+    private HBox createTopStatusBar() {
+        HBox bar = new HBox(28);
+        bar.setAlignment(Pos.CENTER_LEFT);
+        bar.setPadding(new Insets(18, 32, 18, 32));
+        bar.setStyle("-fx-background-color: rgba(255,255,255,0.96); " +
+                     "-fx-background-radius: 28; " +
+                     "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 30, 0, 0, 10);");
+
+        HBox liveStatus = createStatusBadge(ICON_SIGNAL, config.isBroadcastEnabled() ? COLOR_SUCCESS : COLOR_DANGER, "СТАТУС ЕФІРУ", 
+                config.isBroadcastEnabled() ? "АКТИВНИЙ" : "ВИМКНЕНО", uptimeLabel);
+
+        // 2. Connections Monitoring
+        HBox connStatus = createStatusBadge(ICON_MONITOR, COLOR_PRIMARY, "МОНІТОРИНГ", "ПІДКЛЮЧЕНО", connectionsLabel);
+
+        // 3. Broadcast Address
+        Label addrLabel = new Label("http://" + getLocalIp() + ":" + config.getBroadcastPort());
+        HBox broadcastAddr = createStatusBadge(ICON_LINK, "#6366f1", "АДРЕСА ТАБЛО", "URL", addrLabel);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // 3. Quick Actions
-        VBox actionsArea = new VBox(12);
-        actionsArea.setAlignment(Pos.CENTER_RIGHT);
-        
-        HBox actionButtons = new HBox(12);
-        actionButtons.setAlignment(Pos.CENTER_RIGHT);
+        // 4. Main Control
+        HBox controls = new HBox(20);
+        controls.setAlignment(Pos.CENTER_LEFT);
 
-        Button openBtn = new Button("ВІДКРИТИ ТАБЛО");
-        openBtn.setGraphic(createSVGIcon(ICON_MONITOR, Color.WHITE, 16));
-        openBtn.setStyle("-fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white; -fx-font-weight: 900; -fx-font-size: 12px; -fx-padding: 12 25; -fx-background-radius: 14; -fx-cursor: hand;");
-        openBtn.setOnAction(e -> mainApp.getHostServices().showDocument("http://localhost:" + config.getBroadcastPort()));
-        
-        // Hover effect for openBtn
-        openBtn.setOnMouseEntered(e -> openBtn.setStyle(openBtn.getStyle() + "-fx-effect: dropshadow(three-pass-box, " + COLOR_PRIMARY + "66, 12, 0, 0, 4);"));
-        openBtn.setOnMouseExited(e -> openBtn.setStyle(openBtn.getStyle().replace("-fx-effect: dropshadow(three-pass-box, " + COLOR_PRIMARY + "66, 12, 0, 0, 4);", "")));
-
-        broadcastEnableCb.setText(config.isBroadcastEnabled() ? "ТРАНСЛЯЦІЯ УВІМКНЕНА" : "ТРАНСЛЯЦІЯ ВИМКНЕНА");
-        broadcastEnableCb.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT + "; -fx-background-color: #f1f2f6; -fx-padding: 10 20; -fx-background-radius: 14;");
-        broadcastEnableCb.setOnAction(e -> {
-            config.setBroadcastEnabled(broadcastEnableCb.isSelected());
+        HBox broadcastToggle = new HBox(12);
+        broadcastToggle.setAlignment(Pos.CENTER_LEFT);
+        ToggleButton toggle = createToggleSwitch(config.isBroadcastEnabled());
+        toggle.setOnAction(e -> {
+            config.setBroadcastEnabled(toggle.isSelected());
             mainApp.saveConfig();
-            mainApp.showEfir(); // Refresh UI
         });
+        Label toggleLabel = new Label("Трансляція");
+        toggleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: " + COLOR_TEXT + ";");
+        broadcastToggle.getChildren().addAll(toggle, toggleLabel);
 
-        actionButtons.getChildren().addAll(broadcastEnableCb, openBtn);
-        actionsArea.getChildren().add(actionButtons);
+        Button openBtn = new Button("Відкрити табло");
+        openBtn.setGraphic(createSVGIcon(ICON_EXTERNAL_LINK, Color.WHITE, 16));
+        openBtn.setStyle("-fx-background-color: linear-gradient(to right, #4f46e5, #2563eb); " +
+                         "-fx-text-fill: white; " +
+                         "-fx-font-weight: 800; " +
+                         "-fx-font-size: 13px; " +
+                         "-fx-padding: 12 24; " +
+                         "-fx-background-radius: 18; " +
+                         "-fx-cursor: hand; " +
+                         "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.28), 24, 0, 0, 8);");
+        openBtn.setOnAction(e -> mainApp.getHostServices().showDocument("http://localhost:" + config.getBroadcastPort()));
 
-        heroCard.getChildren().addAll(statusSection, metricsGrid, spacer, actionsArea);
+        controls.getChildren().addAll(broadcastToggle, openBtn);
 
-        // --- MAIN CONTENT (2 COLUMNS) ---
-        HBox content = new HBox(25);
-        VBox leftCol = new VBox(25);
-        VBox.setVgrow(leftCol, Priority.ALWAYS);
-        HBox.setHgrow(leftCol, Priority.ALWAYS);
-        VBox rightCol = new VBox(25);
-        rightCol.setPrefWidth(550); // Wider for full actions
-        rightCol.setMinWidth(550);  // Prevent compression by left column content
+        bar.getChildren().addAll(liveStatus, connStatus, broadcastAddr, spacer, controls);
+        return bar;
+    }
 
-        // --- LEFT: ANNOUNCEMENTS ---
-        VBox scheduledContainer = new VBox();
-        scheduledContainer.getChildren().add(announcementsEditor.createContent());
-        scheduledContainer.setStyle(SOFT_CARD);
-        scheduledContainer.setCache(true);
-        scheduledContainer.setCacheHint(javafx.scene.CacheHint.SPEED);
+    private VBox createNetworkSection() {
+        VBox section = new VBox(22);
+        Label title = new Label("МЕРЕЖА ТА ТРАНСЛЯЦІЯ");
+        title.setStyle("-fx-font-size: 13px; -fx-font-weight: 800; -fx-text-fill: #64748b; -fx-letter-spacing: 1.5px;");
+
+        HBox mainRow = new HBox(24);
+        mainRow.setAlignment(Pos.TOP_LEFT);
+
+        mainRow.getChildren().addAll(
+            createModernSettingsGroup("ЗАКЛАД", ICON_SCHOOL, "#4f46e5", new VBox(12, createLabeledField("НАЗВА", schoolNameField), createLabeledField("МІСТО", cityNameField))),
+            createModernSettingsGroup("WEBSOCKET", ICON_LINK, "#7c3aed", new VBox(12, createLabeledField("ПОРТ ТРАНСЛЯЦІЇ", portField))),
+            createModernSettingsGroup("ТЕМА", ICON_SETTINGS, "#2563eb", new VBox(12, createLabeledField("ДИЗАЙН ТАБЛО", themeCombo))),
+            createModernSettingsGroup("FIREWALL", ICON_SHIELD, "#059669", new VBox(15, firewallStatusLabel, createPrimaryActionButton("ОПТИМІЗУВАТИ", ICON_SHIELD)))
+        );
         
-        Node editorContent = scheduledContainer.getChildren().get(0);
-        if (editorContent instanceof VBox vb) {
-            vb.setStyle("-fx-background-color: white; -fx-background-radius: 16;");
-            vb.setPadding(new Insets(20));
-            if (!vb.getChildren().isEmpty()) vb.getChildren().remove(0); 
-            Label schedTitle = new Label("ЗАПЛАНОВАНІ ПОВІДОМЛЕННЯ");
-            schedTitle.setStyle(SUB_HEADER_STYLE);
-            vb.getChildren().add(0, schedTitle);
-        }
+        // Ensure all groups have equal width
+        mainRow.getChildren().forEach(n -> ((VBox)n).setPrefWidth(300));
 
-        leftCol.getChildren().add(scheduledContainer);
+        section.getChildren().addAll(title, mainRow);
+        return section;
+    }
 
-        // --- RIGHT: DEVICES ---
-        VBox devicesCard = createSettingsSection("МОНІТОРИНГ ПРИСТРОЇВ", "#6c5ce7", ICON_MONITOR);
-        devicesCard.setStyle(SOFT_CARD);
-        devicesCard.setPadding(new Insets(25));
-        devicesCard.setCache(true);
-        devicesCard.setCacheHint(javafx.scene.CacheHint.SPEED);
-        
-        Button refreshBtn = new Button("ОНОВИТИ");
-        refreshBtn.setStyle("-fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: bold; -fx-background-color: transparent; -fx-cursor: hand;");
-        refreshBtn.setOnAction(e -> refreshDevices());
-        
-        HBox devHeader = (HBox) devicesCard.getChildren().get(0);
-        Region s2 = new Region(); HBox.setHgrow(s2, Priority.ALWAYS);
-        devHeader.getChildren().addAll(s2, refreshBtn);
-        
-        // Unified scrolling: Use a simple VBox instead of a ScrollPane with fixed height
-        deviceListContainer.setPadding(new Insets(10, 0, 0, 0));
-        devicesCard.getChildren().add(deviceListContainer);
-        VBox.setVgrow(deviceListContainer, Priority.ALWAYS);
+    private void updateFirewallStatusLabel() {
+        firewallStatusLabel.setText("ПЕРЕВІРКА...");
+        firewallStatusLabel.setTextFill(Color.GRAY);
+        firewallStatusLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: 800; -fx-font-family: 'Inter';");
 
-        rightCol.getChildren().add(devicesCard);
-
-        // --- SYSTEM LOGS ---
-        VBox logsCard = createSettingsSection("ЖУРНАЛ СИСТЕМИ", COLOR_NEUTRAL, ICON_INFO);
-        logsCard.setStyle(SOFT_CARD);
-        logsCard.setPadding(new Insets(25));
-        logsCard.setCache(true);
-        logsCard.setCacheHint(javafx.scene.CacheHint.SPEED);
-
-        ListView<String> logList = new ListView<>(mainApp.getSystemLogs());
-        logList.setPrefHeight(250);
-        logList.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0; -fx-border-color: #f1f2f6; -fx-border-radius: 12;");
-        logList.setCellFactory(lv -> new ListCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                    setGraphic(null);
-                    setStyle("-fx-background-color: transparent;");
-                } else {
-                    Label lbl = new Label(item);
-                    lbl.setWrapText(true);
-                    lbl.setMaxWidth(450);
-                    
-                    if (item.contains("[SUCCESS]")) lbl.setStyle("-fx-text-fill: " + COLOR_SUCCESS + "; -fx-font-weight: bold; -fx-font-size: 12px;");
-                    else if (item.contains("[WARNING]")) lbl.setStyle("-fx-text-fill: #f39c12; -fx-font-weight: bold; -fx-font-size: 12px;");
-                    else if (item.contains("[ERROR]")) lbl.setStyle("-fx-text-fill: " + COLOR_DANGER + "; -fx-font-weight: bold; -fx-font-size: 12px;");
-                    else lbl.setStyle("-fx-text-fill: " + COLOR_TEXT + "; -fx-font-size: 12px;");
-                    
-                    setGraphic(lbl);
-                    setStyle("-fx-background-color: " + (getIndex() % 2 == 0 ? "#fcfcfc" : "white") + "; -fx-padding: 8 12; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 1 0;");
-                }
+        new Thread(() -> {
+            try {
+                int port = Integer.parseInt(portField.getText());
+                boolean allowed = mainApp.getSystemService().isPortAllowedInFirewall(port);
+                javafx.application.Platform.runLater(() -> {
+                    firewallStatusLabel.setText(allowed ? "ВІДКРИТО" : "ЗАБЛОКОВАНО");
+                    firewallStatusLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: 800; -fx-font-family: 'Inter'; -fx-text-fill: " + (allowed ? COLOR_SUCCESS : COLOR_DANGER) + ";");
+                });
+            } catch (Exception e) {
+                javafx.application.Platform.runLater(() -> {
+                    firewallStatusLabel.setText("НЕВІДОМО");
+                    firewallStatusLabel.setTextFill(Color.GRAY);
+                });
             }
+        }).start();
+    }
+
+    private VBox createAnnouncementsSection() {
+        VBox section = new VBox(24);
+
+        HBox header = new HBox(15);
+        header.setAlignment(Pos.CENTER_LEFT);
+        
+        Button addBtn = createPrimaryActionButton("Створити оголошення", ICON_PLUS);
+        addBtn.setOnAction(e -> openEditDialog(null));
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox toggleGroup = new HBox(0);
+        toggleGroup.setAlignment(Pos.CENTER);
+        toggleGroup.setStyle("-fx-background-color: #f1f2f6; -fx-background-radius: 14; -fx-padding: 4;");
+        
+        ToggleButton activeBtn = new ToggleButton("Активні");
+        ToggleButton archiveBtn = new ToggleButton("Архів");
+        ToggleGroup group = new ToggleGroup();
+        activeBtn.setToggleGroup(group);
+        archiveBtn.setToggleGroup(group);
+        activeBtn.setSelected(true);
+
+        String baseToggleStyle = "-fx-background-insets: 0; -fx-background-radius: 11; -fx-font-size: 13px; -fx-padding: 8 22; -fx-cursor: hand;";
+        String activeStyle = baseToggleStyle + "-fx-background-color: white; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 800; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.04), 4, 0, 0, 1);";
+        String inactiveStyle = baseToggleStyle + "-fx-background-color: transparent; -fx-text-fill: " + COLOR_ZINC_500 + "; -fx-font-weight: 700;";
+
+        activeBtn.setStyle(activeStyle);
+        archiveBtn.setStyle(inactiveStyle);
+
+        group.selectedToggleProperty().addListener((o, ov, nv) -> {
+            if (nv == activeBtn) {
+                activeBtn.setStyle(activeStyle);
+                archiveBtn.setStyle(inactiveStyle);
+                showArchivedAnnouncements = false;
+            } else {
+                activeBtn.setStyle(inactiveStyle);
+                archiveBtn.setStyle(activeStyle);
+                showArchivedAnnouncements = true;
+            }
+            refreshAnnouncements();
         });
-        logsCard.getChildren().add(logList);
-        rightCol.getChildren().add(logsCard);
 
-        content.getChildren().addAll(leftCol, rightCol);
-        root.getChildren().addAll(headerArea, heroCard, content);
+        toggleGroup.getChildren().addAll(activeBtn, archiveBtn);
 
+        header.getChildren().addAll(addBtn, spacer, toggleGroup);
+
+        announcementsContainer.setPadding(new Insets(5));
+        section.getChildren().addAll(header, announcementsContainer);
+
+        return section;
+    }
+
+    private VBox createSideSection() {
+        VBox section = new VBox(28);
+
+        // Devices Card
+        VBox devicesCard = new VBox(20);
+        devicesCard.setPadding(new Insets(28));
+        devicesCard.setStyle("-fx-background-color: white; -fx-background-radius: 28; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.06), 25, 0, 0, 8);");
+
+        HBox devicesHeader = new HBox(15);
+        devicesHeader.setAlignment(Pos.CENTER_LEFT);
+        Label dTitle = new Label("ПРИСТРОЇ ТА МОНІТОРИ");
+        dTitle.setStyle("-fx-font-size: 13px; -fx-font-weight: 800; -fx-text-fill: #64748b; -fx-letter-spacing: 0.5px;");
+        Region s = new Region(); HBox.setHgrow(s, Priority.ALWAYS);
+        Button refreshBtn = new Button("Оновити");
+        refreshBtn.setGraphic(createSVGIcon(ICON_REFRESH, Color.web(COLOR_PRIMARY), 18));
+        String refreshBtnBase = "-fx-background-color: " + COLOR_PRIMARY + "15; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 800; -fx-font-size: 14px; -fx-padding: 8 16; -fx-background-radius: 14; -fx-cursor: hand;";
+        refreshBtn.setStyle(refreshBtnBase);
+        refreshBtn.setOnMouseEntered(e -> refreshBtn.setStyle(refreshBtnBase + "-fx-background-color: " + COLOR_PRIMARY + "25;"));
+        refreshBtn.setOnMouseExited(e -> refreshBtn.setStyle(refreshBtnBase));
+        refreshBtn.setOnAction(e -> refreshDevices());
+        devicesHeader.getChildren().addAll(dTitle, s, refreshBtn);
+
+        deviceListContainer.setPadding(new Insets(5, 0, 0, 0));
+        devicesCard.getChildren().addAll(devicesHeader, deviceListContainer);
+
+        section.getChildren().addAll(devicesCard);
+        return section;
+    }
+
+    private void refreshAll() {
+        refreshAnnouncements();
         refreshDevices();
-        
-        ScrollPane mainScroll = new ScrollPane(root);
-        mainScroll.setFitToWidth(true);
-        mainScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
-        return mainScroll;
     }
 
-    private VBox createMetricItem(String title, String value, String icon, String color) {
-        VBox box = new VBox(2);
-        Label t = new Label(title);
-        t.setStyle("-fx-font-size: 9px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 1;");
+    private void refreshAnnouncements() {
+        List<Announcement> filtered = announcementService.getAllAnnouncements().stream()
+                .filter(a -> a.isActive() != showArchivedAnnouncements)
+                .toList();
         
-        HBox valBox = new HBox(10);
-        valBox.setAlignment(Pos.CENTER_LEFT);
-        
-        Node iconNode = createSVGIcon(icon, Color.web(color), 18);
-        Label v = new Label(value);
-        v.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_TEXT + ";");
-        
-        valBox.getChildren().addAll(iconNode, v);
-        box.getChildren().addAll(t, valBox);
-        return box;
-    }
-
-    private HBox createStatusSubCard(String title, boolean active) {
-        VBox info = new VBox(2);
-        Label t = new Label(title);
-        t.setStyle("-fx-font-size: 9px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
-        
-        HBox statusLine = new HBox(8);
-        statusLine.setAlignment(Pos.CENTER_LEFT);
-        
-        Circle dot = new Circle(5, Color.web(active ? COLOR_SUCCESS : COLOR_DANGER));
-        if (active) {
-            javafx.animation.FadeTransition pulse = new javafx.animation.FadeTransition(javafx.util.Duration.seconds(1), dot);
-            pulse.setFromValue(1.0); pulse.setToValue(0.3);
-            pulse.setAutoReverse(true); pulse.setCycleCount(javafx.animation.Animation.INDEFINITE);
-            pulse.play();
-        }
-        
-        Label statusText = new Label(active ? "В ЕФІРІ" : "ОФЛАЙН");
-        statusText.setStyle("-fx-font-weight: 900; -fx-font-size: 13px; -fx-text-fill: " + (active ? COLOR_SUCCESS : COLOR_DANGER) + ";");
-        statusLine.getChildren().addAll(dot, statusText);
-        
-        info.getChildren().addAll(t, statusLine);
-        return wrapInCard(info, ICON_SIGNAL, active ? "#e8f5e9" : "#ffebee", active ? COLOR_SUCCESS : COLOR_DANGER);
-    }
-
-    private HBox wrapInCard(Node content, String icon, String bgColor, String iconColor) {
-        HBox card = new HBox(15);
-        card.setAlignment(Pos.CENTER_LEFT);
-        card.setPadding(new Insets(10, 20, 10, 15));
-        card.setStyle("-fx-background-color: white; -fx-background-radius: 16; -fx-border-color: #f1f2f6; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 8, 0, 0, 3);");
-        
-        VBox iconBox = new VBox(createSVGIcon(icon, Color.web(iconColor), 20));
-        iconBox.setAlignment(Pos.CENTER);
-        iconBox.setPrefSize(40, 40);
-        iconBox.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 12;");
-        
-        card.getChildren().addAll(iconBox, content);
-        return card;
-    }
-
-    private void save() {
-        config.setBroadcastEnabled(broadcastEnableCb.isSelected());
-        mainApp.saveConfig();
-        ToastService.showSuccess("Налаштування ефіру збережено!");
+        updateContainer(announcementsContainer, filtered, a -> new AnnouncementCard(a, () -> openEditDialog(a), () -> {
+            announcementService.deleteAnnouncement(a.id());
+            refreshAnnouncements();
+        }));
     }
 
     private void refreshDevices() {
-        deviceListContainer.getChildren().clear();
         List<String> activeIps = mainApp.getBroadcastService() != null ? mainApp.getBroadcastService().getConnectedClients() : List.of();
         List<BroadcastDevice> savedDevices = DatabaseManager.getAllBroadcastDevices();
-        
-        if (savedDevices.isEmpty() && activeIps.isEmpty()) {
-            Label none = new Label("Немає підключених моніторів");
-            none.setStyle("-fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-font-style: italic; -fx-padding: 20;");
-            deviceListContainer.getChildren().add(none);
-        } else {
-            for (BroadcastDevice device : savedDevices) {
-                deviceListContainer.getChildren().add(createDeviceFullRow(device, activeIps.contains(device.ip())));
-            }
-        }
+
+        updateContainer(deviceListContainer, savedDevices, device -> new DeviceRow(device, activeIps.contains(device.ip()), 
+            () -> {}, // Edit logic (placeholder)
+            () -> {}, // Ban logic (placeholder)
+            () -> {}  // Delete logic (placeholder)
+        ));
     }
 
-    private Node createDeviceFullRow(BroadcastDevice device, boolean isActive) {
-        HBox row = new HBox(20);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(15));
-        row.setStyle(SOFT_CARD + "-fx-padding: 15; -fx-border-color: #f1f2f6; -fx-border-radius: 20;");
-        row.setCache(true);
-        row.setCacheHint(javafx.scene.CacheHint.SPEED);
-        
-        // --- ICON BOX (SQUARE STYLE) ---
-        String iconPath = ICON_MONITOR;
-        if ("MOBILE".equals(device.deviceType())) iconPath = ICON_PHONE;
-        else if ("TABLET".equals(device.deviceType())) iconPath = ICON_TABLET;
-
-        VBox iconBox = new VBox(createSVGIcon(iconPath, Color.web(isActive ? COLOR_PRIMARY : COLOR_NEUTRAL), 24));
-        iconBox.setAlignment(Pos.CENTER);
-        iconBox.setPrefSize(52, 52);
-        iconBox.setMinSize(52, 52);
-        iconBox.setStyle("-fx-background-color: " + (isActive ? COLOR_BLUE_LIGHT : "#f1f2f6") + "; -fx-background-radius: 14;");
-
-        // --- INFO BOX ---
-        VBox info = new VBox(4);
-        Label name = new Label(device.name().toUpperCase());
-        name.setStyle("-fx-font-weight: 900; -fx-font-size: 13px; -fx-text-fill: " + COLOR_TEXT + ";");
-        
-        HBox ipLine = new HBox(8);
-        ipLine.setAlignment(Pos.CENTER_LEFT);
-        Circle dot = new Circle(4, Color.web(isActive ? COLOR_SUCCESS : COLOR_DANGER));
-        Label ip = new Label(device.ip() + (device.isBanned() ? " [ЗАБЛОКОВАНО]" : ""));
-        ip.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + (device.isBanned() ? COLOR_DANGER : COLOR_TEXT_DIM) + ";");
-        ipLine.getChildren().addAll(dot, ip);
-        
-        info.getChildren().addAll(name, ipLine);
-        HBox.setHgrow(info, Priority.ALWAYS);
-
-        // --- ACTIONS (UNIFIED) ---
-        HBox actions = new HBox(8);
-        actions.setAlignment(Pos.CENTER_RIGHT);
-
-        Button editBtn = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
-        editBtn.setOnAction(e -> editDevice(device));
-        
-        Button banBtn = createCardActionButton(device.isBanned() ? ICON_CHECK : ICON_BAN, "#f1f2f6", COLOR_PRIMARY);
-        banBtn.setOnAction(e -> toggleBan(device));
-        
-        Button delBtn = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
-        delBtn.setOnAction(e -> deleteDevice(device));
-
-        actions.getChildren().addAll(editBtn, banBtn, delBtn);
-        
-        row.getChildren().addAll(iconBox, info, actions);
-        return row;
+    private <T> void updateContainer(Pane container, List<T> items, java.util.function.Function<T, Node> mapper) {
+        container.getChildren().setAll(items.stream().map(mapper).toList());
     }
 
-    private void editDevice(BroadcastDevice device) {
-        TextInputDialog dialog = new TextInputDialog(device.name());
-        dialog.setTitle("Пристрій");
-        dialog.setHeaderText("Перейменувати пристрій " + device.ip());
-        dialog.setContentText("Назва:");
-        dialog.showAndWait().ifPresent(newName -> {
-            DatabaseManager.saveBroadcastDevice(new BroadcastDevice(device.ip(), newName, device.isBanned(), device.deviceType(), device.os(), device.lastSeen()));
-            refreshDevices();
-        });
+    private void updateUptime() {
+        Duration diff = Duration.seconds(java.time.Duration.between(startTime, LocalDateTime.now()).getSeconds());
+        long s = (long) diff.toSeconds();
+        uptimeLabel.setText(String.format("%02d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60));
     }
 
-    private void toggleBan(BroadcastDevice device) {
-        DatabaseManager.saveBroadcastDevice(new BroadcastDevice(device.ip(), device.name(), !device.isBanned(), device.deviceType(), device.os(), device.lastSeen()));
-        if (mainApp.getBroadcastService() != null) {
-            mainApp.getBroadcastService().loadBannedIps();
-        }
-        refreshDevices();
-    }
+    private void updateMetrics() {
+        int count = mainApp.getBroadcastService() != null ? mainApp.getBroadcastService().getConnections().size() : 0;
+        connectionsLabel.setText(count + " пристроїв");
 
-    private void deleteDevice(BroadcastDevice device) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Видалити " + device.ip() + "?", ButtonType.YES, ButtonType.NO);
-        alert.showAndWait().ifPresent(type -> {
-            if (type == ButtonType.YES) {
-                DatabaseManager.deleteBroadcastDevice(device.ip());
-                refreshDevices();
-            }
-        });
+        boolean isWsOk = mainApp.getBroadcastService() != null && mainApp.getBroadcastService().isBroadcasting();
+        wsStatusLabel.setText(isWsOk ? "Підключено" : "Помилка");
+        wsStatusLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: 800; -fx-text-fill: " + (isWsOk ? COLOR_SUCCESS : COLOR_DANGER) + ";");
     }
-
 
     private String getLocalIp() {
         try (java.net.DatagramSocket socket = new java.net.DatagramSocket()) {
             socket.connect(java.net.InetAddress.getByName("192.0.2.1"), 10002);
             return socket.getLocalAddress().getHostAddress();
         } catch (Exception e) { return "127.0.0.1"; }
+    }
+
+    private void openEditDialog(Announcement a) {
+        new AnnouncementEditorDialog(announcementService, this::refreshAnnouncements).show(a);
     }
 }

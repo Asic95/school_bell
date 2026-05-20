@@ -28,7 +28,7 @@ public class UIStyles {
     public static final String DEPTH_1 = "-fx-background-color: #f1f2f6;";
     public static final String DEPTH_2 = "-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 8, 0, 0, 3);";
     public static final String SOFT_CARD = "-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e4e4e7; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 8, 0, 0, 2);";
-    public static final String HEADER_STYLE = "-fx-font-size: 10px; -fx-font-weight: 600; -fx-text-fill: " + COLOR_ZINC_500 + "; -fx-text-transform: uppercase; -fx-letter-spacing: 0.05em;";
+    public static final String HEADER_STYLE = "-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #64748b; -fx-text-transform: uppercase; -fx-letter-spacing: 1.5px;";
     public static final String SUB_HEADER_STYLE = "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + "; -fx-letter-spacing: 0.5px;";
 
     public static final String VALUE_STYLE = "-fx-font-size: 26px; -fx-font-family: 'Monospaced'; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + ";";
@@ -98,6 +98,7 @@ public class UIStyles {
     public static final String ICON_BOOK = "M18,2H6c-1.1,0-2,0.9-2,2v16c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V4c0-1.1-0.9-2-2-2zM6,4h5v8l-2.5-1.5L6,12V4z";
     public static final String ICON_CLASS = "M12,3L1,9l11,6l9-4.91V17h2V9L12,3zM3.89,9L12,4.57L20.11,9L12,13.43L3.89,9z";
     public static final String ICON_CLOCK = "M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z";
+    public static final String ICON_CLOCK_FAST = "M15,1H9V3H15V1M11,14H13V8H11V14M19.03,7.39L20.45,5.97C20,5.46 19.55,5 19.04,4.56L17.62,5.97C15.91,4.74 13.82,4 12,4A9,9 0 0,0 3,13A9,9 0 0,0 12,22C17,22 21,17.97 21,13C21,10.88 20.26,8.93 19.03,7.39M12,20A7,7 0 0,1 5,13A7,7 0 0,1 12,6A7,7 0 0,1 19,13A7,7 0 0,1 12,20Z";
     public static final String ICON_ROOM = "M19 19V5c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v14H3v2h18v-2h-2zm-4-6h-2v-2h2v2z";
     public static final String ICON_INFO = "M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z";
     public static final String ICON_MESSAGE = "M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2M20,16H5.17L4,17.17V4H20V16Z";
@@ -106,8 +107,10 @@ public class UIStyles {
     public static final String ICON_PHONE = "M17,1H7A2,2 0 0,0 5,3V21A2,2 0 0,0 7,23H17A2,2 0 0,0 19,21V3A2,2 0 0,0 17,1M17,19H7V5H17V19Z";
     public static final String ICON_TABLET = "M19,18H5V6H19M21,4H3C1.89,4 1,4.89 1,6V18A2,2 0 0,0 3,20H21A2,2 0 0,0 23,18V6C23,4.89 22.1,4 21,4Z";
     public static final String ICON_PLUS = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
+    public static final String ICON_REFRESH = "M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z";
     public static final String ICON_EDIT = "M20.71,7.04C21.1,6.65 21.1,6.01 20.71,5.63L18.37,3.29C17.99,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z";
     public static final String ICON_TRASH = "M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19V4M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z";
+    public static final String ICON_SCHOOL = "M12,3L1,9L12,15L21,10.09V17H23V9M12,4.8L19.2,8.8L12,12.8L4.8,8.8L12,4.8M5,10.8V15.5L12,19.3L19,15.5V10.8L12,14.7L5,10.8Z";
     public static final String ICON_BAN = "M12,2A10,10 0 1,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 18,12A8,8 0 0,1 17.41,15.59L8.41,6.59A8,8 0 0,1 12,4M12,20A8,8 0 0,1 6,12A8,8 0 0,1 6.59,8.41L15.59,17.41A8,8 0 0,1 12,20Z";
     public static final String ICON_CHECK = "M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z";
     public static final String ICON_DANGER = "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z";
@@ -115,6 +118,15 @@ public class UIStyles {
     public static final String ICON_WAVEFORM = "M2,14H4V16H2V14M6,10H8V20H6V10M10,4H12V22H10V4M14,12H16V18H14V12M18,8H20V20H18V8M22,14H24V16H22V14Z";
     public static final String ICON_LIFEBUOY = "M12,1L3,5v6c0,5.55,3.84,10.74,9,12c5.16,-1.26,9,-6.45,9,-12V5L12,1z M11,7h2v7h-2V7z M11,16h2v2h-2V16z";
     public static final String ICON_ALL_CLEAR = "M10,17L5,12L6.41,10.58L10,14.17L17.59,6.58L19,8L10,17Z";
+    public static final String ICON_EXTERNAL_LINK = "M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z";
+    public static final String ICON_SHIELD = "M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,3L19,6.09V11C19,15.47 16.02,19.66 12,20.9C7.98,19.66 5,15.47 5,11V6.09L12,3Z";
+    public static final String ICON_NET = "M12,11L12,13H10V11H12M18,11L18,13H16V11H18M12,17L12,19H10V17H12M18,17L18,19H16V17H18M20,15V21H4V15H2V13H4V11H2V9H4V3H20V9H22V11H20V13H22V15H20M18,5H6V9H18V5M18,15H6V19H18V15Z";
+    public static final String ICON_LINK = "M3.9,12C3.9,10.29 5.29,8.9 7,8.9H11V7H7A5,5 0 0,0 2,12A5,5 0 0,0 7,17H11V15.1H7C5.29,15.1 3.9,13.71 3.9,12M8,13H16V11H8V13M17,7H13V8.9H17C18.71,8.9 20.1,10.29 20.1,12C20.1,13.71 18.71,15.1 17,15.1H13V17H17A5,5 0 0,0 22,12A5,5 0 0,0 17,7Z";
+    public static final String ICON_CHEVRON_RIGHT = "M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z";
+    public static final String ICON_CLONE = "M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z";
+    public static final String ICON_PAUSE = "M14,19H18V5H14M6,19H10V5H6V19Z";
+    public static final String ICON_PLAY = "M8,5.14V19.14L19,12.14L8,5.14Z";
+
     
     // New Modern Settings Icons
     public static final String ICON_POWER = "M16.56,5.44L15.11,6.89C16.84,7.94 18,9.83 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12C6,9.83 7.16,7.94 8.88,6.88L7.44,5.44C5.13,6.96 3.5,9.6 3.5,12.6C3.5,17.3 7.3,21.1 12,21.1C16.7,21.1 20.5,17.3 20.5,12.6C20.5,9.6 18.87,6.96 16.56,5.44M13,3H11V13H13V3Z";
@@ -130,4 +142,33 @@ public class UIStyles {
     public static final String GRADIENT_INFO = "linear-gradient(to bottom right, #3498db, #2980b9)";
     public static final String GRADIENT_PURPLE = "linear-gradient(to bottom right, #9b59b6, #8e44ad)";
     public static final String GRADIENT_NEUTRAL = "linear-gradient(to bottom right, #636e72, #2d3436)";
+
+    public static final String MODERN_CHECKBOX_STYLE = 
+        ".check-box .box {" +
+        "    -fx-background-color: white;" +
+        "    -fx-border-color: #e2e8f0;" +
+        "    -fx-border-width: 1.5;" +
+        "    -fx-border-radius: 6;" +
+        "    -fx-background-radius: 6;" +
+        "    -fx-padding: 3;" +
+        "}" +
+        ".check-box:hover .box {" +
+        "    -fx-border-color: #cbd5e1;" +
+        "}" +
+        ".check-box:selected .box {" +
+        "    -fx-background-color: #4f46e5;" +
+        "    -fx-border-color: #4f46e5;" +
+        "}" +
+        ".check-box:selected .mark {" +
+        "    -fx-background-color: white;" +
+        "    -fx-shape: \"M1.73,12.91L8.1,19.28L22.79,4.59L20.67,2.47L8.1,15.04L3.85,10.79L1.73,12.91Z\";" +
+        "    -fx-scale-x: 0.7;" +
+        "    -fx-scale-y: 0.7;" +
+        "}" +
+        ".check-box .label {" +
+        "    -fx-text-fill: #1e293b;" +
+        "    -fx-font-size: 13px;" +
+        "    -fx-font-weight: 600;" +
+        "    -fx-padding: 0 0 0 8;" +
+        "}";
 }

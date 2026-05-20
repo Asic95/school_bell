@@ -205,8 +205,8 @@ public class CardFactory {
 
     public static VBox createSideHelpPanel(Node... cards) {
         VBox panel = new VBox(15);
-        panel.setPrefWidth(320);
-        panel.setMinWidth(320);
+        panel.setPrefWidth(260);
+        panel.setMinWidth(260);
         
         Label header = new Label("ДОВІДКА ТА ПОРАДИ");
         header.setStyle(HEADER_STYLE + "-fx-padding: 0 0 5 10;");
@@ -214,6 +214,12 @@ public class CardFactory {
         panel.getChildren().add(header);
         panel.getChildren().addAll(cards);
         return panel;
+    }
+
+    public static Button createCardActionButton(String iconPath, String hoverBg, String hoverBorder, Runnable action) {
+        Button btn = createCardActionButton(iconPath, hoverBg, hoverBorder);
+        btn.setOnAction(e -> action.run());
+        return btn;
     }
 
     public static Button createCardActionButton(String iconPath, String hoverBg, String hoverBorder) {
@@ -233,11 +239,15 @@ public class CardFactory {
         btn.setStyle(baseStyle);
         
         btn.setOnMouseEntered(e -> {
-            btn.setStyle(baseStyle + 
+            btn.setStyle(baseStyle +
                 "-fx-background-color: " + hoverBg + "; " +
                 "-fx-border-color: " + hoverBorder + "; " +
                 "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.16), 14, 0, 0, 4);");
-            if (hoverBorder.equals(COLOR_DANGER)) {
+
+            // Визначаємо, чи це кнопка видалення (містить "danger" або відповідні стилі)
+            boolean isDanger = hoverBorder.contains(COLOR_DANGER) || hoverBorder.contains("#fff5f5") || iconPath.contains("trash");
+
+            if (isDanger) {
                 btn.setGraphic(createSVGIcon(iconPath, Color.web(COLOR_DANGER), 18));
             } else {
                 btn.setGraphic(createSVGIcon(iconPath, Color.web(COLOR_PRIMARY), 18));
