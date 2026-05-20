@@ -7,11 +7,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -22,7 +19,6 @@ import javafx.scene.paint.Color;
 import static com.schoolbell.ui.CardFactory.createHelpCard;
 import static com.schoolbell.ui.CardFactory.createSideHelpPanel;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
-import static com.schoolbell.ui.ControlFactory.createStyledField;
 import static com.schoolbell.ui.ControlFactory.createToggleSwitch;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
@@ -33,40 +29,22 @@ public class SystemView {
     private final ConfigService config;
     private final SystemService systemService;
 
-    private final TextField schoolNameField;
-    private final TextField cityNameField;
-
     private final ToggleButton autostartTg;
     private final ToggleButton trayTg;
     private final ToggleButton simulationTg;
-    private final ComboBox<String> themeCombo;
 
-    private final TextField portField;
-    private final Label firewallStatus;
     private final BellSettingsPane bellSettingsPane;
+    private final SystemJournalPane journalPane;
+    private VBox mainCol;
 
     public SystemView(MainApp mainApp) {
         this.mainApp = mainApp;
         this.config = mainApp.getConfigService();
         this.systemService = mainApp.getSystemService();
 
-        schoolNameField = createStyledField(config.getSchoolName());
-        cityNameField = createStyledField(config.getCityName());
-        schoolNameField.setPrefWidth(450);
-        cityNameField.setPrefWidth(300);
-
         autostartTg = createToggleSwitch(config.isAutostartEnabled());
         trayTg = createToggleSwitch(config.isMinimizeToTray());
         simulationTg = createToggleSwitch(config.isSimulationMode());
-
-        themeCombo = new ComboBox<>();
-        themeCombo.getItems().addAll("classic", "modern", "cyber");
-        themeCombo.setValue(config.getDashboardTheme());
-        themeCombo.setStyle(COMBO_STYLE);
-        themeCombo.setPrefWidth(150);
-
-        portField = createStyledField(String.valueOf(config.getBroadcastPort()));
-        portField.setMaxWidth(100);
 
         bellSettingsPane = new BellSettingsPane(
                 config.getRegularBellDuration(),
@@ -76,8 +54,9 @@ public class SystemView {
                 true
         );
 
-        firewallStatus = new Label("ПЕРЕВІРКА...");
-        updateFirewallStatusLabel();
+        journalPane = new SystemJournalPane(mainApp);
+        
+        simulationTg.selectedProperty().addListener((obs, old, nv) -> updateJournalVisibility(nv));
     }
 
     public Node build() {
@@ -90,59 +69,47 @@ public class SystemView {
 
         VBox headerArea = createSectionHeader(
                 "Системна конфігурація",
-                "Глобальні параметри роботи програми, мережі та профілю закладу",
+                "Глобальні параметри роботи програми, дизайн та поведінка системи",
                 "#2d3436",
                 ICON_SETTINGS,
                 saveBtn
         );
 
         HBox contentLayout = new HBox(25);
-        VBox mainCol = new VBox(25);
+        mainCol = new VBox(25);
         HBox.setHgrow(mainCol, Priority.ALWAYS);
 
-        mainCol.getChildren().add(buildProfileCard());
         mainCol.getChildren().add(buildOperationCard());
         mainCol.getChildren().add(buildSignalCard());
-        mainCol.getChildren().add(buildNetworkCard());
+        
+        updateJournalVisibility(simulationTg.isSelected());
 
         VBox helpPanel = createSideHelpPanel(
-                createHelpCard(ICON_PERSON, "Профіль", "Ці дані використовуються для заголовків у звітах та на веб-табло.", COLOR_PRIMARY),
                 createHelpCard(ICON_POWER, "Автостарт", "Рекомендуємо увімкнути автостарт, щоб система відновлювалась після вимкнення світла.", COLOR_SUCCESS),
-                createHelpCard(ICON_WAVEFORM, "Сигнали", "Тривалості сигналів редагуються в новому візуальному блоці параметрів дзвінків.", COLOR_WARNING),
-                createHelpCard(ICON_MONITOR, "Мережа", "Якщо табло не відкривається на інших ПК, спробуйте кнопку 'Оптимізувати Firewall'.", COLOR_PURPLE)
+                createHelpCard(ICON_WAVEFORM, "Сигнали", "Тривалості сигналів редагуються в новому візуальному блоці параметрів дзвінків.", COLOR_WARNING)
         );
 
         contentLayout.getChildren().addAll(mainCol, helpPanel);
         root.getChildren().addAll(headerArea, contentLayout);
 
-        updateFirewallStatusLabel();
-
         ScrollPane scroll = new ScrollPane(root);
         scroll.setFitToWidth(true);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        scrollPaneStyle(scroll);
         return scroll;
     }
 
-    private VBox buildProfileCard() {
-        VBox card = createCard("ПРОФІЛЬ ЗАКЛАДУ", ICON_PERSON, COLOR_PRIMARY);
-
-        VBox rows = new VBox(14);
-        rows.getChildren().add(createFieldRow("Назва закладу:", schoolNameField));
-        rows.getChildren().add(createFieldRow("Місто / Населений пункт:", cityNameField));
-
-        card.getChildren().add(rows);
-        return card;
+    private void updateJournalVisibility(boolean visible) {
+        if (visible) {
+            if (!mainCol.getChildren().contains(journalPane)) {
+                mainCol.getChildren().add(journalPane);
+            }
+        } else {
+            mainCol.getChildren().remove(journalPane);
+        }
     }
 
-    private HBox createFieldRow(String label, TextField field) {
-        HBox row = new HBox(14);
-        row.setAlignment(Pos.CENTER_LEFT);
-        Label l = new Label(label);
-        l.setStyle("-fx-font-weight: 700; -fx-font-size: 13px; -fx-text-fill: " + COLOR_TEXT + ";");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        row.getChildren().addAll(l, spacer, field);
-        return row;
+    private void scrollPaneStyle(ScrollPane scroll) {
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
     }
 
     private VBox buildOperationCard() {
@@ -156,30 +123,6 @@ public class SystemView {
         rows.getChildren().add(createToggleRow("Режим симуляції",
                 "Робота без фізичного підключення до реле (тільки логування)", ICON_FLASK, COLOR_WARNING, simulationTg));
 
-        HBox themeRow = new HBox(20);
-        themeRow.setAlignment(Pos.CENTER_LEFT);
-        themeRow.setPadding(new Insets(10, 15, 10, 15));
-        themeRow.setStyle("-fx-background-radius: 12;");
-        themeRow.setOnMouseEntered(e -> themeRow.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 12;"));
-        themeRow.setOnMouseExited(e -> themeRow.setStyle("-fx-background-color: transparent; -fx-background-radius: 12;"));
-
-        VBox iconBox = new VBox(createSVGIcon(ICON_PALETTE, Color.web(COLOR_NEUTRAL), 20));
-        iconBox.setAlignment(Pos.CENTER);
-        iconBox.setPrefSize(40, 40);
-        iconBox.setStyle("-fx-background-color: #f1f2f6; -fx-background-radius: 10;");
-
-        VBox themeTexts = new VBox(2);
-        Label tt = new Label("Дизайн веб-табло");
-        tt.setStyle("-fx-font-weight: 700; -fx-font-size: 15px; -fx-text-fill: " + COLOR_TEXT + ";");
-        Label td = new Label("Виберіть візуальний стиль для зовнішніх моніторів");
-        td.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_NEUTRAL + ";");
-        themeTexts.getChildren().addAll(tt, td);
-
-        Region ts = new Region();
-        HBox.setHgrow(ts, Priority.ALWAYS);
-        themeRow.getChildren().addAll(iconBox, themeTexts, ts, themeCombo);
-        rows.getChildren().add(themeRow);
-
         card.getChildren().add(rows);
         return card;
     }
@@ -187,53 +130,6 @@ public class SystemView {
     private VBox buildSignalCard() {
         VBox card = createCard("ПАРАМЕТРИ ДЗВІНКІВ", ICON_WAVEFORM, "#f39c12");
         card.getChildren().add(bellSettingsPane);
-        return card;
-    }
-
-    private VBox buildNetworkCard() {
-        VBox card = createCard("МЕРЕЖА ТА БЕЗПЕКА", ICON_BROADCAST, "#6c5ce7");
-
-        HBox portRow = new HBox(20);
-        portRow.setAlignment(Pos.CENTER_LEFT);
-        portRow.setPadding(new Insets(5, 15, 5, 15));
-        portRow.getChildren().addAll(createLabel("Порт веб-табло:"), new Region(), portField);
-        HBox.setHgrow(portRow.getChildren().get(1), Priority.ALWAYS);
-
-        HBox firewallRow = new HBox(20);
-        firewallRow.setAlignment(Pos.CENTER_LEFT);
-        firewallRow.setPadding(new Insets(10, 15, 10, 15));
-
-        VBox fwInfo = new VBox(5);
-        Label fwTitle = new Label("СТАТУС ПОРТУ В БРАНДМАУЕРІ:");
-        fwTitle.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
-        firewallStatus.setStyle("-fx-font-weight: 900; -fx-font-size: 14px;");
-        fwInfo.getChildren().addAll(fwTitle, firewallStatus);
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Button optimizeBtn = new Button("ОПТИМІЗУВАТИ FIREWALL");
-        optimizeBtn.setStyle(BTN_BASE + "-fx-background-color: #6c5ce7; -fx-padding: 8 20;");
-        optimizeBtn.setGraphic(createSVGIcon(ICON_SAVE, Color.WHITE, 16));
-        optimizeBtn.setOnAction(e -> {
-            try {
-                int port = Integer.parseInt(portField.getText());
-                systemService.optimizeFirewall(port);
-                new Thread(() -> {
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException ignored) {
-                    }
-                    javafx.application.Platform.runLater(this::updateFirewallStatusLabel);
-                }).start();
-                ToastService.showSuccess("Запит на оптимізацію надіслано!");
-            } catch (Exception ex) {
-                ToastService.showError("Помилка: " + ex.getMessage());
-            }
-        });
-
-        firewallRow.getChildren().addAll(fwInfo, spacer, optimizeBtn);
-        card.getChildren().addAll(portRow, LayoutUtils.createSeparator(), firewallRow);
         return card;
     }
 
@@ -274,7 +170,7 @@ public class SystemView {
         Label t = new Label(title);
         t.setStyle("-fx-font-weight: 700; -fx-font-size: 15px; -fx-text-fill: " + COLOR_TEXT + ";");
         Label d = new Label(desc);
-        d.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_NEUTRAL + ";");
+        d.setStyle("-fx-font-size: 13px; -fx-text-fill: #636e72;");
         texts.getChildren().addAll(t, d);
 
         Region spacer = new Region();
@@ -286,46 +182,12 @@ public class SystemView {
         return row;
     }
 
-    private Label createLabel(String text) {
-        Label l = new Label(text);
-        l.setStyle("-fx-font-weight: 700; -fx-font-size: 13px; -fx-text-fill: " + COLOR_TEXT + ";");
-        return l;
-    }
-
-    private void updateFirewallStatusLabel() {
-        firewallStatus.setText("ПЕРЕВІРКА...");
-        firewallStatus.setTextFill(Color.GRAY);
-
-        new Thread(() -> {
-            try {
-                int port = Integer.parseInt(portField.getText());
-                boolean allowed = systemService.isPortAllowedInFirewall(port);
-                javafx.application.Platform.runLater(() -> {
-                    firewallStatus.setText(allowed ? "ВІДКРИТИЙ" : "ЗАБЛОКОВАНИЙ");
-                    firewallStatus.setTextFill(Color.web(allowed ? COLOR_SUCCESS : COLOR_DANGER));
-                });
-            } catch (Exception e) {
-                javafx.application.Platform.runLater(() -> {
-                    firewallStatus.setText("НЕВІДОМО");
-                    firewallStatus.setTextFill(Color.GRAY);
-                });
-            }
-        }).start();
-    }
-
     private void save() {
         try {
-            config.setSchoolName(schoolNameField.getText());
-            config.setCityName(cityNameField.getText());
-
             boolean autostartChanged = config.isAutostartEnabled() != autostartTg.isSelected();
             config.setAutostartEnabled(autostartTg.isSelected());
             config.setMinimizeToTray(trayTg.isSelected());
             config.setSimulationMode(simulationTg.isSelected());
-            config.setDashboardTheme(themeCombo.getValue());
-
-            int newPort = Integer.parseInt(portField.getText());
-            config.setBroadcastPort(newPort);
 
             config.setRegularBellDuration(bellSettingsPane.getRegularDuration());
             config.setAirRaidRingDuration(bellSettingsPane.getAirRaidRingDuration());
@@ -340,7 +202,6 @@ public class SystemView {
 
             mainApp.addLog("Системні налаштування оновлено", "SUCCESS");
             ToastService.showSuccess("Налаштування збережено!");
-            updateFirewallStatusLabel();
         } catch (Exception e) {
             ToastService.showError("Помилка при збереженні: " + e.getMessage());
         }

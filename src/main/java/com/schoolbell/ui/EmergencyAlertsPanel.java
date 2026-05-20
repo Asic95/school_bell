@@ -14,6 +14,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
@@ -73,22 +74,22 @@ public class EmergencyAlertsPanel {
         section.setPadding(new Insets(28));
         section.setStyle(SECTION_CARD);
 
-        Label title = new Label("Конфігурація екстрених сигналів");
+        Label title = new Label("Конфігурація сигналів");
         title.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: #0f172a;");
-        Label subtitle = new Label("Кожен сценарій оформлений як окрема card-поверхня з компактними діями та читабельними станами.");
+        Label subtitle = new Label("Налаштуйте параметри сповіщень та оберіть звукові файли для кожного сценарію.");
         subtitle.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
 
         VBox list = new VBox(18);
         list.getChildren().addAll(
-                createAlertCard("Повітряна тривога", "Аудіо • Екран", ICON_AIR_RAID, "#F59E0B", "#FFF7ED",
+                createAlertCard("Повітряна тривога", "Аудіо • Екран", ICON_AIR_RAID, "#F59E0B", "#FFF7ED", "AIR_RAID",
                         arAudioTg = createToggleSwitch(config.isAudioAirRaidEnabled()),
                         arAudioPath = hiddenField(config.getAudioAirRaidPath()),
                         arVisualTg = createToggleSwitch(config.isVisualAirRaidEnabled())),
-                createAlertCard("Екстрена ситуація", "Аудіо • Екран", ICON_LIFEBUOY, "#EF4444", "#FEF2F2",
+                createAlertCard("Екстрена ситуація", "Аудіо • Екран", ICON_LIFEBUOY, "#EF4444", "#FEF2F2", "EMERGENCY",
                         emAudioTg = createToggleSwitch(config.isAudioEmergencyEnabled()),
                         emAudioPath = hiddenField(config.getAudioEmergencyPath()),
                         emVisualTg = createToggleSwitch(config.isVisualEmergencyEnabled())),
-                createAlertCard("Хвилина мовчання", "Аудіо • Екран", ICON_CLOCK, "#2563EB", "#EFF6FF",
+                createAlertCard("Хвилина мовчання", "Аудіо • Екран", ICON_CLOCK, "#2563EB", "#EFF6FF", "SILENCE",
                         siAudioTg = createToggleSwitch(config.isAudioSilenceEnabled()),
                         siAudioPath = hiddenField(config.getAudioSilencePath()),
                         siVisualTg = createToggleSwitch(config.isVisualSilenceEnabled()))
@@ -111,6 +112,7 @@ public class EmergencyAlertsPanel {
             String iconPath,
             String accent,
             String iconBg,
+            String alertType,
             ToggleButton audioToggle,
             TextField pathField,
             ToggleButton visualToggle
@@ -124,39 +126,39 @@ public class EmergencyAlertsPanel {
 
         VBox iconBox = new VBox(createSVGIcon(iconPath, Color.web(accent), 26));
         iconBox.setAlignment(Pos.CENTER);
-        iconBox.setPrefSize(64, 64);
-        iconBox.setStyle("-fx-background-color: " + iconBg + "; -fx-background-radius: 20;");
+        iconBox.setPrefSize(58, 58);
+        iconBox.setMinSize(58, 58);
+        iconBox.setStyle("-fx-background-color: " + iconBg + "; -fx-background-radius: 18;");
 
         Label status = createStatusBadge(audioToggle.isSelected() || visualToggle.isSelected());
         Label name = new Label(title);
-        name.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: #0f172a;");
+        name.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: #0f172a;");
         Label meta = new Label(channels);
         meta.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 13px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
 
         audioToggle.selectedProperty().addListener((obs, oldVal, newVal) -> applyStatusStyle(status, audioToggle, visualToggle));
         visualToggle.selectedProperty().addListener((obs, oldVal, newVal) -> applyStatusStyle(status, audioToggle, visualToggle));
 
-        VBox info = new VBox(6, status, name, meta);
+        VBox info = new VBox(4, status, name, meta);
         info.setAlignment(Pos.CENTER_LEFT);
-        info.setMinWidth(220);
-        info.setPrefWidth(235);
+        info.setMinWidth(200);
+        info.setPrefWidth(210);
 
         VBox fileCard = createFileCard(pathField);
-        fileCard.setMinWidth(250);
-        fileCard.setPrefWidth(300);
+        fileCard.setMinWidth(200);
+        fileCard.setPrefWidth(260);
         HBox.setHgrow(fileCard, Priority.ALWAYS);
+        fileCard.setStyle(fileCard.getStyle() + "-fx-cursor: hand;");
+        fileCard.setOnMouseClicked(e -> chooseFile(pathField));
+        fileCard.setOnMouseEntered(e -> fileCard.setStyle(fileCard.getStyle().replace("-fx-background-color: rgba(248,250,252,0.95);", "-fx-background-color: #f1f5f9;")));
+        fileCard.setOnMouseExited(e -> fileCard.setStyle(fileCard.getStyle().replace("-fx-background-color: #f1f5f9;", "-fx-background-color: rgba(248,250,252,0.95);")));
+        javafx.scene.control.Tooltip.install(fileCard, new javafx.scene.control.Tooltip("Натисніть, щоб змінити аудіофайл"));
 
         HBox controls = new HBox(10,
                 createToggleSurface("Аудіо", ICON_VOLUME, audioToggle),
                 createToggleSurface("Екран", ICON_MONITOR, visualToggle)
         );
         controls.setAlignment(Pos.CENTER_LEFT);
-
-        Button preview = createCardActionButton("M8,5V19L19,12L8,5Z", "#EEF2FF", "#C7D2FE");
-        preview.setOnAction(e -> mainApp.getAudioService().playAudioFile(pathField.getText()));
-
-        Button browse = createCardActionButton(ICON_FOLDER, "#EFF6FF", "#BFDBFE");
-        browse.setOnAction(e -> chooseFile(pathField));
 
         MenuButton more = new MenuButton();
         more.setGraphic(createSVGIcon("M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z", Color.web("#475569"), 18));
@@ -165,19 +167,28 @@ public class EmergencyAlertsPanel {
                 "-fx-background-radius: 18;" +
                 "-fx-border-color: rgba(226,232,240,0.85);" +
                 "-fx-border-radius: 18;" +
-                "-fx-padding: 4;" +
+                "-fx-padding: 6;" +
                 "-fx-cursor: hand;"
         );
-        MenuItem pick = new MenuItem("Оберіть аудіофайл");
+
+        MenuItem testAudio = new MenuItem("Тест Аудіо");
+        testAudio.setOnAction(e -> mainApp.getAudioService().playAudioFile(pathField.getText()));
+
+        MenuItem testVisual = new MenuItem("Тест Екрану");
+        testVisual.setOnAction(e -> mainApp.getSignalService().setTemporaryAlertType(alertType, 15000));
+
+        javafx.scene.control.SeparatorMenuItem sep = new javafx.scene.control.SeparatorMenuItem();
+
+        MenuItem pick = new MenuItem("Змінити файл");
         pick.setOnAction(e -> chooseFile(pathField));
+
         MenuItem clear = new MenuItem("Очистити файл");
+        clear.setStyle("-fx-text-fill: #ef4444;");
         clear.setOnAction(e -> pathField.setText(""));
-        more.getItems().addAll(pick, clear);
 
-        HBox actions = new HBox(10, preview, browse, more);
-        actions.setAlignment(Pos.CENTER_RIGHT);
+        more.getItems().addAll(testAudio, testVisual, sep, pick, clear);
 
-        row.getChildren().addAll(iconBox, info, fileCard, controls, actions);
+        row.getChildren().addAll(iconBox, info, fileCard, controls, more);
         card.getChildren().add(row);
 
         applyStatusStyle(status, audioToggle, visualToggle);
@@ -205,7 +216,7 @@ public class EmergencyAlertsPanel {
         Label fileName = new Label();
         fileName.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: #0f172a;");
         fileName.setTextOverrun(OverrunStyle.ELLIPSIS);
-        fileName.setMaxWidth(180);
+        fileName.setMaxWidth(250);
 
         Label fileMeta = new Label();
         fileMeta.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 12px; -fx-font-weight: 500; -fx-text-fill: #94a3b8;");
@@ -213,7 +224,7 @@ public class EmergencyAlertsPanel {
         Runnable refresh = () -> {
             File file = pathField.getText() == null || pathField.getText().isBlank() ? null : new File(pathField.getText());
             if (file == null || !file.exists()) {
-                fileName.setText("Додайте аудіофайл");
+                fileName.setText("Натисніть, щоб додати аудіофайл");
                 fileMeta.setText("MP3 або WAV до 50 MB");
             } else {
                 fileName.setText(file.getName());
@@ -231,9 +242,9 @@ public class EmergencyAlertsPanel {
     }
 
     private HBox createToggleSurface(String text, String iconPath, ToggleButton toggle) {
-        HBox box = new HBox(10);
+        HBox box = new HBox(8);
         box.setAlignment(Pos.CENTER_LEFT);
-        box.setPadding(new Insets(12, 14, 12, 14));
+        box.setPadding(new Insets(10, 12, 10, 12));
         box.setStyle(
                 "-fx-background-color: rgba(255,255,255,0.96);" +
                 "-fx-background-radius: 18;" +
@@ -242,7 +253,8 @@ public class EmergencyAlertsPanel {
                 "-fx-border-radius: 18;"
         );
         Label label = new Label(text);
-        label.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: #0f172a;");
+        label.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #0f172a;");
+        label.setMinWidth(Region.USE_PREF_SIZE);
         box.getChildren().addAll(createSVGIcon(iconPath, Color.web("#334155"), 16), label, toggle);
         return box;
     }

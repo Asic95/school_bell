@@ -75,7 +75,7 @@ public class MediaSchedulerPanel {
         VBox copy = new VBox(4);
         Label title = new Label("Автоматичні аудіо-повідомлення");
         title.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: #0f172a;");
-        Label subtitle = new Label("Компактний список подій з пріоритетом на назві, статусі та швидких діях.");
+        Label subtitle = new Label("Керуйте розкладом автоматичного відтворення аудіо для шкільних повідомлень та подій.");
         subtitle.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
         copy.getChildren().addAll(title, subtitle);
 
@@ -83,16 +83,6 @@ public class MediaSchedulerPanel {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button addBtn = createPrimaryActionButton("Додати повідомлення", ICON_PLUS);
-        addBtn.setStyle(
-                "-fx-font-family: 'Inter';" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-weight: 700;" +
-                "-fx-text-fill: white;" +
-                "-fx-background-color: linear-gradient(to right, #4f46e5, #2563eb);" +
-                "-fx-background-radius: 18;" +
-                "-fx-padding: 14 22;" +
-                "-fx-cursor: hand;"
-        );
         addBtn.setOnAction(e -> showEventDialog(null));
 
         header.getChildren().addAll(copy, spacer, addBtn);
@@ -169,34 +159,32 @@ public class MediaSchedulerPanel {
             refreshMediaEventsList(list);
         });
 
-        MenuButton more = new MenuButton();
-        more.setGraphic(createSVGIcon("M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z", Color.web("#475569"), 18));
-        more.setStyle(
-                "-fx-background-color: rgba(248,250,252,0.96);" +
-                "-fx-background-radius: 18;" +
-                "-fx-border-color: rgba(226,232,240,0.85);" +
-                "-fx-border-radius: 18;" +
-                "-fx-padding: 4;"
-        );
-        MenuItem editItem = new MenuItem("Редагувати");
-        editItem.setOnAction(e -> showEventDialog(event));
-        MenuItem deleteItem = new MenuItem("Видалити");
-        deleteItem.setOnAction(e -> {
-            mainApp.getMediaSchedulerService().deleteEvent(event.id());
-            refreshMediaEventsList(list);
-        });
-        more.getItems().addAll(editItem, deleteItem);
-
-        actions.getChildren().addAll(status, toggle, edit, delete, more);
+        actions.getChildren().addAll(status, toggle, edit, delete);
         row.getChildren().addAll(iconBox, info, actions);
         return row;
     }
 
     private String describeEvent(MediaEvent event) {
         return switch (event.type()) {
-            case "BREAKS" -> "Автоматично: " + (event.breakAnchor() != null ? event.breakAnchor() : "Початок перерви");
+            case "BREAKS" -> {
+                String anchorText = switch (event.breakAnchor() != null ? event.breakAnchor() : "START") {
+                    case "START" -> "початок перерви";
+                    case "END" -> "кінець перерви";
+                    case "MIDDLE" -> "середина перерви";
+                    case "OFFSET" -> "зміщення на " + event.breakOffset() + " хв.";
+                    default -> "початок перерви";
+                };
+                yield "Відтворення: " + anchorText;
+            }
             case "TIME" -> "Щодня о " + event.time();
-            case "ONCE" -> "Разово: " + event.date() + " о " + event.time();
+            case "ONCE" -> {
+                try {
+                    String[] parts = event.date().split("-");
+                    yield "Разово: " + parts[2] + "." + parts[1] + "." + parts[0] + " о " + event.time();
+                } catch (Exception e) {
+                    yield "Разово: " + event.date() + " о " + event.time();
+                }
+            }
             default -> "";
         };
     }
@@ -220,9 +208,14 @@ public class MediaSchedulerPanel {
         grid.setHgap(20);
         grid.setVgap(20);
         grid.setAlignment(Pos.CENTER_LEFT);
+        
+        javafx.scene.layout.ColumnConstraints labelCol = new javafx.scene.layout.ColumnConstraints();
+        labelCol.setPrefWidth(120);
+        javafx.scene.layout.ColumnConstraints fieldCol = new javafx.scene.layout.ColumnConstraints();
+        fieldCol.setHgrow(Priority.ALWAYS);
+        grid.getColumnConstraints().addAll(labelCol, fieldCol);
 
         TextField nameF = createStyledField(event != null ? event.name() : "");
-        nameF.setPrefWidth(350);
         nameF.setPromptText("Назва повідомлення");
         Label nameL = new Label("НАЗВА");
         nameL.setStyle(HEADER_STYLE);
@@ -246,34 +239,27 @@ public class MediaSchedulerPanel {
 
         TextField pathF = createStyledField(event != null ? event.path() : "");
         pathF.setEditable(false);
-        pathF.setPrefWidth(250);
-        HBox.setHgrow(pathF, Priority.ALWAYS);
+        pathF.setMaxWidth(Double.MAX_VALUE);
 
         Button browseFile = createPrimaryActionButton("Файл", ICON_MUSIC);
         Button browseFolder = createPrimaryActionButton("Папка", ICON_FOLDER);
         browseFile.setOnAction(e -> {
             FileChooser fc = new FileChooser();
-            fc.setTitle("Оберіть аудіофайл");
             fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Аудіо файли (MP3, WAV)", "*.mp3", "*.wav"));
             File f = fc.showOpenDialog(stage);
-            if (f != null) {
-                pathF.setText(f.getAbsolutePath());
-            }
+            if (f != null) pathF.setText(f.getAbsolutePath());
         });
         browseFolder.setOnAction(e -> {
             javafx.stage.DirectoryChooser dc = new javafx.stage.DirectoryChooser();
-            dc.setTitle("Оберіть папку з аудіо");
             File f = dc.showDialog(stage);
-            if (f != null) {
-                pathF.setText(f.getAbsolutePath());
-            }
+            if (f != null) pathF.setText(f.getAbsolutePath());
         });
 
-        HBox pathBox = new HBox(12, pathF, browseFile, browseFolder);
+        VBox pathWrapper = new VBox(10, pathF, new HBox(10, browseFile, browseFolder));
         Label pathL = new Label("ДЖЕРЕЛО ЗВУКУ");
         pathL.setStyle(HEADER_STYLE);
         grid.add(pathL, 0, 2);
-        grid.add(pathBox, 1, 2);
+        grid.add(pathWrapper, 1, 2);
 
         TextField timeF = createStyledField(event != null ? event.time() : "12:00");
         timeF.setPrefWidth(120);
@@ -304,26 +290,42 @@ public class MediaSchedulerPanel {
 
         Runnable updateFields = () -> {
             dynamicFields.getChildren().clear();
+            GridPane dynamicGrid = new GridPane();
+            dynamicGrid.setHgap(20);
+            dynamicGrid.setVgap(20);
+            dynamicGrid.setAlignment(Pos.CENTER_LEFT);
+
             if (typeC.getValue().equals("На перервах")) {
                 Label anchorL = new Label("КОЛИ ГРАТИ");
                 anchorL.setStyle(HEADER_STYLE);
-                HBox h = new HBox(15, anchorL, breakAnchorC);
+                anchorL.setPrefWidth(120); // Задаємо фіксовану ширину для вирівнювання
+                dynamicGrid.add(anchorL, 0, 0);
+                HBox h = new HBox(15, breakAnchorC);
                 h.setAlignment(Pos.CENTER_LEFT);
                 if (breakAnchorC.getValue().equals("Зі зміщенням (хв)")) {
                     h.getChildren().add(offsetF);
                 }
-                dynamicFields.getChildren().add(h);
+                dynamicGrid.add(h, 1, 0);
             } else if (typeC.getValue().equals("У конкретний час")) {
-                Label timeL = new Label("ЧАС ВІДТВОРЕННЯ");
+                Label timeL = new Label("ЧАС");
                 timeL.setStyle(HEADER_STYLE);
-                dynamicFields.getChildren().add(new HBox(20, timeL, timeF));
+                timeL.setPrefWidth(120);
+                dynamicGrid.add(timeL, 0, 0);
+                dynamicGrid.add(timeF, 1, 0);
             } else if (typeC.getValue().equals("Разово")) {
                 Label dateL = new Label("ДАТА");
                 dateL.setStyle(HEADER_STYLE);
+                dateL.setPrefWidth(120);
+                dynamicGrid.add(dateL, 0, 0);
+                dynamicGrid.add(dateP, 1, 0);
+                
                 Label timeL = new Label("ЧАС");
                 timeL.setStyle(HEADER_STYLE);
-                dynamicFields.getChildren().addAll(new HBox(20, dateL, dateP), new HBox(20, timeL, timeF));
+                timeL.setPrefWidth(120);
+                dynamicGrid.add(timeL, 0, 1);
+                dynamicGrid.add(timeF, 1, 1);
             }
+            dynamicFields.getChildren().add(dynamicGrid);
             if (stage.isShowing()) {
                 stage.sizeToScene();
             }

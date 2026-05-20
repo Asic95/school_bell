@@ -23,6 +23,8 @@ import javafx.scene.text.TextAlignment;
 import java.net.URL;
 import java.util.List;
 
+import static com.schoolbell.ui.UIStyles.*;
+
 public class BellSettingsPane extends StackPane {
     private final IntegerProperty regularDuration = new SimpleIntegerProperty();
     private final IntegerProperty airRaidRingDuration = new SimpleIntegerProperty();
@@ -162,7 +164,7 @@ public class BellSettingsPane extends StackPane {
         HBox card = createCard(
                 "Повітряна тривога",
                 "Три коротких сигнали з паузами",
-                "M12,2C9.79,2 8,3.79 8,6V10H16V6C16,3.79 14.21,2 12,2M4,12V14H20V12H4M6,14L4,22H20L18,14H6M2,8V10H6V8H2M18,8V10H22V8H18",
+                ICON_AIR_RAID,
                 "tone-air",
                 List.of(controlsRow),
                 waveform,
@@ -181,7 +183,7 @@ public class BellSettingsPane extends StackPane {
         HBox card = createCard(
                 "Екстрена ситуація",
                 "Один тривалий безперервний сигнал",
-                "M3,9V15H7L12,20V4L7,9H3M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16.03C15.5,15.29 16.5,13.77 16.5,12M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23Z",
+                ICON_LIFEBUOY,
                 "tone-emergency",
                 List.of(labeledControl("Тривалість сигналу", duration)),
                 waveform,
@@ -201,37 +203,49 @@ public class BellSettingsPane extends StackPane {
             String previewLabel,
             String previewToneClass
     ) {
-        // Redesigned: Vertical stack card
-        VBox card = new VBox(16);
+        // Redesigned: Horizontal layout to match bells.png
+        HBox card = new HBox(32);
         card.getStyleClass().add("bell-card");
         card.setMaxWidth(Double.MAX_VALUE);
+        card.setPadding(new Insets(24));
+        
+        VBox leftBlock = new VBox(12);
+        leftBlock.setPrefWidth(350);
+        leftBlock.setMinWidth(350);
+        leftBlock.setMaxWidth(350);
         
         // Header Row: Icon + Title
         HBox headerRow = new HBox(12);
         headerRow.setAlignment(Pos.CENTER_LEFT);
         StackPane iconWrap = new StackPane(icon(iconPath, "card-icon"));
         iconWrap.getStyleClass().addAll("card-icon-wrap", toneClass);
-        iconWrap.setPrefSize(40, 40);
+        iconWrap.setPrefSize(48, 48);
         
         VBox titleBlock = new VBox(2);
-        Label labelTag = new Label("СИГНАЛ");
-        labelTag.setStyle("-fx-font-size: 10px; -fx-text-fill: #a1a1aa; -fx-font-weight: 600;");
         Label title = new Label(titleText);
         title.getStyleClass().add("card-title");
-        titleBlock.getChildren().addAll(labelTag, title);
+        title.setStyle("-fx-font-size: 16px; -fx-font-weight: 800; -fx-text-fill: #2d3436;");
+        Label subtitle = new Label(subtitleText);
+        subtitle.setStyle("-fx-font-size: 13px; -fx-text-fill: #636e72;");
+        titleBlock.getChildren().addAll(title, subtitle);
         headerRow.getChildren().addAll(iconWrap, titleBlock);
 
-        // Body Row: File/Type configuration
-        HBox bodyRow = new HBox(16);
-        bodyRow.setAlignment(Pos.CENTER_LEFT);
-        // Using a button as a placeholder for file selector
-        Button fileBtn = new Button("📁 Вибрати файл");
-        fileBtn.setStyle("-fx-border-style: dashed; -fx-border-color: #a1a1aa; -fx-border-radius: 6; -fx-background-color: transparent; -fx-text-fill: #a1a1aa; -fx-font-size: 11px;");
-        bodyRow.getChildren().addAll(fileBtn);
+        // Controls
+        HBox controlsRow = new HBox(16);
+        controlsRow.setAlignment(Pos.CENTER_LEFT);
+        controlsRow.setPadding(new Insets(0, 0, 0, 60));
+        controlsRow.getChildren().addAll(controls);
 
-        card.getChildren().addAll(headerRow, bodyRow, waveform);
+        leftBlock.getChildren().addAll(headerRow, controlsRow);
+
+        // Waveform on the right
+        VBox rightBlock = new VBox(8);
+        rightBlock.getChildren().addAll(waveform);
+        HBox.setHgrow(rightBlock, Priority.ALWAYS);
+
+        card.getChildren().addAll(leftBlock, rightBlock);
         
-        return new HBox(card);
+        return card;
     }
 
     private VBox labeledControl(String labelText, DurationStepper control) {
@@ -293,6 +307,7 @@ public class BellSettingsPane extends StackPane {
     private enum WaveType {REGULAR, AIR_RAID, EMERGENCY}
 
     private class WaveformCanvas extends Pane {
+        private static final double START_X = 12.0;
         private final Canvas canvas = new Canvas();
         private final WaveType type;
         private final Color color;
@@ -359,14 +374,14 @@ public class BellSettingsPane extends StackPane {
         }
 
         private void drawContinuous(GraphicsContext gc, double w, double top, double h, double barW, double gap, int duration, boolean dense) {
-            int bars = Math.max(20, (int) (w / (barW + gap)));
+            int bars = Math.max(20, (int) ((w - START_X - 10) / (barW + gap)));
             gc.setFill(color.deriveColor(0, 1, 1, 0.9));
             for (int i = 0; i < bars; i++) {
                 double base = dense ? 0.56 : 0.52;
                 double spread = dense ? 0.36 : 0.28;
                 double amp = Math.min(0.95, base + noise(i, dense ? 2.7 : 1.3) * spread);
                 double height = h * amp;
-                double x = i * (barW + gap) + 6;
+                double x = START_X + i * (barW + gap);
                 double y = top + h - height;
                 gc.fillRoundRect(x, y, barW, height, 4, 4);
             }
@@ -375,8 +390,9 @@ public class BellSettingsPane extends StackPane {
 
         private void drawAirRaid(GraphicsContext gc, double w, double top, double h, double barW, double gap, int soundSec, int pauseSec) {
             int total = Math.max(1, soundSec * 3 + pauseSec * 2);
-            double pxPerSec = (w - 12) / total;
-            double x = 6;
+            double availableWidth = w - START_X - 10;
+            double pxPerSec = availableWidth / total;
+            double x = START_X;
             gc.setFill(color.deriveColor(0, 1, 1, 0.92));
 
             for (int section = 0; section < 3; section++) {
@@ -408,19 +424,20 @@ public class BellSettingsPane extends StackPane {
                     x += pauseWidth;
                 }
             }
+            drawTimeline(gc, w, top + h + 12, buildTimelineLabels(total));
         }
 
         private void drawTimeline(GraphicsContext gc, double w, double y, String[] labels) {
             gc.setFill(Color.web("#8B97A8"));
             gc.setFont(javafx.scene.text.Font.font("Inter", 11));
-            double leftPad = 6;
-            double rightPad = 6;
+            double leftPad = START_X;
+            double rightPad = 10;
             double span = Math.max(1, w - leftPad - rightPad);
             double step = labels.length > 1 ? span / (labels.length - 1) : 0;
             for (int i = 0; i < labels.length; i++) {
                 double x = leftPad + i * step;
                 if (i == 0) {
-                    gc.setTextAlign(TextAlignment.LEFT);
+                    gc.setTextAlign(TextAlignment.CENTER); // Changed to center for better alignment with START_X
                 } else if (i == labels.length - 1) {
                     gc.setTextAlign(TextAlignment.RIGHT);
                 } else {

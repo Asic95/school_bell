@@ -209,6 +209,7 @@ public class SignalSettingsPane extends StackPane {
         // Header Row: Icon + Title
         HBox headerRow = new HBox(12);
         headerRow.setAlignment(Pos.CENTER_LEFT);
+        headerRow.setPadding(new Insets(0, 0, 8, 0)); // Add padding for vertical spacing
         StackPane iconWrap = new StackPane(icon(iconPath, "card-icon"));
         iconWrap.getStyleClass().addAll("card-icon-wrap", toneClass);
         iconWrap.setPrefSize(40, 40);
@@ -221,15 +222,18 @@ public class SignalSettingsPane extends StackPane {
         titleBlock.getChildren().addAll(labelTag, title);
         headerRow.getChildren().addAll(iconWrap, titleBlock);
 
-        // Body Row: File/Type configuration
-        HBox bodyRow = new HBox(16);
-        bodyRow.setAlignment(Pos.CENTER_LEFT);
-        // Using a button as a placeholder for file selector
-        Button fileBtn = new Button("📁 Вибрати файл");
-        fileBtn.setStyle("-fx-border-style: dashed; -fx-border-color: #a1a1aa; -fx-border-radius: 6; -fx-background-color: transparent; -fx-text-fill: #a1a1aa; -fx-font-size: 11px;");
-        bodyRow.getChildren().addAll(fileBtn);
+        // Body Row: Configuration with alignment to match the title start
+        VBox controlsWrapper = new VBox(16);
+        controlsWrapper.setPadding(new Insets(0, 0, 0, 52));
+        for (Region control : controls) {
+            controlsWrapper.getChildren().add(control);
+        }
 
-        card.getChildren().addAll(headerRow, bodyRow, waveform);
+        // Apply a fixed left margin to the waveform to align with the text block
+        VBox waveformWrapper = new VBox(waveform);
+        waveformWrapper.setPadding(new Insets(0, 0, 0, 52)); // 40 (icon) + 12 (spacing)
+
+        card.getChildren().addAll(headerRow, controlsWrapper, waveformWrapper);
         
         return new HBox(card);
     }
@@ -367,7 +371,7 @@ public class SignalSettingsPane extends StackPane {
                 double amp = Math.min(0.95, base + noise(i, dense ? 2.7 : 1.3) * spread);
                 double height = h * amp;
                 double x = i * (barW + gap) + 6;
-                double y = top + h - height;
+                double y = top + (h - height) / 2.0; // Center vertically
                 gc.fillRoundRect(x, y, barW, height, 4, 4);
             }
             drawTimeline(gc, w, top + h + 12, buildTimelineLabels(duration));
@@ -385,7 +389,7 @@ public class SignalSettingsPane extends StackPane {
                 for (int i = 0; i < bars; i++) {
                     double amp = 0.55 + noise(i + section * 37, 1.7) * 0.28;
                     double bh = h * Math.min(0.95, amp);
-                    gc.fillRoundRect(x + i * (barW + gap), top + h - bh, barW, bh, 4, 4);
+                    gc.fillRoundRect(x + i * (barW + gap), top + (h - bh) / 2.0, barW, bh, 4, 4);
                 }
 
                 Label s = section == 0 ? sound1 : (section == 1 ? sound2 : sound3);

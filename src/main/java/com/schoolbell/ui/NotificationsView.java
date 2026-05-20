@@ -9,7 +9,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -91,28 +90,28 @@ public class NotificationsView {
 
     public Node build() {
         VBox page = new VBox(28);
-        page.setPadding(new Insets(34, 34, 40, 34));
+        page.setPadding(new Insets(30, 20, 40, 20));
         page.setStyle(PAGE_BACKGROUND);
 
         page.getChildren().add(buildHeader());
 
-        FlowPane topCards = new FlowPane();
-        topCards.setHgap(20);
-        topCards.setVgap(20);
-        topCards.setPrefWrapLength(1120);
-        topCards.getChildren().addAll(createDeviceCard(), createVolumeCard());
+        HBox topCards = new HBox(20);
+        VBox deviceCard = createDeviceCard();
+        VBox volumeCard = createVolumeCard();
+        HBox.setHgrow(deviceCard, Priority.ALWAYS);
+        topCards.getChildren().addAll(deviceCard, volumeCard);
 
         VBox mainCol = new VBox(28, topCards, alertsPanel.build(), mediaPanel.build());
         mainCol.setFillWidth(true);
         HBox.setHgrow(mainCol, Priority.ALWAYS);
 
         VBox helpPanel = createSideHelpPanel(
-                createHelpCard(ICON_VOLUME, "Аудіо", "Швидко змінюйте пристрій і пресет гучності без зайвих технічних налаштувань.", COLOR_SUCCESS),
-                createHelpCard(ICON_MONITOR, "Екран", "Візуальні сигнали керуються прямо з картки сценарію і не губляться серед інших елементів.", COLOR_PURPLE),
+                createHelpCard(ICON_VOLUME, "Аудіо", "Швидко змінюйте пристрій відтворення і гучність без зайвих технічних налаштувань.", COLOR_SUCCESS),
+                createHelpCard(ICON_MONITOR, "Екран", "Показ розкладу буде тимчасово призупинений, а замість нього буде відображатися текст відповідного сповіщення.", COLOR_PURPLE),
                 createHelpCard(ICON_INFO, "Порада", "Для кращого сканування тримайте активними лише сценарії з уже підключеним аудіофайлом.", "#f59e0b")
         );
 
-        HBox content = new HBox(24, mainCol, helpPanel);
+        HBox content = new HBox(18, mainCol, helpPanel);
         content.setAlignment(Pos.TOP_LEFT);
 
         page.getChildren().add(content);
@@ -140,7 +139,7 @@ public class NotificationsView {
         eyebrow.setStyle(MICRO_LABEL);
         Label title = new Label("Сигнали та сповіщення");
         title.setStyle(TITLE_STYLE);
-        Label subtitle = new Label("Сучасна панель для керування екстреними сигналами, гучністю та автоматичними аудіо-повідомленнями.");
+        Label subtitle = new Label("Панель для керування екстреними сигналами та автоматичними повідомленнями.");
         subtitle.setStyle(BODY_STYLE);
         subtitle.setWrapText(true);
 
@@ -151,17 +150,6 @@ public class NotificationsView {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button saveBtn = createPrimaryActionButton("Зберегти зміни", ICON_NOTIFICATIONS);
-        saveBtn.setStyle(
-                "-fx-font-family: 'Inter';" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-weight: 700;" +
-                "-fx-text-fill: white;" +
-                "-fx-background-color: linear-gradient(to right, #4f46e5, #2563eb);" +
-                "-fx-background-radius: 18;" +
-                "-fx-padding: 14 24;" +
-                "-fx-cursor: hand;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.28), 24, 0, 0, 8);"
-        );
         saveBtn.setOnAction(e -> save());
 
         header.getChildren().addAll(badge, text, spacer, saveBtn);
@@ -170,9 +158,9 @@ public class NotificationsView {
 
     private VBox createDeviceCard() {
         VBox card = new VBox(18);
-        card.setPadding(new Insets(28));
-        card.setMinWidth(520);
-        card.setPrefWidth(720);
+        card.setPadding(new Insets(24));
+        card.setMinWidth(380);
+        card.setPrefWidth(600);
         card.setStyle(FLOATING_CARD);
 
         Label label = new Label("Пристрій відтворення");
@@ -213,7 +201,7 @@ public class NotificationsView {
         row.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(deviceCombo, Priority.ALWAYS);
 
-        Label note = new Label("Оберіть джерело відтворення для всіх сигналів і повідомлень.");
+        Label note = new Label("Оберіть джерело відтворення для всіх сигналів.");
         note.setStyle(BODY_STYLE);
 
         card.getChildren().addAll(label, row, note);
@@ -222,9 +210,9 @@ public class NotificationsView {
 
     private VBox createVolumeCard() {
         VBox card = new VBox(18);
-        card.setPadding(new Insets(28));
-        card.setMinWidth(360);
-        card.setPrefWidth(400);
+        card.setPadding(new Insets(24));
+        card.setMinWidth(395);
+        card.setPrefWidth(395);
         card.setStyle(FLOATING_CARD);
 
         Label label = new Label("Загальна гучність сповіщень");
@@ -236,20 +224,20 @@ public class NotificationsView {
         );
 
         currentVolumeValue = normalizeVolume(config.getSystemVolume());
-        volumePresetBox = new HBox(10);
+        volumePresetBox = new HBox(8);
         volumePresetBox.setAlignment(Pos.CENTER_LEFT);
         volumePresetBox.setStyle(
                 "-fx-background-color: rgba(241,245,249,0.92);" +
                 "-fx-background-radius: 22;" +
-                "-fx-padding: 8;"
+                "-fx-padding: 6;"
         );
 
         int[] presets = {0, 25, 50, 75, 100};
         for (int preset : presets) {
             Button button = new Button(preset == 0 ? "Вимк" : preset + "%");
             button.setUserData(preset);
-            button.setPrefWidth(72);
-            button.setPrefHeight(48);
+            button.setPrefWidth(61);
+            button.setPrefHeight(46);
             button.setOnAction(e -> {
                 currentVolumeValue = preset;
                 updateVolumeStyle();
@@ -260,7 +248,7 @@ public class NotificationsView {
         }
 
         updateVolumeStyle();
-        Label note = new Label("Швидкі пресети без зайвих технічних параметрів.");
+        Label note = new Label("Швидкі пресети гучності.");
         note.setStyle(BODY_STYLE);
         card.getChildren().addAll(label, volumePresetBox, note);
         return card;
