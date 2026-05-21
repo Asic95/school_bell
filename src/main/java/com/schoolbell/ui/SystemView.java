@@ -7,6 +7,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
@@ -16,8 +17,11 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
+import java.util.List;
+
 import static com.schoolbell.ui.CardFactory.createHelpCard;
 import static com.schoolbell.ui.CardFactory.createSideHelpPanel;
+import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.ControlFactory.createToggleSwitch;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
@@ -32,6 +36,9 @@ public class SystemView {
     private final ToggleButton autostartTg;
     private final ToggleButton trayTg;
     private final ToggleButton simulationTg;
+    private final ToggleButton airRaidTg;
+    private final ComboBox<String> regionCombo;
+    private final ComboBox<String> districtCombo;
 
     private final BellSettingsPane bellSettingsPane;
     private final SystemJournalPane journalPane;
@@ -45,6 +52,24 @@ public class SystemView {
         autostartTg = createToggleSwitch(config.isAutostartEnabled());
         trayTg = createToggleSwitch(config.isMinimizeToTray());
         simulationTg = createToggleSwitch(config.isSimulationMode());
+        airRaidTg = createToggleSwitch(config.isAirRaidAutomationEnabled());
+
+        regionCombo = new ComboBox<>();
+        regionCombo.getItems().addAll(mainApp.getAirAlertService().getRegions());
+        regionCombo.setValue(config.getSelectedRegionId());
+        regionCombo.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-background-radius: 14; -fx-border-radius: 14; -fx-background-color: white; -fx-border-color: #e2e8f0;");
+        
+        districtCombo = new ComboBox<>();
+        districtCombo.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-background-radius: 14; -fx-border-radius: 14; -fx-background-color: white; -fx-border-color: #e2e8f0;");
+        
+        if (config.getSelectedRegionId() != null) {
+            districtCombo.getItems().addAll(mainApp.getAirAlertService().getDistricts(config.getSelectedRegionId()));
+            districtCombo.setValue(config.getSelectedDistrictId());
+        }
+        regionCombo.setOnAction(e -> {
+            districtCombo.getItems().clear();
+            districtCombo.getItems().addAll(mainApp.getAirAlertService().getDistricts(regionCombo.getValue()));
+        });
 
         bellSettingsPane = new BellSettingsPane(
                 config.getRegularBellDuration(),
@@ -60,6 +85,7 @@ public class SystemView {
     }
 
     public Node build() {
+        ScrollPane scroll = new ScrollPane();
         VBox root = new VBox(25);
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
@@ -67,20 +93,18 @@ public class SystemView {
         Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ВСЕ", ICON_SAVE);
         saveBtn.setOnAction(e -> save());
 
-        VBox headerArea = createSectionHeader(
-                "Системна конфігурація",
-                "Глобальні параметри роботи програми, дизайн та поведінка системи",
-                "#2d3436",
-                ICON_SETTINGS,
-                saveBtn
+        HBox header = createPageHeader(
+            "КОНФІГУРАЦІЯ",
+            "Системні налаштування",
+            "Глобальні параметри роботи програми, дизайн та поведінка системи.",
+            ICON_SETTINGS,
+            "#2d3436",
+            saveBtn
         );
 
-        HBox contentLayout = new HBox(25);
         mainCol = new VBox(25);
-        HBox.setHgrow(mainCol, Priority.ALWAYS);
-
-        mainCol.getChildren().add(buildOperationCard());
-        mainCol.getChildren().add(buildSignalCard());
+        HBox.setHgrow(mainCol, Priority.ALWAYS); // Critical fix for compressed layout
+        mainCol.getChildren().addAll(buildOperationCard(), buildSignalCard());
         
         updateJournalVisibility(simulationTg.isSelected());
 
@@ -89,12 +113,12 @@ public class SystemView {
                 createHelpCard(ICON_WAVEFORM, "Сигнали", "Тривалості сигналів редагуються в новому візуальному блоці параметрів дзвінків.", COLOR_WARNING)
         );
 
-        contentLayout.getChildren().addAll(mainCol, helpPanel);
-        root.getChildren().addAll(headerArea, contentLayout);
+        HBox contentLayout = new HBox(25, mainCol, helpPanel);
+        root.getChildren().addAll(header, contentLayout);
 
-        ScrollPane scroll = new ScrollPane(root);
+        scroll.setContent(root);
         scroll.setFitToWidth(true);
-        scrollPaneStyle(scroll);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         return scroll;
     }
 
@@ -108,20 +132,45 @@ public class SystemView {
         }
     }
 
-    private void scrollPaneStyle(ScrollPane scroll) {
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
-    }
-
     private VBox buildOperationCard() {
         VBox card = createCard("ЗАПУСК ТА РОБОТА", ICON_CLOCK, COLOR_SUCCESS);
 
-        VBox rows = new VBox(8);
+        VBox rows = new VBox(15);
         rows.getChildren().add(createToggleRow("Автозапуск разом з Windows",
                 "Програма буде автоматично запускатись при вході в систему", ICON_POWER, COLOR_PRIMARY, autostartTg));
         rows.getChildren().add(createToggleRow("Згортати у системний трей",
                 "При закритті вікно буде ховатись у трей замість виходу", ICON_TRAY, COLOR_PURPLE, trayTg));
         rows.getChildren().add(createToggleRow("Режим симуляції",
                 "Робота без фізичного підключення до реле (тільки логування)", ICON_FLASK, COLOR_WARNING, simulationTg));
+        rows.getChildren().add(createToggleRow("Автоматизація повітряної тривоги",
+                "Пошук та автоматичне оповіщення про повітряну тривогу", ICON_SETTINGS, "#e17055", airRaidTg));
+        
+        // Region Selection with Label
+        VBox regionBox = new VBox(5);
+        Label regionLbl = new Label("ОБЕРІТЬ РЕГІОН:");
+        regionLbl.setStyle("-fx-font-weight: 800; -fx-font-size: 11px; -fx-text-fill: #636e72;");
+        regionCombo.setMaxWidth(Double.MAX_VALUE);
+        regionBox.getChildren().addAll(regionLbl, regionCombo);
+        
+        // District Selection with Label and Container for dynamic visibility
+        VBox districtBox = new VBox(5);
+        Label districtLbl = new Label("ОБЕРІТЬ РАЙОН:");
+        districtLbl.setStyle("-fx-font-weight: 800; -fx-font-size: 11px; -fx-text-fill: #636e72;");
+        districtCombo.setMaxWidth(Double.MAX_VALUE);
+        districtBox.getChildren().addAll(districtLbl, districtCombo);
+        
+        // Dynamic visibility logic integration
+        Runnable refreshVisibility = () -> {
+            String sel = regionCombo.getValue();
+            boolean hasDistricts = sel != null && !mainApp.getAirAlertService().getDistricts(sel).isEmpty();
+            districtBox.setVisible(hasDistricts);
+            districtBox.setManaged(hasDistricts);
+        };
+        
+        regionCombo.valueProperty().addListener((obs, old, nv) -> refreshVisibility.run());
+        refreshVisibility.run();
+
+        rows.getChildren().addAll(regionBox, districtBox);
 
         card.getChildren().add(rows);
         return card;
@@ -188,6 +237,9 @@ public class SystemView {
             config.setAutostartEnabled(autostartTg.isSelected());
             config.setMinimizeToTray(trayTg.isSelected());
             config.setSimulationMode(simulationTg.isSelected());
+            config.setAirRaidAutomationEnabled(airRaidTg.isSelected());
+            config.setSelectedRegionId(regionCombo.getValue());
+            config.setSelectedDistrictId(districtCombo.getValue());
 
             config.setRegularBellDuration(bellSettingsPane.getRegularDuration());
             config.setAirRaidRingDuration(bellSettingsPane.getAirRaidRingDuration());
@@ -198,6 +250,12 @@ public class SystemView {
 
             if (autostartChanged) {
                 systemService.updateAutostart(config.isAutostartEnabled());
+            }
+            
+            if (config.isAirRaidAutomationEnabled()) {
+                mainApp.getAirAlertService().start();
+            } else {
+                mainApp.getAirAlertService().stop();
             }
 
             mainApp.addLog("Системні налаштування оновлено", "SUCCESS");

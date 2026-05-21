@@ -580,9 +580,29 @@ public class EfirView {
         List<BroadcastDevice> savedDevices = DatabaseManager.getAllBroadcastDevices();
 
         updateContainer(deviceListContainer, savedDevices, device -> new DeviceRow(device, activeIps.contains(device.ip()), 
-            () -> {}, // Edit logic (placeholder)
-            () -> {}, // Ban logic (placeholder)
-            () -> {}  // Delete logic (placeholder)
+            () -> {
+                // Edit logic
+                TextInputModalDialog dialog = new TextInputModalDialog(mainApp, "Редагування пристрою", "Введіть нову назву для " + device.ip(), device.name(), "Назва пристрою", newName -> {
+                    BroadcastDevice updated = new BroadcastDevice(device.ip(), newName, device.isBanned(), device.deviceType(), device.os(), device.lastSeen());
+                    DatabaseManager.saveBroadcastDevice(updated);
+                    refreshDevices();
+                });
+                dialog.show();
+            },
+            () -> {
+                // Ban/Unban logic
+                BroadcastDevice toggled = new BroadcastDevice(device.ip(), device.name(), !device.isBanned(), device.deviceType(), device.os(), device.lastSeen());
+                DatabaseManager.saveBroadcastDevice(toggled);
+                if (mainApp.getBroadcastService() != null) {
+                    mainApp.getBroadcastService().loadBannedIps();
+                }
+                refreshDevices();
+            },
+            () -> {
+                // Delete logic
+                DatabaseManager.deleteBroadcastDevice(device.ip());
+                refreshDevices();
+            }
         ));
     }
 

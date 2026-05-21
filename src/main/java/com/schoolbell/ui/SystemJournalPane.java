@@ -46,27 +46,24 @@ public class SystemJournalPane extends VBox {
                 } else {
                     setText(item);
                     setFont(javafx.scene.text.Font.font("Inter", 13));
-                    setPadding(new Insets(6, 10, 6, 10));
+                    setPadding(new Insets(6, 12, 6, 12));
                     
+                    String baseStyle = "-fx-background-radius: 8; -fx-margin: 2 0; ";
                     if (item.contains("[ERROR]")) {
-                        setTextFill(Color.web("#e74c3c"));
-                        setStyle("-fx-background-color: #fff5f5; -fx-background-radius: 6; -fx-font-weight: bold;");
+                        setStyle(baseStyle + "-fx-background-color: #fff5f5; -fx-text-fill: #e74c3c; -fx-font-weight: bold;");
                     } else if (item.contains("[SUCCESS]")) {
-                        setTextFill(Color.web("#27ae60"));
-                        setStyle("-fx-background-color: #f0fff4; -fx-background-radius: 6; -fx-font-weight: bold;");
+                        setStyle(baseStyle + "-fx-background-color: #f0fff4; -fx-text-fill: #27ae60; -fx-font-weight: bold;");
                     } else if (item.contains("[WARNING]")) {
-                        setTextFill(Color.web("#f39c12"));
-                        setStyle("-fx-background-color: #fffaf0; -fx-background-radius: 6; -fx-font-weight: bold;");
+                        setStyle(baseStyle + "-fx-background-color: #fffaf0; -fx-text-fill: #f39c12; -fx-font-weight: bold;");
                     } else {
-                        setTextFill(Color.web("#334155"));
-                        setStyle("-fx-background-color: transparent;");
+                        setStyle(baseStyle + "-fx-background-color: transparent; -fx-text-fill: #334155;");
                     }
                 }
             }
         });
 
-        // Hide ListView background and border
-        logList.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0; -fx-control-inner-background: transparent;");
+        // Clean ListView style
+        logList.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0;");
 
         getChildren().addAll(title, logList);
     }

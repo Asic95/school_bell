@@ -144,15 +144,10 @@ public class EmergencyAlertsPanel {
         info.setMinWidth(200);
         info.setPrefWidth(210);
 
-        VBox fileCard = createFileCard(pathField);
-        fileCard.setMinWidth(200);
-        fileCard.setPrefWidth(260);
-        HBox.setHgrow(fileCard, Priority.ALWAYS);
-        fileCard.setStyle(fileCard.getStyle() + "-fx-cursor: hand;");
-        fileCard.setOnMouseClicked(e -> chooseFile(pathField));
-        fileCard.setOnMouseEntered(e -> fileCard.setStyle(fileCard.getStyle().replace("-fx-background-color: rgba(248,250,252,0.95);", "-fx-background-color: #f1f5f9;")));
-        fileCard.setOnMouseExited(e -> fileCard.setStyle(fileCard.getStyle().replace("-fx-background-color: #f1f5f9;", "-fx-background-color: rgba(248,250,252,0.95);")));
-        javafx.scene.control.Tooltip.install(fileCard, new javafx.scene.control.Tooltip("Натисніть, щоб змінити аудіофайл"));
+        VBox audioConfigBtn = createAudioConfigButton(alertType, pathField);
+        audioConfigBtn.setMinWidth(200);
+        audioConfigBtn.setPrefWidth(260);
+        HBox.setHgrow(audioConfigBtn, Priority.ALWAYS);
 
         HBox controls = new HBox(10,
                 createToggleSurface("Аудіо", ICON_VOLUME, audioToggle),
@@ -161,6 +156,7 @@ public class EmergencyAlertsPanel {
         controls.setAlignment(Pos.CENTER_LEFT);
 
         MenuButton more = new MenuButton();
+        // ... (rest of the MenuButton code)
         more.setGraphic(createSVGIcon("M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z", Color.web("#475569"), 18));
         more.setStyle(
                 "-fx-background-color: rgba(248,250,252,0.96);" +
@@ -171,7 +167,7 @@ public class EmergencyAlertsPanel {
                 "-fx-cursor: hand;"
         );
 
-        MenuItem testAudio = new MenuItem("Тест Аудіо");
+        MenuItem testAudio = new MenuItem("Тест Аудіо (Початок)");
         testAudio.setOnAction(e -> mainApp.getAudioService().playAudioFile(pathField.getText()));
 
         MenuItem testVisual = new MenuItem("Тест Екрану");
@@ -179,23 +175,19 @@ public class EmergencyAlertsPanel {
 
         javafx.scene.control.SeparatorMenuItem sep = new javafx.scene.control.SeparatorMenuItem();
 
-        MenuItem pick = new MenuItem("Змінити файл");
-        pick.setOnAction(e -> chooseFile(pathField));
+        MenuItem pick = new MenuItem("Налаштувати звуки");
+        pick.setOnAction(e -> new SignalAudioEditorDialog(mainApp, alertType).show());
 
-        MenuItem clear = new MenuItem("Очистити файл");
-        clear.setStyle("-fx-text-fill: #ef4444;");
-        clear.setOnAction(e -> pathField.setText(""));
+        more.getItems().addAll(testAudio, testVisual, sep, pick);
 
-        more.getItems().addAll(testAudio, testVisual, sep, pick, clear);
-
-        row.getChildren().addAll(iconBox, info, fileCard, controls, more);
+        row.getChildren().addAll(iconBox, info, audioConfigBtn, controls, more);
         card.getChildren().add(row);
 
         applyStatusStyle(status, audioToggle, visualToggle);
         return card;
     }
 
-    private VBox createFileCard(TextField pathField) {
+    private VBox createAudioConfigButton(String alertType, TextField pathField) {
         VBox card = new VBox(6);
         card.setPadding(new Insets(14, 16, 14, 16));
         card.setStyle(
@@ -203,11 +195,12 @@ public class EmergencyAlertsPanel {
                 "-fx-background-radius: 18;" +
                 "-fx-border-color: rgba(219,228,240,0.75);" +
                 "-fx-border-width: 1;" +
-                "-fx-border-radius: 18;"
+                "-fx-border-radius: 18;" +
+                "-fx-cursor: hand;"
         );
 
-        Label label = new Label("Аудіофайл");
-        label.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #64748b;");
+        Label label = new Label("КОНФІГУРАЦІЯ ЗВУКІВ");
+        label.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #94a3b8; -fx-letter-spacing: 1px;");
 
         HBox row = new HBox(10);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -215,29 +208,20 @@ public class EmergencyAlertsPanel {
 
         Label fileName = new Label();
         fileName.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: #0f172a;");
-        fileName.setTextOverrun(OverrunStyle.ELLIPSIS);
-        fileName.setMaxWidth(250);
-
-        Label fileMeta = new Label();
-        fileMeta.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 12px; -fx-font-weight: 500; -fx-text-fill: #94a3b8;");
-
-        Runnable refresh = () -> {
-            File file = pathField.getText() == null || pathField.getText().isBlank() ? null : new File(pathField.getText());
-            if (file == null || !file.exists()) {
-                fileName.setText("Натисніть, щоб додати аудіофайл");
-                fileMeta.setText("MP3 або WAV до 50 MB");
-            } else {
-                fileName.setText(file.getName());
-                fileMeta.setText(formatFileSize(file.length()));
-            }
-        };
-        refresh.run();
-        pathField.textProperty().addListener((obs, oldVal, newVal) -> refresh.run());
+        fileName.setText(alertType.equals("AIR_RAID") ? "3 файли налаштовано" : "Звуковий файл");
+        
+        Label fileMeta = new Label("Натисніть для редагування");
+        fileMeta.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 12px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
 
         VBox meta = new VBox(3, fileName, fileMeta);
         meta.setAlignment(Pos.CENTER_LEFT);
         row.getChildren().add(meta);
         card.getChildren().addAll(label, row);
+
+        card.setOnMouseClicked(e -> new SignalAudioEditorDialog(mainApp, alertType).show());
+        card.setOnMouseEntered(e -> card.setStyle(card.getStyle() + "-fx-background-color: #f1f5f9;"));
+        card.setOnMouseExited(e -> card.setStyle(card.getStyle().replace("-fx-background-color: #f1f5f9;", "")));
+
         return card;
     }
 

@@ -10,6 +10,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
 import static com.schoolbell.ui.CardFactory.createCardActionButton;
+import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
@@ -28,8 +29,15 @@ public class ClassroomsEditorTab {
         content.setPadding(new Insets(30));
         content.setStyle("-fx-background-color: #f8f9fa;");
 
-        VBox headerArea = createSectionHeader("Навчальні аудиторії", "Керуйте списком кабінетів та приміщень школи", "#00cec9", ICON_ROOM);
-        
+        HBox header = createPageHeader(
+            "ІНФРАСТРУКТУРА",
+            "Навчальні аудиторії",
+            "Керуйте переліком кабінетів, лабораторій та залів вашої школи.",
+            ICON_ROOM,
+            "#00cec9",
+            null
+        );
+
         TextField addField = new TextField();
         addField.setPromptText("Введіть назву або номер кабінету (наприклад, Каб. 301)...");
         addField.setStyle(COMBO_STYLE);
@@ -119,7 +127,7 @@ public class ClassroomsEditorTab {
             }
         });
 
-        VBox contentLayout = new VBox(25, headerArea, new HBox(15, addField, addBtn), scroll);
+        VBox contentLayout = new VBox(25, header, new HBox(15, addField, addBtn), scroll);
         contentLayout.setPadding(new Insets(30));
         contentLayout.setStyle("-fx-background-color: #f8f9fa;");
 

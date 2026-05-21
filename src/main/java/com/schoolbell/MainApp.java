@@ -61,6 +61,7 @@ public class MainApp extends Application {
     private SystemService systemService;
     private MediaSchedulerService mediaSchedulerService;
     private BroadcastService broadcastService;
+    private AirAlertService airAlertService;
     private HttpServer httpServer;
 
     // Controllers
@@ -107,6 +108,10 @@ public class MainApp extends Application {
         signalService.setLogConsumer(msg -> journal.addLog(msg, "INFO"));
         systemService = new SystemService(configService);
         mediaSchedulerService = new MediaSchedulerService(this);
+        airAlertService = new AirAlertService(this, configService, signalService, scheduler);
+        if (configService.isAirRaidAutomationEnabled()) {
+            airAlertService.start();
+        }
 
         startBroadcastServers();
 
@@ -303,6 +308,7 @@ public class MainApp extends Application {
     public ScheduleService getScheduleService() { return scheduleService; }
     public List<DaySchedule> getInternalSchedules() { return internalSchedules; }
     public List<BellEntry> getSchedule() { return schedule; }
+    public AirAlertService getAirAlertService() { return airAlertService; }
     
     public void saveConfig() { configService.saveConfig(); }
 

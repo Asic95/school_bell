@@ -16,6 +16,7 @@ import javafx.scene.paint.Color;
 import java.util.List;
 
 import static com.schoolbell.ui.CardFactory.createHelpCard;
+import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
@@ -35,7 +36,14 @@ public class WeeklyScheduleEditorTab {
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: #f8f9fa;");
 
-        VBox headerArea = createSectionHeader("Тижневий розклад занять", "Складайте навчальний план для кожного класу", "#27ae60", ICON_CALENDAR);
+        HBox header = createPageHeader(
+            "ПЛАНУВАННЯ",
+            "Тижневий розклад",
+            "Складайте та редагуйте навчальний план для кожного класу окремо.",
+            ICON_CALENDAR,
+            "#27ae60",
+            null
+        );
         
         HBox pickerCard = new HBox(20);
         pickerCard.setPadding(new Insets(20, 25, 20, 25));
@@ -78,7 +86,7 @@ public class WeeklyScheduleEditorTab {
             createHelpCard(ICON_INFO, "Швидке редагування", "Натисніть на картку уроку, щоб змінити вчителя або предмет. Натисніть ✕ на картці для швидкого видалення.", "#6c5ce7")
         );
 
-        root.getChildren().addAll(headerArea, pickerCard, scheduleCard, helpRow);
+        root.getChildren().addAll(header, pickerCard, scheduleCard, helpRow);
 
         final Runnable[] refreshGrid = {null};
         final int[] daysCount = {5};

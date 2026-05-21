@@ -6,10 +6,12 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import static com.schoolbell.ui.CardFactory.createManagementCard;
+import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIStyles.*;
 
@@ -25,11 +27,13 @@ public class ScheduleView {
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
-        VBox headerArea = createSectionHeader(
-                "Розклад занять",
-                "Керування тижневими графіками, щоденними замінами та часом дзвінків",
-                "#27ae60",
-                ICON_CALENDAR
+        HBox header = createPageHeader(
+            "РОЗКЛАД ТА ГРАФІКИ",
+            "Розклад занять",
+            "Керування тижневими графіками, щоденними замінами та часом дзвінків.",
+            ICON_CALENDAR,
+            "#27ae60",
+            null
         );
 
         FlowPane grid = new FlowPane(25, 25);
@@ -42,7 +46,7 @@ public class ScheduleView {
             createManagementCard("Час дзвінків", "Налаштування сітки годин (уроки та перерви)", ICON_BELL, "#0984e3", "#e3f2fd", () -> mainApp.showEditorTab(0))
         );
         
-        root.getChildren().addAll(headerArea, grid);
+        root.getChildren().addAll(header, grid);
         
         ScrollPane scroll = new ScrollPane(root);
         scroll.setFitToWidth(true);

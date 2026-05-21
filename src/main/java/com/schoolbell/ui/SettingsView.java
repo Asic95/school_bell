@@ -16,6 +16,10 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import com.schoolbell.service.AirAlertService;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ToggleButton;
+import java.util.List;
 
 import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
@@ -24,6 +28,7 @@ import static com.schoolbell.ui.UIStyles.*;
 public class SettingsView {
     private final MainApp mainApp;
     private final ConfigService config;
+    private final AirAlertService airAlertService;
 
     private final TextField schoolNameField;
     private final TextField cityNameField;
@@ -33,10 +38,15 @@ public class SettingsView {
     private final CheckBox simulationModeCb;
     private final TextArea announcementArea;
     private final SignalSettingsPane bellSettingsPane;
+    
+    private final ToggleButton airRaidToggle;
+    private final ComboBox<String> regionCombo;
+    private final ComboBox<String> districtCombo;
 
     public SettingsView(MainApp mainApp) {
         this.mainApp = mainApp;
         this.config = mainApp.getConfigService();
+        this.airAlertService = mainApp.getAirAlertService();
 
         schoolNameField = createStyledField(config.getSchoolName());
         cityNameField = createStyledField(config.getCityName());
@@ -61,6 +71,32 @@ public class SettingsView {
                 config.getAirRaidPauseDuration(),
                 config.getEmergencyDuration()
         );
+
+        airRaidToggle = new ToggleButton(config.isAirRaidAutomationEnabled() ? "УВІМКНЕНО" : "ВИМКНЕНО");
+        airRaidToggle.setSelected(config.isAirRaidAutomationEnabled());
+        airRaidToggle.setStyle(config.isAirRaidAutomationEnabled() ? "-fx-background-color: " + COLOR_SUCCESS + "; -fx-text-fill: white; -fx-background-radius: 12;" : "-fx-background-color: #dfe6e9; -fx-text-fill: white; -fx-background-radius: 12;");
+        airRaidToggle.setOnAction(e -> {
+            boolean active = airRaidToggle.isSelected();
+            airRaidToggle.setText(active ? "УВІМКНЕНО" : "ВИМКНЕНО");
+            airRaidToggle.setStyle(active ? "-fx-background-color: " + COLOR_SUCCESS + "; -fx-text-fill: white; -fx-background-radius: 12;" : "-fx-background-color: #dfe6e9; -fx-text-fill: white; -fx-background-radius: 12;");
+        });
+
+        regionCombo = new ComboBox<>();
+        regionCombo.getItems().addAll(airAlertService.getRegions());
+        regionCombo.setValue(config.getSelectedRegionId());
+        regionCombo.setPrefWidth(300);
+        
+        districtCombo = new ComboBox<>();
+        if (config.getSelectedRegionId() != null) {
+            districtCombo.getItems().addAll(airAlertService.getDistricts(config.getSelectedRegionId()));
+            districtCombo.setValue(config.getSelectedDistrictId());
+        }
+        districtCombo.setPrefWidth(300);
+
+        regionCombo.setOnAction(e -> {
+            districtCombo.getItems().clear();
+            districtCombo.getItems().addAll(airAlertService.getDistricts(regionCombo.getValue()));
+        });
     }
 
     public Node build() {
@@ -71,12 +107,13 @@ public class SettingsView {
         Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ НАЛАШТУВАННЯ", ICON_SAVE);
         saveBtn.setOnAction(e -> save());
 
-        VBox headerArea = createSectionHeader(
-                "Налаштування системи",
-                "Загальна конфігурація закладу, мережі та системних параметрів",
-                COLOR_PRIMARY,
-                ICON_SETTINGS,
-                saveBtn
+        HBox header = createPageHeader(
+            "НАЛАШТУВАННЯ",
+            "Параметри системи",
+            "Загальна конфігурація закладу, мережі та системних параметрів.",
+            ICON_SETTINGS,
+            COLOR_PRIMARY,
+            saveBtn
         );
 
         GridPane grid = new GridPane();
@@ -131,14 +168,19 @@ public class SettingsView {
         Label simDesc = new Label("Використовуйте цей режим для тестування без підключеного реле");
         simDesc.setStyle("-fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
         sec5.getChildren().addAll(simulationModeCb, simDesc);
+        
+        VBox secAir = createSettingsSection("АВТОМАТИЗАЦІЯ ПОВІТРЯНОЇ ТРИВОГИ", "#e17055", ICON_SETTINGS);
+        secAir.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
+        secAir.getChildren().addAll(new HBox(10, new Label("УВІМКНУТИ:"), airRaidToggle), new Label("Регіон:"), regionCombo, new Label("Район:"), districtCombo);
 
         grid.add(sec1, 0, 0);
         grid.add(sec2, 1, 0);
         grid.add(bellSettingsPane, 0, 1, 2, 1);
         grid.add(sec4, 0, 2);
         grid.add(sec5, 1, 2);
+        grid.add(secAir, 0, 3, 2, 1);
 
-        root.getChildren().addAll(headerArea, grid);
+        root.getChildren().addAll(header, grid);
 
         ScrollPane scroll = new ScrollPane(root);
         scroll.setFitToWidth(true);
@@ -159,10 +201,23 @@ public class SettingsView {
             config.setAirRaidRingDuration(bellSettingsPane.getAirRaidRingDuration());
             config.setAirRaidPauseDuration(bellSettingsPane.getAirRaidPauseDuration());
             config.setEmergencyDuration(bellSettingsPane.getEmergencyDuration());
+            
+            config.setAirRaidAutomationEnabled(airRaidToggle.isSelected());
+            config.setSelectedRegionId(regionCombo.getValue());
+            config.setSelectedDistrictId(districtCombo.getValue());
+            
             mainApp.saveConfig();
+            
+            if (config.isAirRaidAutomationEnabled()) {
+                airAlertService.start();
+            } else {
+                airAlertService.stop();
+            }
+            
             ToastService.showSuccess("Загальні налаштування збережено!");
         } catch (NumberFormatException e) {
             ToastService.showError("Некоректні дані: порт має бути числом.");
         }
     }
 }
+

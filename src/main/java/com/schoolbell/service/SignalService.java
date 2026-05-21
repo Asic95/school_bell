@@ -80,13 +80,21 @@ public class SignalService {
             isActionInProgress = true;
             addLog("ЗАПУСК СИГНАЛУ: ВІДБІЙ ПОВІТРЯНОЇ ТРИВОГИ", "SUCCESS");
             try {
-                // Дзеркально повторюємо логіку тривоги: 3 цикли
                 for (int i = 1; i <= 3; i++) {
                     relayController.turnOn();
                     Thread.sleep(configService.getAirRaidRingDuration() * 1000L);
                     relayController.turnOff();
                     if (i < 3) Thread.sleep(configService.getAirRaidPauseDuration() * 1000L);
                 }
+                
+                if (configService.isAudioAirRaidEnabled()) {
+                    String clearPath = configService.getAudioAirRaidClearPath();
+                    if (clearPath != null && !clearPath.isBlank()) {
+                        Thread.sleep(1500);
+                        audioService.playAudioFile(clearPath);
+                    }
+                }
+                
                 currentAlertType = "NONE";
                 addLog("Відбій тривоги завершено.", "SUCCESS");
             } catch (InterruptedException e) {

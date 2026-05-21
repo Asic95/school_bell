@@ -28,6 +28,7 @@ import java.util.List;
 
 import static com.schoolbell.ui.CardFactory.createHelpCard;
 import static com.schoolbell.ui.CardFactory.createSideHelpPanel;
+import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.ControlFactory.createTimeCombo;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
@@ -49,12 +50,13 @@ public class BellsEditorTab {
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
         Button saveBtn = createPrimaryActionButton("Зберегти зміни", ICON_SAVE);
-        VBox headerArea = createSectionHeader(
-                "Налаштування дзвінків",
-                "Створюйте та редагуйте розклади уроків для вашого закладу",
-                "#0984e3",
-                ICON_BELL,
-                saveBtn
+        HBox header = createPageHeader(
+            "РОЗКЛАД ДЗВІНКІВ",
+            "Налаштування дзвінків",
+            "Створюйте та редагуйте розклади уроків для вашого закладу.",
+            ICON_BELL,
+            "#0984e3",
+            saveBtn
         );
 
         HBox contentLayout = new HBox(25);
@@ -164,39 +166,53 @@ public class BellsEditorTab {
         );
 
         contentLayout.getChildren().addAll(mainContent, rightColumn);
-        root.getChildren().addAll(headerArea, contentLayout);
+        root.getChildren().addAll(header, contentLayout);
 
         addBtn.setOnAction(e -> {
-            TextInputDialog dialog = new TextInputDialog("Новий розклад");
-            dialog.setTitle("Додати розклад");
-            dialog.setHeaderText("Введіть назву для нового розкладу");
-            dialog.showAndWait().ifPresent(name -> {
-                if (mainApp.getInternalSchedules().stream().anyMatch(s -> s.getName().equals(name))) {
-                    new Alert(Alert.AlertType.ERROR, "Розклад з такою назвою вже існує!").show();
-                    return;
-                }
-                mainApp.getInternalSchedules().add(new DaySchedule(name));
-                mainApp.getScheduleService().saveInternalSchedules(mainApp.getInternalSchedules());
-                refreshBells.run();
-                selector.setValue(name);
-            });
+            new com.schoolbell.ui.TextInputModalDialog(
+                    mainApp,
+                    "Додати розклад",
+                    "Введіть назву для нового розкладу дзвінків",
+                    "Новий розклад",
+                    "Назва розкладу",
+                    name -> {
+                        if (mainApp.getInternalSchedules().stream().anyMatch(s -> s.getName().equals(name))) {
+                            ToastService.showError("Розклад з такою назвою вже існує!");
+                            return;
+                        }
+                        mainApp.getInternalSchedules().add(new DaySchedule(name));
+                        mainApp.getScheduleService().saveInternalSchedules(mainApp.getInternalSchedules());
+                        refreshBells.run();
+                        selector.setValue(name);
+                        ToastService.showSuccess("Розклад '" + name + "' додано успішно");
+                    }
+            ).show();
         });
 
         renameBtn.setOnAction(e -> {
             String current = selector.getValue();
             if (current == null) return;
-            TextInputDialog dialog = new TextInputDialog(current);
-            dialog.setTitle("Перейменувати розклад");
-            dialog.setHeaderText("Введіть нову назву для розкладу");
-            dialog.showAndWait().ifPresent(newName -> {
-                mainApp.getInternalSchedules().stream()
-                        .filter(s -> s.getName().equals(current))
-                        .findFirst()
-                        .ifPresent(s -> s.setName(newName));
-                mainApp.getScheduleService().saveInternalSchedules(mainApp.getInternalSchedules());
-                refreshBells.run();
-                selector.setValue(newName);
-            });
+            new com.schoolbell.ui.TextInputModalDialog(
+                    mainApp,
+                    "Перейменувати розклад",
+                    "Введіть нову назву для поточного розкладу",
+                    current,
+                    "Нова назва",
+                    newName -> {
+                        if (mainApp.getInternalSchedules().stream().anyMatch(s -> s.getName().equals(newName) && !newName.equals(current))) {
+                            ToastService.showError("Розклад з такою назвою вже існує!");
+                            return;
+                        }
+                        mainApp.getInternalSchedules().stream()
+                                .filter(s -> s.getName().equals(current))
+                                .findFirst()
+                                .ifPresent(s -> s.setName(newName));
+                        mainApp.getScheduleService().saveInternalSchedules(mainApp.getInternalSchedules());
+                        refreshBells.run();
+                        selector.setValue(newName);
+                        ToastService.showSuccess("Розклад перейменовано на '" + newName + "'");
+                    }
+            ).show();
         });
 
         deleteBtn.setOnAction(e -> {

@@ -15,12 +15,14 @@ import static com.schoolbell.ui.UIStyles.*;
 public class LayoutUtils {
 
     public static VBox createSectionHeader(String title, String subtitle, String color, String svgPath, Node action) {
-        VBox iconBox = new VBox(createSVGIcon(svgPath, Color.web(color), 32));
+        VBox iconBox = new VBox(createSVGIcon(svgPath, Color.web(color), 24));
         iconBox.setAlignment(Pos.CENTER);
-        iconBox.setPrefSize(64, 64);
-        iconBox.setStyle("-fx-background-color: " + color + "15; -fx-background-radius: 16;");
+        iconBox.setPrefSize(54, 54);
+        iconBox.setMinSize(54, 54);
+        iconBox.setMaxSize(54, 54);
+        iconBox.setStyle("-fx-background-color: " + color + "15; -fx-background-radius: 18; -fx-border-color: " + color + "30; -fx-border-radius: 18; -fx-border-width: 1;");
 
-        VBox textStack = new VBox(4);
+        VBox textStack = new VBox(2);
         Label titleLabel = new Label(title.toUpperCase());
         titleLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 20px; -fx-text-fill: #2d3436; -fx-letter-spacing: 1.5px;");
         

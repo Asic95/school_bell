@@ -10,6 +10,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
 import static com.schoolbell.ui.CardFactory.createCardActionButton;
+import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
@@ -28,7 +29,15 @@ public class SubjectsEditorTab {
         content.setPadding(new Insets(30));
         content.setStyle("-fx-background-color: #f8f9fa;");
 
-        VBox headerArea = createSectionHeader("Перелік навчальних дисциплін", "Керуйте списком предметів для навчального процесу", "#00b894", ICON_BOOK);
+        HBox header = createPageHeader(
+            "ДОВІДНИК",
+            "Навчальні дисципліни",
+            "Керуйте переліком предметів, які викладаються у вашому закладі.",
+            ICON_BOOK,
+            "#00b894",
+            null
+        );
+
         TextField addField = new TextField();
         addField.setPromptText("Введіть назву предмета...");
         addField.setStyle(COMBO_STYLE);
@@ -114,7 +123,7 @@ public class SubjectsEditorTab {
                 refreshSubjects.run();
             }
         });
-        content.getChildren().addAll(headerArea, new HBox(15, addField, addBtn), scroll);
+        content.getChildren().addAll(header, new HBox(15, addField, addBtn), scroll);
         refreshSubjects.run();
 
         ScrollPane mainScroll = new ScrollPane(content);

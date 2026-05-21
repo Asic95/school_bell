@@ -19,9 +19,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
+
+import com.schoolbell.ui.SubstitutionEditorDialog;
+import com.schoolbell.ui.SubstitutionReportDialog;
 
 public class SubstitutionsEditorTab {
     private final MainApp mainApp;
@@ -43,7 +47,14 @@ public class SubstitutionsEditorTab {
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
-        VBox headerArea = createSectionHeader("Керування замінами", "Переглядайте, фільтруйте та керуйте замінами вчителів", "#e67e22", ICON_CLOCK);
+        HBox header = createPageHeader(
+            "ОПЕРАТИВНІ ЗМІНИ",
+            "Керування замінами",
+            "Переглядайте, фільтруйте та керуйте замінами вчителів у реальному часі.",
+            ICON_CLOCK,
+            "#e67e22",
+            null
+        );
 
         // Filter & Search Bar
         HBox actionToolbar = new HBox(20);
@@ -52,12 +63,12 @@ public class SubstitutionsEditorTab {
         Button addBtn = new Button("НОВА ЗАМІНА");
         addBtn.setGraphic(createSVGIcon(ICON_PLUS, Color.WHITE, 16));
         addBtn.setStyle(BTN_BASE + "-fx-background-color: " + COLOR_SUCCESS + "; -fx-padding: 10 20;");
-        addBtn.setOnAction(e -> parentDialog.openSubstitutionEditDialog(null, LocalDate.now(), refreshSubstitutions));
+        addBtn.setOnAction(e -> new SubstitutionEditorDialog(mainApp, null, LocalDate.now(), refreshSubstitutions).show());
 
         Button reportBtn = new Button("ЗВІТ");
         reportBtn.setGraphic(createSVGIcon(ICON_SAVE, Color.WHITE, 16));
         reportBtn.setStyle(BTN_BASE + "-fx-background-color: " + COLOR_PURPLE + "; -fx-padding: 10 20;");
-        reportBtn.setOnAction(e -> showReportDialog());
+        reportBtn.setOnAction(e -> new SubstitutionReportDialog(mainApp, reportService).show());
 
         TextField searchField = new TextField();
         searchField.setPromptText("Пошук за вчителем або класом...");
@@ -157,58 +168,8 @@ public class SubstitutionsEditorTab {
             }
         };
 
-        root.getChildren().addAll(headerArea, actionToolbar, scroll);
+        root.getChildren().addAll(header, actionToolbar, scroll);
         refreshSubstitutions.run();
         return root;
-    }
-
-    private void showReportDialog() {
-        Stage stage = new Stage();
-        stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-        stage.setTitle("Генерація звіту замін");
-
-        VBox root = new VBox(20);
-        root.setPadding(new Insets(25));
-        root.setStyle("-fx-background-color: white;");
-
-        Label header = new Label("ОБЕРІТЬ ПЕРІОД");
-        header.setStyle(HEADER_STYLE);
-
-        ComboBox<Month> monthPicker = new ComboBox<>();
-        monthPicker.getItems().addAll(Month.values());
-        monthPicker.setValue(LocalDate.now().getMonth());
-        monthPicker.setStyle(COMBO_STYLE);
-        monthPicker.setMaxWidth(Double.MAX_VALUE);
-        monthPicker.setConverter(new javafx.util.StringConverter<>() {
-            @Override
-            public String toString(Month m) {
-                if (m == null) return "";
-                String name = m.getDisplayName(java.time.format.TextStyle.FULL_STANDALONE, ukLocale);
-                return name.substring(0, 1).toUpperCase() + name.substring(1);
-            }
-            @Override
-            public Month fromString(String s) { return null; }
-        });
-
-        Spinner<Integer> yearPicker = new Spinner<>(2024, 2030, LocalDate.now().getYear());
-        yearPicker.setEditable(true);
-        yearPicker.setStyle(FIELD_STYLE);
-        yearPicker.setMaxWidth(Double.MAX_VALUE);
-
-        Button generateBtn = new Button("ЗГЕНЕРУВАТИ ТА ЗБЕРЕГТИ");
-        generateBtn.setStyle(BTN_BASE + "-fx-background-color: " + COLOR_SUCCESS + "; -fx-padding: 12;");
-        generateBtn.setMaxWidth(Double.MAX_VALUE);
-
-        generateBtn.setOnAction(e -> {
-            reportService.generateReport(monthPicker.getValue(), yearPicker.getValue());
-            stage.close();
-        });
-
-        Label monthL = new Label("Місяць:"); monthL.setStyle(HEADER_STYLE);
-        Label yearL = new Label("Рік:"); yearL.setStyle(HEADER_STYLE);
-        
-        root.getChildren().addAll(header, monthL, monthPicker, yearL, yearPicker, generateBtn);
-        stage.setScene(new Scene(root, 350, 350));
-        stage.show();
     }
 }
