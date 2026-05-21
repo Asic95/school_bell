@@ -7,10 +7,12 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import static com.schoolbell.ui.CardFactory.createManagementCard;
+import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIStyles.*;
 
@@ -26,11 +28,13 @@ public class SchoolView {
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
-        VBox headerArea = createSectionHeader(
-                "База школи",
-                "Керування академічними даними закладу: вчителі, класи та аудиторії",
-                COLOR_PRIMARY,
-                ICON_FOLDER
+        HBox header = createPageHeader(
+            "АКАДЕМІЧНІ ДАНІ",
+            "База школи",
+            "Керування академічними даними закладу: вчителі, предмети, класи та аудиторії.",
+            ICON_FOLDER,
+            COLOR_PRIMARY,
+            null
         );
 
         FlowPane grid = new FlowPane(25, 25);
@@ -44,7 +48,7 @@ public class SchoolView {
             createManagementCard("Аудиторії", "Перелік кабінетів та залів", ICON_ROOM, "#00cec9", "#e0fcfb", () -> mainApp.showEditorTab(7))
         );
         
-        root.getChildren().addAll(headerArea, grid);
+        root.getChildren().addAll(header, grid);
         
         ScrollPane scroll = new ScrollPane(root);
         scroll.setFitToWidth(true);

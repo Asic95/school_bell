@@ -13,6 +13,7 @@ import javafx.scene.paint.Color;
 import java.util.List;
 
 import static com.schoolbell.ui.CardFactory.createCardActionButton;
+import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.LayoutUtils.createAvatar;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
@@ -32,7 +33,14 @@ public class TeachersEditorTab {
         content.setPadding(new Insets(30));
         content.setStyle("-fx-background-color: #f8f9fa;");
 
-        VBox headerArea = createSectionHeader("Керування викладацьким складом", "Додавайте, редагуйте та призначайте предмети вчителям", "#0984e3", ICON_PERSON);
+        HBox header = createPageHeader(
+            "ПЕРСОНАЛ",
+            "Викладацький склад",
+            "Керування списком вчителів, їх спеціалізацією та закріпленими предметами.",
+            ICON_PERSON,
+            "#0984e3",
+            null
+        );
 
         TextField addField = new TextField();
         addField.setPromptText("Введіть ПІБ вчителя...");
@@ -131,7 +139,7 @@ public class TeachersEditorTab {
             }
         });
 
-        content.getChildren().addAll(headerArea, new HBox(15, addField, addBtn), cardsContainer);
+        content.getChildren().addAll(header, new HBox(15, addField, addBtn), cardsContainer);
         refreshTeachers.run();
 
         ScrollPane mainScroll = new ScrollPane(content);

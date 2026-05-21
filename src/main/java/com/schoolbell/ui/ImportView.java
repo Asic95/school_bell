@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.schoolbell.ui.CardFactory.createHelpCard;
+import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
@@ -70,11 +71,13 @@ public class ImportView {
         VBox root = new VBox(25);
         root.setPadding(new Insets(30));
 
-        VBox headerArea = createSectionHeader(
-                "Імпорт даних",
-                "Завантаження розкладу та довідників із зовнішніх джерел",
-                COLOR_PURPLE,
-                ICON_FOLDER
+        HBox header = createPageHeader(
+            "РОБОТА З ДАНИМИ",
+            "Імпорт даних",
+            "Завантаження розкладу та довідників із зовнішніх джерел (NZ.UA, Excel).",
+            ICON_FOLDER,
+            COLOR_PURPLE,
+            null
         );
 
         HBox settingsRow = new HBox(25);
@@ -132,7 +135,7 @@ public class ImportView {
             createHelpCard(ICON_SETTINGS, "Оновлення даних", "Якщо в розкладі з'явився новий предмет, система автоматично додасть цей зв'язок.", COLOR_SUCCESS)
         );
 
-        root.getChildren().addAll(headerArea, settingsRow, dropZone, helpRow);
+        root.getChildren().addAll(header, settingsRow, dropZone, helpRow);
         return root;
     }
 
@@ -164,11 +167,13 @@ public class ImportView {
         reviewContent.setPadding(new Insets(30));
         reviewContent.setSpacing(30);
 
-        VBox headerArea = createSectionHeader(
-                "Аналіз завершено",
-                "Ми розпізнали структуру файлу. Перевірте оновлення перед імпортом.",
-                COLOR_SUCCESS,
-                ICON_CHECK
+        HBox header = createPageHeader(
+            "АНАЛІЗ ФАЙЛУ",
+            "Аналіз завершено",
+            "Ми розпізнали структуру файлу. Перевірте оновлення перед імпортом.",
+            ICON_CHECK,
+            COLOR_SUCCESS,
+            null
         );
 
         // Summary Cards Row
@@ -229,7 +234,9 @@ public class ImportView {
 
         actions.getChildren().addAll(cancelBtn, applyBtn);
 
-        reviewContent.getChildren().addAll(headerArea, summaryRow, detailsBox, actions);
+        reviewContent.getChildren().addAll(header, summaryRow, detailsBox, actions);
+
+
         
         mainContent.setVisible(false);
         mainContent.setManaged(false);

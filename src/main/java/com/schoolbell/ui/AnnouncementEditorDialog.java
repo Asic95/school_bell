@@ -10,6 +10,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -21,6 +22,8 @@ import java.util.stream.Collectors;
 
 import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.UIStyles.*;
+
+import javafx.stage.StageStyle;
 
 public class AnnouncementEditorDialog {
     private final AnnouncementService announcementService;
@@ -34,11 +37,12 @@ public class AnnouncementEditorDialog {
     public void show(Announcement a) {
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setTitle(a == null ? "Нове оголошення" : "Редагування оголошення");
+        stage.initStyle(StageStyle.TRANSPARENT);
 
         VBox root = new VBox(25);
-        root.setPadding(new Insets(30));
-        root.setStyle("-fx-background-color: " + COLOR_BG + ";");
+        root.setPadding(new Insets(35));
+        root.setStyle(SOFT_CARD + "-fx-background-radius: 32; -fx-border-radius: 32; -fx-border-width: 2; -fx-border-color: #e2e8f0;");
+        root.setPrefWidth(650);
 
         HBox header = createPageHeader(
             a == null ? "СТВОРЕННЯ" : "РЕДАГУВАННЯ",
@@ -56,13 +60,13 @@ public class AnnouncementEditorDialog {
         
         String textAreaBaseStyle = 
             "-fx-font-family: 'Inter'; -fx-font-size: 15px; " +
-            "-fx-control-inner-background: white; " + // Inner area background
+            "-fx-control-inner-background: white; " +
             "-fx-background-color: white; " +
             "-fx-background-radius: 14; " +
             "-fx-border-color: #e2e8f0; " +
             "-fx-border-radius: 14; " +
             "-fx-padding: 8; " +
-            "-fx-text-box-border: transparent; " + // Removes default gray line
+            "-fx-text-box-border: transparent; " +
             "-fx-focus-color: transparent; " +
             "-fx-faint-focus-color: transparent;";
             
@@ -75,8 +79,6 @@ public class AnnouncementEditorDialog {
                 textArea.setStyle(textAreaBaseStyle);
             }
         });
-
-        VBox content = new VBox(20);
 
         // Period Section
         DatePicker startPicker = new DatePicker(a != null ? a.startDate() : LocalDate.now());
@@ -98,10 +100,10 @@ public class AnnouncementEditorDialog {
         ComboBox<String> endH = createTimeCombo(24, et.getHour());
         ComboBox<String> endM = createTimeCombo(60, et.getMinute());
 
-        Label startHL = new Label("год."); startHL.setMinWidth(Region.USE_PREF_SIZE);
-        Label startML = new Label("хв."); startML.setMinWidth(Region.USE_PREF_SIZE);
-        Label endHL = new Label("год."); endHL.setMinWidth(Region.USE_PREF_SIZE);
-        Label endML = new Label("хв."); endML.setMinWidth(Region.USE_PREF_SIZE);
+        Label startHL = new Label("год.");
+        Label startML = new Label("хв.");
+        Label endHL = new Label("год.");
+        Label endML = new Label("хв.");
         
         String labelStyle = "-fx-font-size: 13px; -fx-text-fill: #64748b; -fx-font-weight: normal;";
         startHL.setStyle(labelStyle); startML.setStyle(labelStyle);
@@ -118,7 +120,7 @@ public class AnnouncementEditorDialog {
         );
 
         // Days Section
-        HBox daysBox = new HBox(18); // Increased spacing between checkboxes
+        HBox daysBox = new HBox(18);
         daysBox.setAlignment(Pos.CENTER_LEFT);
         String[] dayNames = {"ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "НД"};
         List<CheckBox> dayCbs = new ArrayList<>();
@@ -132,14 +134,19 @@ public class AnnouncementEditorDialog {
 
         VBox daysSection = createLabeledField("ДНІ ТИЖНЯ", daysBox);
 
-        // Grouping into a single card
         VBox formCard = createModernSettingsGroup("РОЗКЛАД ПОКАЗУ", ICON_CALENDAR, "#6c5ce7", new VBox(20, dateRow, timeRow, daysSection));
 
         CheckBox activeCb = new CheckBox("Це оголошення зараз активне");
         activeCb.setSelected(a == null || a.isActive());
 
+        HBox actions = new HBox(15);
+        actions.setAlignment(Pos.CENTER_RIGHT);
+
+        Button cancelBtn = new Button("СКАСУВАТИ");
+        cancelBtn.setStyle("-fx-background-color: #f1f2f6; -fx-text-fill: #636e72; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 14; -fx-cursor: hand;");
+        cancelBtn.setOnAction(e -> stage.close());
+
         Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ОГОЛОШЕННЯ", ICON_SAVE);
-        saveBtn.setMaxWidth(Double.MAX_VALUE);
         saveBtn.setOnAction(ev -> {
             String text = textArea.getText().trim();
             if (text.isEmpty()) {
@@ -172,9 +179,11 @@ public class AnnouncementEditorDialog {
             ToastService.showSuccess("Оголошення збережено успішно");
         });
 
-        root.getChildren().addAll(header, createLabeledField("ТЕКСТ ПОВІДОМЛЕННЯ", textArea), formCard, activeCb, saveBtn);
+        actions.getChildren().addAll(cancelBtn, saveBtn);
+        root.getChildren().addAll(header, createLabeledField("ТЕКСТ ПОВІДОМЛЕННЯ", textArea), formCard, activeCb, actions);
 
-        Scene scene = new Scene(root, 620, 800);
+        Scene scene = new Scene(root);
+        scene.setFill(Color.TRANSPARENT);
         scene.getStylesheets().addAll(
             "data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"),
             "data:text/css," + MODERN_CHECKBOX_STYLE.replace(" ", "%20")

@@ -14,6 +14,8 @@ public class ConfigService {
 
     // Audio
     private String audioAirRaidPath = "";
+    private String audioAirRaidClearPath = "";
+    private String audioAirRaidErrorPath = "";
     private boolean isAudioAirRaidEnabled = false;
     private String audioEmergencyPath = "";
     private boolean isAudioEmergencyEnabled = false;
@@ -28,6 +30,9 @@ public class ConfigService {
     // Broadcast
     private boolean isBroadcastEnabled = false;
     private int broadcastPort = 8080;
+    private boolean isAirRaidAutomationEnabled = false;
+    private String selectedRegionId = null;
+    private String selectedDistrictId = null;
     private String schoolName = "Ліцей №24";
     private String cityName = "Київ";
     private String announcementText = "Вітаємо у системі School Bell!";
@@ -45,6 +50,8 @@ public class ConfigService {
         airRaidPauseDuration = Integer.parseInt(DatabaseManager.getSetting("dur.arPause", "1"));
         emergencyDuration = Integer.parseInt(DatabaseManager.getSetting("dur.emergency", "12"));
         audioAirRaidPath = DatabaseManager.getSetting("audio.arPath", "");
+        audioAirRaidClearPath = DatabaseManager.getSetting("audio.arClearPath", "");
+        audioAirRaidErrorPath = DatabaseManager.getSetting("audio.arErrorPath", "");
         isAudioAirRaidEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("audio.arEnabled", "false"));
         audioEmergencyPath = DatabaseManager.getSetting("audio.emPath", "");
         isAudioEmergencyEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("audio.emEnabled", "false"));
@@ -57,6 +64,10 @@ public class ConfigService {
         systemVolume = Integer.parseInt(DatabaseManager.getSetting("audio.volume", "70"));
         isBroadcastEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("broadcast.enabled", "false"));
         broadcastPort = Integer.parseInt(DatabaseManager.getSetting("broadcast.port", "8080"));
+        // Air Raid Automation
+        isAirRaidAutomationEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("airAutomation.enabled", "false"));
+        selectedRegionId = DatabaseManager.getSetting("airAutomation.region", null);
+        selectedDistrictId = DatabaseManager.getSetting("airAutomation.district", null);
         schoolName = DatabaseManager.getSetting("school.name", "Ліцей №24");
         cityName = DatabaseManager.getSetting("school.city", "Київ");
         announcementText = DatabaseManager.getSetting("school.announcement", "Вітаємо у системі School Bell!");
@@ -74,6 +85,8 @@ public class ConfigService {
         DatabaseManager.saveSetting("dur.arPause", String.valueOf(airRaidPauseDuration));
         DatabaseManager.saveSetting("dur.emergency", String.valueOf(emergencyDuration));
         DatabaseManager.saveSetting("audio.arPath", audioAirRaidPath);
+        DatabaseManager.saveSetting("audio.arClearPath", audioAirRaidClearPath);
+        DatabaseManager.saveSetting("audio.arErrorPath", audioAirRaidErrorPath);
         DatabaseManager.saveSetting("audio.arEnabled", String.valueOf(isAudioAirRaidEnabled));
         DatabaseManager.saveSetting("audio.emPath", audioEmergencyPath);
         DatabaseManager.saveSetting("audio.emEnabled", String.valueOf(isAudioEmergencyEnabled));
@@ -92,6 +105,9 @@ public class ConfigService {
         DatabaseManager.saveSetting("system.simulation", String.valueOf(isSimulationMode));
         DatabaseManager.saveSetting("system.autostart", String.valueOf(isAutostartEnabled));
         DatabaseManager.saveSetting("system.tray", String.valueOf(isMinimizeToTray));
+        DatabaseManager.saveSetting("airAutomation.enabled", String.valueOf(isAirRaidAutomationEnabled));
+        DatabaseManager.saveSetting("airAutomation.region", selectedRegionId != null ? selectedRegionId : "");
+        DatabaseManager.saveSetting("airAutomation.district", selectedDistrictId != null ? selectedDistrictId : "");
         DatabaseManager.saveSetting("system.dashboardTheme", dashboardTheme);
         logger.info("Configuration saved to database.");
     }
@@ -107,6 +123,10 @@ public class ConfigService {
     public void setEmergencyDuration(int emergencyDuration) { this.emergencyDuration = emergencyDuration; }
     public String getAudioAirRaidPath() { return audioAirRaidPath; }
     public void setAudioAirRaidPath(String audioAirRaidPath) { this.audioAirRaidPath = audioAirRaidPath; }
+    public String getAudioAirRaidClearPath() { return audioAirRaidClearPath; }
+    public void setAudioAirRaidClearPath(String audioAirRaidClearPath) { this.audioAirRaidClearPath = audioAirRaidClearPath; }
+    public String getAudioAirRaidErrorPath() { return audioAirRaidErrorPath; }
+    public void setAudioAirRaidErrorPath(String audioAirRaidErrorPath) { this.audioAirRaidErrorPath = audioAirRaidErrorPath; }
     public boolean isAudioAirRaidEnabled() { return isAudioAirRaidEnabled; }
     public void setAudioAirRaidEnabled(boolean audioAirRaidEnabled) { isAudioAirRaidEnabled = audioAirRaidEnabled; }
     public String getAudioEmergencyPath() { return audioEmergencyPath; }
@@ -147,6 +167,12 @@ public class ConfigService {
     public void setAutostartEnabled(boolean autostartEnabled) { isAutostartEnabled = autostartEnabled; }
     public boolean isMinimizeToTray() { return isMinimizeToTray; }
     public void setMinimizeToTray(boolean minimizeToTray) { isMinimizeToTray = minimizeToTray; }
-    public String getDashboardTheme() { return dashboardTheme; }
+    public boolean isAirRaidAutomationEnabled() { return isAirRaidAutomationEnabled; }
+    public void setAirRaidAutomationEnabled(boolean enabled) { this.isAirRaidAutomationEnabled = enabled; }
+    public String getSelectedRegionId() { return selectedRegionId; }
+    public void setSelectedRegionId(String regionId) { this.selectedRegionId = regionId; }
+    public String getSelectedDistrictId() { return selectedDistrictId; }
+    public void setSelectedDistrictId(String districtId) { this.selectedDistrictId = districtId; }
     public void setDashboardTheme(String dashboardTheme) { this.dashboardTheme = dashboardTheme; }
+    public String getDashboardTheme() { return dashboardTheme; }
 }
