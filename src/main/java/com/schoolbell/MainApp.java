@@ -108,15 +108,7 @@ public class MainApp extends Application {
         systemService = new SystemService(configService);
         mediaSchedulerService = new MediaSchedulerService(this);
 
-        if (configService.isBroadcastEnabled()) {
-            try {
-                broadcastService = new BroadcastService(configService.getBroadcastPort() + 2);
-                broadcastService.start();
-                startHttpServer(configService.getBroadcastPort());
-            } catch (Exception e) {
-                logger.error("Failed to start broadcast server", e);
-            }
-        }
+        startBroadcastServers();
 
         primaryStage.setTitle("SchoolBell Dashboard v4.0");
 
@@ -350,10 +342,48 @@ public class MainApp extends Application {
         }
     }
 
+    public void startBroadcastServers() {
+        stopBroadcastServers();
+        
+        if (configService.isBroadcastEnabled()) {
+            try {
+                broadcastService = new BroadcastService(configService.getBroadcastPort() + 2);
+                broadcastService.start();
+                startHttpServer(configService.getBroadcastPort());
+                logger.info("Broadcast servers started successfully.");
+            } catch (Exception e) {
+                logger.error("Failed to start broadcast server", e);
+            }
+        }
+    }
+
+    public void stopBroadcastServers() {
+        if (httpServer != null) {
+            try {
+                httpServer.stop(0);
+                logger.info("HTTP Server stopped.");
+            } catch (Exception e) {
+                logger.error("Failed to stop HTTP server", e);
+            } finally {
+                httpServer = null;
+            }
+        }
+        if (broadcastService != null) {
+            try {
+                broadcastService.stop(1000);
+                logger.info("Broadcast WebSocket Server stopped.");
+            } catch (Exception e) {
+                logger.error("Failed to stop Broadcast WebSocket Server", e);
+            } finally {
+                broadcastService = null;
+            }
+        }
+    }
+
     @Override public void stop() { 
         relayController.close(); 
         scheduler.shutdown(); 
-        if (httpServer != null) httpServer.stop(0);
+        stopBroadcastServers();
         if (audioService != null) audioService.stopAll();
     }
     private void initTray() {
