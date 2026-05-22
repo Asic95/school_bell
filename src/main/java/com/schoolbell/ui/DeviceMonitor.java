@@ -125,9 +125,13 @@ public class DeviceMonitor {
         
         HBox statusLine = new HBox(6);
         statusLine.setAlignment(Pos.CENTER_LEFT);
-        Circle dot = new Circle(4, Color.web(isActive ? COLOR_SUCCESS : COLOR_DANGER));
-        Label status = new Label(device.isBanned() ? "ЗАБЛОКОВАНО" : (isActive ? "В мережі" : "Поза мережею"));
-        status.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: " + (isActive ? COLOR_SUCCESS : COLOR_TEXT_DIM) + ";");
+        
+        String statusColor = device.isBanned() ? COLOR_TEXT_DIM : (isActive ? COLOR_SUCCESS : COLOR_DANGER);
+        String statusTxt = device.isBanned() ? "ЗАБЛОКОВАНО" : (isActive ? "В мережі" : "Поза мережею");
+        
+        Circle dot = new Circle(4, Color.web(statusColor));
+        Label status = new Label(statusTxt);
+        status.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: " + statusColor + ";");
         statusLine.getChildren().addAll(dot, status);
         netBox.getChildren().addAll(ip, statusLine);
 
@@ -150,6 +154,7 @@ public class DeviceMonitor {
         actions.getChildren().addAll(editBtn, banBtn, delBtn);
         
         row.getChildren().addAll(deviceBox, netBox, lastSeenText, actions);
+        if (device.isBanned()) row.setOpacity(0.7);
         
         row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: #fafafa; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 1 0; -fx-cursor: hand;"));
         row.setOnMouseExited(e -> row.setStyle("-fx-background-color: white; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 1 0;"));

@@ -140,7 +140,7 @@ public class DashboardView {
         // --- MIDDLE ROW ---
         VBox heroCard = new VBox(25);
         heroCard.setPadding(new Insets(30));
-        heroCard.setStyle(SOFT_CARD);
+        heroCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e4e4e7; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 2);");
         heroCard.setCache(true);
         heroCard.setCacheHint(CacheHint.SPEED);
         
@@ -220,9 +220,9 @@ public class DashboardView {
 
         VBox nextEventCard = new VBox(20);
         nextEventCard.setPadding(new Insets(30));
-        nextEventCard.setStyle(SOFT_CARD);
+        nextEventCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e4e4e7; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 2);");
         nextEventCard.setCache(true);
-        nextEventCard.setCacheHint(CacheHint.QUALITY);
+        nextEventCard.setCacheHint(CacheHint.SPEED);
         
         Label nextHeader = new Label("НАСТУПНА ПОДІЯ");
         nextHeader.setStyle(HEADER_STYLE);
@@ -282,9 +282,9 @@ public class DashboardView {
         VBox quickActionsCard = new VBox(15, new Label("ШВИДКІ ДІЇ"), actionsBox);
         ((Label)quickActionsCard.getChildren().get(0)).setStyle(HEADER_STYLE);
         quickActionsCard.setPadding(new Insets(25));
-        quickActionsCard.setStyle(SOFT_CARD);
+        quickActionsCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e4e4e7; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 2);");
         quickActionsCard.setCache(true);
-        quickActionsCard.setCacheHint(CacheHint.QUALITY);
+        quickActionsCard.setCacheHint(CacheHint.SPEED);
         grid.add(quickActionsCard, 0, 2, 2, 1);
 
         HBox infoRow = new HBox(20);

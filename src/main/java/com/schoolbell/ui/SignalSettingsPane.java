@@ -23,6 +23,8 @@ import javafx.scene.text.TextAlignment;
 import java.net.URL;
 import java.util.List;
 
+import static com.schoolbell.ui.UIStyles.*;
+
 public class SignalSettingsPane extends StackPane {
     private final IntegerProperty regularDuration = new SimpleIntegerProperty();
     private final IntegerProperty airRaidRingDuration = new SimpleIntegerProperty();
@@ -46,7 +48,14 @@ public class SignalSettingsPane extends StackPane {
 
         if (!embedded) {
             container.getStyleClass().add("bell-settings-container");
-            container.getChildren().add(buildHeader());
+            container.getChildren().add(ControlFactory.createPageHeader(
+                "НАЛАШТУВАННЯ",
+                "Сигнали та сповіщення",
+                "Налаштування тривалості та візуалізація сигналів дзвінків та тривоги.",
+                ICON_AIR_RAID,
+                "#f39c12",
+                null
+            ));
         } else {
             container.getStyleClass().add("bell-settings-content-only");
         }

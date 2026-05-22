@@ -16,6 +16,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.SVGPath;
 
 import java.util.List;
 
@@ -76,6 +77,8 @@ public class SystemView {
                 config.getAirRaidRingDuration(),
                 config.getAirRaidPauseDuration(),
                 config.getEmergencyDuration(),
+                config.getEarlyBellMinutes(),
+                config.getEarlyBellSeconds(),
                 true
         );
 
@@ -240,6 +243,9 @@ public class SystemView {
             config.setAirRaidAutomationEnabled(airRaidTg.isSelected());
             config.setSelectedRegionId(regionCombo.getValue());
             config.setSelectedDistrictId(districtCombo.getValue());
+
+            config.setEarlyBellMinutes(bellSettingsPane.getEarlyMin());
+            config.setEarlyBellSeconds(bellSettingsPane.getEarlySec());
 
             config.setRegularBellDuration(bellSettingsPane.getRegularDuration());
             config.setAirRaidRingDuration(bellSettingsPane.getAirRaidRingDuration());

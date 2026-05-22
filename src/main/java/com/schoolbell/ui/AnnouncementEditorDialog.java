@@ -39,19 +39,20 @@ public class AnnouncementEditorDialog {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initStyle(StageStyle.TRANSPARENT);
 
-        VBox root = new VBox(25);
+        VBox root = new VBox(28);
         root.setPadding(new Insets(35));
         root.setStyle(SOFT_CARD + "-fx-background-radius: 32; -fx-border-radius: 32; -fx-border-width: 2; -fx-border-color: #e2e8f0;");
         root.setPrefWidth(650);
 
-        HBox header = createPageHeader(
-            a == null ? "СТВОРЕННЯ" : "РЕДАГУВАННЯ",
-            "Параметри оголошення",
-            "Налаштуйте текст та розклад відображення повідомлення.",
-            ICON_BROADCAST,
-            "#6c5ce7",
-            null
-        );
+        // --- SIMPLIFIED HEADER (NO ICON BOX) ---
+        VBox headerText = new VBox(2);
+        Label eb = new Label((a == null ? "СТВОРЕННЯ" : "РЕДАГУВАННЯ").toUpperCase());
+        eb.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: #64748b; -fx-letter-spacing: 1.2px;");
+        Label t = new Label("Параметри оголошення");
+        t.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 32px; -fx-font-weight: 700; -fx-text-fill: #0f172a;");
+        Label s = new Label("Налаштуйте текст та розклад відображення повідомлення.");
+        s.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-text-fill: #64748b;");
+        headerText.getChildren().addAll(eb, t, s);
 
         TextArea textArea = new TextArea(a != null ? a.text() : "");
         textArea.setPromptText("Введіть текст оголошення тут...");
@@ -93,7 +94,7 @@ public class AnnouncementEditorDialog {
 
         // Time Section
         LocalTime st = a != null && a.startTime() != null ? a.startTime() : LocalTime.of(8, 0);
-        LocalTime et = a != null && a.endTime() != null ? a.endTime() : LocalTime.of(18, 0);
+        LocalTime et = a != null && a.endTime() != null ? et = a.endTime() : LocalTime.of(18, 0);
         
         ComboBox<String> startH = createTimeCombo(24, st.getHour());
         ComboBox<String> startM = createTimeCombo(60, st.getMinute());
@@ -134,7 +135,11 @@ public class AnnouncementEditorDialog {
 
         VBox daysSection = createLabeledField("ДНІ ТИЖНЯ", daysBox);
 
-        VBox formCard = createModernSettingsGroup("РОЗКЛАД ПОКАЗУ", ICON_CALENDAR, "#6c5ce7", new VBox(20, dateRow, timeRow, daysSection));
+        // --- FLATTENED SCHEDULE SECTION (NO INNER BLOCK) ---
+        VBox scheduleSettings = new VBox(22);
+        Label scheduleHeader = new Label("РОЗКЛАД ПОКАЗУ");
+        scheduleHeader.setStyle("-fx-font-size: 13px; -fx-font-weight: 800; -fx-text-fill: #64748b; -fx-letter-spacing: 0.5px;");
+        scheduleSettings.getChildren().addAll(scheduleHeader, dateRow, timeRow, daysSection);
 
         CheckBox activeCb = new CheckBox("Це оголошення зараз активне");
         activeCb.setSelected(a == null || a.isActive());
@@ -180,7 +185,7 @@ public class AnnouncementEditorDialog {
         });
 
         actions.getChildren().addAll(cancelBtn, saveBtn);
-        root.getChildren().addAll(header, createLabeledField("ТЕКСТ ПОВІДОМЛЕННЯ", textArea), formCard, activeCb, actions);
+        root.getChildren().addAll(headerText, createLabeledField("ТЕКСТ ПОВІДОМЛЕННЯ", textArea), scheduleSettings, activeCb, actions);
 
         Scene scene = new Scene(root);
         scene.setFill(Color.TRANSPARENT);

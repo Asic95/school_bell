@@ -20,6 +20,7 @@ public class SignalService {
     private boolean isActionInProgress = false;
     private String currentAlertType = "NONE"; // NONE, AIR_RAID, EMERGENCY
     private Consumer<String> logConsumer;
+    private LocalTime lastEarlyBellMinute = null;
 
     public SignalService(RelayController relayController, AudioService audioService, ConfigService configService) {
         this.relayController = relayController;
@@ -198,6 +199,44 @@ public class SignalService {
                         }
                     }
                 }).start();
+            }
+        }
+
+        // --- Early Notification Bell Logic ---
+        int earlyMin = configService.getEarlyBellMinutes();
+        int earlySec = configService.getEarlyBellSeconds();
+        if ((earlyMin > 0 || earlySec > 0) && !isActionInProgress) {
+            LocalTime minuteOnly = now.truncatedTo(ChronoUnit.MINUTES);
+            // We only trigger if we haven't already triggered an early bell for this specific minute
+            if (lastEarlyBellMinute == null || !lastEarlyBellMinute.equals(minuteOnly)) {
+                for (BellEntry entry : schedule) {
+                    // Only for lesson starts
+                    if (entry.type().contains("початок")) {
+                        LocalTime triggerTime = entry.time().minusMinutes(earlyMin).minusSeconds(earlySec);
+                        
+                        // Check if now matches the triggerTime (with 1s tolerance)
+                        if (now.getHour() == triggerTime.getHour() && 
+                            now.getMinute() == triggerTime.getMinute() && 
+                            now.getSecond() == triggerTime.getSecond()) {
+                            
+                            lastEarlyBellMinute = minuteOnly;
+                            new Thread(() -> {
+                                isActionInProgress = true;
+                                try {
+                                    addLog("🔔 ЗАВЧАСНЕ СПОВІЩЕННЯ: " + entry.type(), "INFO");
+                                    relayController.turnOn();
+                                    Thread.sleep(configService.getRegularBellDuration() * 1000L);
+                                    relayController.turnOff();
+                                } catch (InterruptedException e) {
+                                    relayController.turnOff();
+                                } finally {
+                                    isActionInProgress = false;
+                                }
+                            }).start();
+                            break; // Only one early bell at a time
+                        }
+                    }
+                }
             }
         }
         

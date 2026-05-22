@@ -4,7 +4,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.CacheHint;
+import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
@@ -30,6 +30,8 @@ public class BellSettingsPane extends StackPane {
     private final IntegerProperty airRaidRingDuration = new SimpleIntegerProperty();
     private final IntegerProperty airRaidPauseDuration = new SimpleIntegerProperty();
     private final IntegerProperty emergencyDuration = new SimpleIntegerProperty();
+    private final IntegerProperty earlyMin = new SimpleIntegerProperty();
+    private final IntegerProperty earlySec = new SimpleIntegerProperty();
 
     public BellSettingsPane() {
         this(false);
@@ -48,7 +50,14 @@ public class BellSettingsPane extends StackPane {
 
         if (!embedded) {
             container.getStyleClass().add("bell-settings-container");
-            container.getChildren().add(buildHeader());
+            container.getChildren().add(ControlFactory.createPageHeader(
+                "НАЛАШТУВАННЯ",
+                "Розклад та дзвінки",
+                "Конфігурація тривалості сигналів та режимів роботи шкільної системи.",
+                ICON_CLOCK,
+                "#4f46e5",
+                null
+            ));
         } else {
             container.getStyleClass().add("bell-settings-content-only");
         }
@@ -65,33 +74,22 @@ public class BellSettingsPane extends StackPane {
         }
     }
 
-    public BellSettingsPane(int regular, int airRing, int airPause, int emergency) {
-        this(regular, airRing, airPause, emergency, false);
-    }
-
-    public BellSettingsPane(int regular, int airRing, int airPause, int emergency, boolean embedded) {
+    public BellSettingsPane(int regular, int airRing, int airPause, int emergency, int earlyM, int earlyS, boolean embedded) {
         this(embedded);
         regularDuration.set(regular);
         airRaidRingDuration.set(airRing);
         airRaidPauseDuration.set(airPause);
         emergencyDuration.set(emergency);
+        earlyMin.set(earlyM);
+        earlySec.set(earlyS);
     }
 
-    public int getRegularDuration() {
-        return regularDuration.get();
-    }
-
-    public int getAirRaidRingDuration() {
-        return airRaidRingDuration.get();
-    }
-
-    public int getAirRaidPauseDuration() {
-        return airRaidPauseDuration.get();
-    }
-
-    public int getEmergencyDuration() {
-        return emergencyDuration.get();
-    }
+    public int getRegularDuration() { return regularDuration.get(); }
+    public int getAirRaidRingDuration() { return airRaidRingDuration.get(); }
+    public int getAirRaidPauseDuration() { return airRaidPauseDuration.get(); }
+    public int getEmergencyDuration() { return emergencyDuration.get(); }
+    public int getEarlyMin() { return earlyMin.get(); }
+    public int getEarlySec() { return earlySec.get(); }
 
     private void applyStylesheet() {
         URL css = BellSettingsPane.class.getResource("bell-settings.css");
@@ -100,45 +98,30 @@ public class BellSettingsPane extends StackPane {
         }
     }
 
-    private HBox buildHeader() {
-        HBox header = new HBox(16);
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setPadding(new Insets(0, 0, 16, 0));
-
-        // Device Selection
-        HBox deviceBox = new HBox(8, icon("M2,14H4V16H2V14M6,10H8V20H6V10M10,4H12V22H10V4M14,12H16V18H14V12M18,8H20V20H18V8M22,14H24V16H22V14Z", "icon-muted"), new Label("Пристрій:")); // Placeholder for dropdown
-        deviceBox.setAlignment(Pos.CENTER_LEFT);
-
-        // Volume Segmented Control
-        HBox volumeBox = new HBox();
-        volumeBox.getStyleClass().add("segmented-control");
-        // Simplified representation of Segmented Control
-        String[] levels = {"ВИМК", "25%", "50%", "75%", "100%"};
-        for (String level : levels) {
-            Button btn = new Button(level);
-            if (level.equals("25%")) btn.getStyleClass().add("active");
-            volumeBox.getChildren().add(btn);
-        }
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        header.getChildren().addAll(deviceBox, spacer, volumeBox);
-        return header;
-    }
-
     private HBox buildRegularCard() {
-        DurationStepper duration = new DurationStepper(5, 1, 30);
+        DurationStepper duration = new DurationStepper(5, 1, 30, "сек");
         duration.getStyleClass().add("stepper-regular");
         duration.valueProperty().bindBidirectional(regularDuration);
 
-        WaveformCanvas waveform = new WaveformCanvas(WaveType.REGULAR, Color.web("#4A76FF"), duration.valueProperty(), null);
+        DurationStepper eMin = new DurationStepper(0, 0, 10, "хв");
+        DurationStepper eSec = new DurationStepper(0, 0, 59, "сек");
+        eMin.getStyleClass().add("stepper-regular");
+        eSec.getStyleClass().add("stepper-regular");
+        eMin.valueProperty().bindBidirectional(earlyMin);
+        eSec.valueProperty().bindBidirectional(earlySec);
+
+        VBox verticalControls = new VBox(16,
+                labeledControl("Тривалість основного сигналу", duration),
+                labeledControl("Завчасне сповіщення перед основним дзвінком", new HBox(8, eMin, eSec))
+        );
+
+        WaveformCanvas waveform = new WaveformCanvas(WaveType.REGULAR, Color.web("#4A76FF"), regularDuration, earlyMin, earlySec);
         HBox card = createCard(
                 "Звичайний дзвінок",
-                "Один безперервний сигнал",
+                "Сигнали уроків та завчасне сповіщення",
                 "M12,2A2,2 0 0,0 10,4A2,2 0 0,0 10,4.29C7.12,5.14 5,7.82 5,11V17L3,19V20H21V19L19,17V11C19,7.82 16.88,5.14 14,4.29C14,4.19 14,4.1 14,4A2,2 0 0,0 12,2M10,21A2,2 0 0,0 12,23A2,2 0 0,0 14,21H10Z",
                 "tone-regular",
-                List.of(labeledControl("Тривалість сигналу", duration)),
+                List.of(verticalControls),
                 waveform,
                 "ВІЗУАЛІЗАЦІЯ СИГНАЛУ",
                 "tone-text-regular"
@@ -147,8 +130,8 @@ public class BellSettingsPane extends StackPane {
     }
 
     private HBox buildAirRaidCard() {
-        DurationStepper ring = new DurationStepper(3, 1, 30);
-        DurationStepper pause = new DurationStepper(1, 1, 15);
+        DurationStepper ring = new DurationStepper(3, 1, 30, "сек");
+        DurationStepper pause = new DurationStepper(1, 1, 15, "сек");
         ring.getStyleClass().add("stepper-air");
         pause.getStyleClass().add("stepper-air");
         ring.valueProperty().bindBidirectional(airRaidRingDuration);
@@ -160,7 +143,7 @@ public class BellSettingsPane extends StackPane {
         );
         controlsRow.getStyleClass().add("multi-control-row");
 
-        WaveformCanvas waveform = new WaveformCanvas(WaveType.AIR_RAID, Color.web("#FF9D3F"), ring.valueProperty(), pause.valueProperty());
+        WaveformCanvas waveform = new WaveformCanvas(WaveType.AIR_RAID, Color.web("#FF9D3F"), ring.valueProperty(), pause.valueProperty(), null);
         HBox card = createCard(
                 "Повітряна тривога",
                 "Три коротких сигнали з паузами",
@@ -175,11 +158,11 @@ public class BellSettingsPane extends StackPane {
     }
 
     private HBox buildEmergencyCard() {
-        DurationStepper duration = new DurationStepper(15, 5, 60);
+        DurationStepper duration = new DurationStepper(15, 5, 60, "сек");
         duration.getStyleClass().add("stepper-emergency");
         duration.valueProperty().bindBidirectional(emergencyDuration);
 
-        WaveformCanvas waveform = new WaveformCanvas(WaveType.EMERGENCY, Color.web("#FF5F5F"), duration.valueProperty(), null);
+        WaveformCanvas waveform = new WaveformCanvas(WaveType.EMERGENCY, Color.web("#FF5F5F"), duration.valueProperty(), null, null);
         HBox card = createCard(
                 "Екстрена ситуація",
                 "Один тривалий безперервний сигнал",
@@ -203,7 +186,6 @@ public class BellSettingsPane extends StackPane {
             String previewLabel,
             String previewToneClass
     ) {
-        // Redesigned: Horizontal layout to match bells.png
         HBox card = new HBox(32);
         card.getStyleClass().add("bell-card");
         card.setMaxWidth(Double.MAX_VALUE);
@@ -214,7 +196,6 @@ public class BellSettingsPane extends StackPane {
         leftBlock.setMinWidth(350);
         leftBlock.setMaxWidth(350);
         
-        // Header Row: Icon + Title
         HBox headerRow = new HBox(12);
         headerRow.setAlignment(Pos.CENTER_LEFT);
         StackPane iconWrap = new StackPane(icon(iconPath, "card-icon"));
@@ -230,7 +211,6 @@ public class BellSettingsPane extends StackPane {
         titleBlock.getChildren().addAll(title, subtitle);
         headerRow.getChildren().addAll(iconWrap, titleBlock);
 
-        // Controls
         HBox controlsRow = new HBox(16);
         controlsRow.setAlignment(Pos.CENTER_LEFT);
         controlsRow.setPadding(new Insets(0, 0, 0, 60));
@@ -238,17 +218,15 @@ public class BellSettingsPane extends StackPane {
 
         leftBlock.getChildren().addAll(headerRow, controlsRow);
 
-        // Waveform on the right
         VBox rightBlock = new VBox(8);
         rightBlock.getChildren().addAll(waveform);
         HBox.setHgrow(rightBlock, Priority.ALWAYS);
 
         card.getChildren().addAll(leftBlock, rightBlock);
-        
         return card;
     }
 
-    private VBox labeledControl(String labelText, DurationStepper control) {
+    private VBox labeledControl(String labelText, Node control) {
         Label label = new Label(labelText);
         label.getStyleClass().add("control-label");
         VBox box = new VBox(6, label, control);
@@ -266,7 +244,7 @@ public class BellSettingsPane extends StackPane {
     private class DurationStepper extends HBox {
         private final IntegerProperty value = new SimpleIntegerProperty();
 
-        DurationStepper(int initial, int min, int max) {
+        DurationStepper(int initial, int min, int max, String unit) {
             getStyleClass().add("duration-stepper");
             setAlignment(Pos.CENTER_LEFT);
             setSpacing(8);
@@ -282,7 +260,7 @@ public class BellSettingsPane extends StackPane {
             Label valueLabel = new Label();
             valueLabel.getStyleClass().add("step-value");
             value.set(initial);
-            valueLabel.textProperty().bind(value.asString("%d сек"));
+            valueLabel.textProperty().bind(value.asString("%d " + unit));
             valueLabel.setTextAlignment(TextAlignment.CENTER);
 
             minus.setOnAction(e -> value.set(Math.max(min, value.get() - 1)));
@@ -290,9 +268,7 @@ public class BellSettingsPane extends StackPane {
             getChildren().addAll(minus, valueLabel, plus);
         }
 
-        IntegerProperty valueProperty() {
-            return value;
-        }
+        IntegerProperty valueProperty() { return value; }
     }
 
     private void setPlusMinusIcon(Button button, String path) {
@@ -311,45 +287,62 @@ public class BellSettingsPane extends StackPane {
         private final Canvas canvas = new Canvas();
         private final WaveType type;
         private final Color color;
-        private final IntegerProperty first;
-        private final IntegerProperty second;
-        private final Label sound1 = new Label();
-        private final Label pause1 = new Label();
-        private final Label sound2 = new Label();
-        private final Label pause2 = new Label();
-        private final Label sound3 = new Label();
+        private final IntegerProperty mainDur;
+        private final IntegerProperty extra1; // air: pause, regular: earlyMin
+        private final IntegerProperty extra2; // regular: earlySec
+        
+        private final Label label1 = new Label();
+        private final Label labelPause = new Label();
+        private final Label label2 = new Label();
+        private final Label labelPause2 = new Label();
+        private final Label label3 = new Label();
         private final Line divider1 = new Line();
         private final Line divider2 = new Line();
 
-        WaveformCanvas(WaveType type, Color color, IntegerProperty first, IntegerProperty second) {
+        WaveformCanvas(WaveType type, Color color, IntegerProperty mainDur, IntegerProperty extra1, IntegerProperty extra2) {
             this.type = type;
             this.color = color;
-            this.first = first;
-            this.second = second;
+            this.mainDur = mainDur;
+            this.extra1 = extra1;
+            this.extra2 = extra2;
             getStyleClass().add("wave-area");
             getChildren().add(canvas);
             setMinHeight(130);
             setPrefHeight(145);
 
-            if (type == WaveType.AIR_RAID) {
-                sound1.getStyleClass().addAll("wave-badge", "wave-badge-sound");
-                pause1.getStyleClass().addAll("wave-badge", "wave-badge-pause");
-                sound2.getStyleClass().addAll("wave-badge", "wave-badge-sound");
-                pause2.getStyleClass().addAll("wave-badge", "wave-badge-pause");
-                sound3.getStyleClass().addAll("wave-badge", "wave-badge-sound");
+            if (type == WaveType.AIR_RAID || type == WaveType.REGULAR) {
+                for (Label l : List.of(label1, labelPause, label2, labelPause2, label3)) {
+                    l.getStyleClass().add("wave-badge");
+                }
+                
+                if (type == WaveType.REGULAR) {
+                    label1.getStyleClass().add("wave-badge-regular-sound");
+                    label2.getStyleClass().add("wave-badge-regular-sound");
+                    label3.getStyleClass().add("wave-badge-regular-sound");
+                    labelPause.getStyleClass().add("wave-badge-regular-pause");
+                    labelPause2.getStyleClass().add("wave-badge-regular-pause");
+                } else {
+                    label1.getStyleClass().add("wave-badge-sound");
+                    label2.getStyleClass().add("wave-badge-sound");
+                    label3.getStyleClass().add("wave-badge-sound");
+                    labelPause.getStyleClass().add("wave-badge-pause");
+                    labelPause2.getStyleClass().add("wave-badge-pause");
+                }
+                
                 divider1.getStyleClass().add("pause-divider");
                 divider2.getStyleClass().add("pause-divider");
-                getChildren().addAll(divider1, divider2, sound1, pause1, sound2, pause2, sound3);
+                
+                getChildren().addAll(divider1, divider2, label1, labelPause, label2, labelPause2, label3);
             }
 
             widthProperty().addListener((obs, o, n) -> draw());
             heightProperty().addListener((obs, o, n) -> draw());
-            first.addListener((obs, o, n) -> draw());
-            if (second != null) second.addListener((obs, o, n) -> draw());
+            mainDur.addListener((obs, o, n) -> draw());
+            if (extra1 != null) extra1.addListener((obs, o, n) -> draw());
+            if (extra2 != null) extra2.addListener((obs, o, n) -> draw());
         }
 
-        @Override
-        protected void layoutChildren() {
+        @Override protected void layoutChildren() {
             super.layoutChildren();
             canvas.setWidth(getWidth());
             canvas.setHeight(getHeight());
@@ -366,11 +359,68 @@ public class BellSettingsPane extends StackPane {
             double chartBottom = h - 24;
             double chartHeight = chartBottom - chartTop;
 
+            label1.setVisible(false); labelPause.setVisible(false); label2.setVisible(false);
+            labelPause2.setVisible(false); label3.setVisible(false);
+            divider1.setVisible(false); divider2.setVisible(false);
+
             switch (type) {
-                case REGULAR -> drawContinuous(gc, w, chartTop, chartHeight, 6.0, 4.0, first.get(), false);
-                case AIR_RAID -> drawAirRaid(gc, w, chartTop, chartHeight, 6.0, 4.0, first.get(), second.get());
-                case EMERGENCY -> drawContinuous(gc, w, chartTop, chartHeight, 7.0, 3.0, first.get(), true);
+                case REGULAR -> drawRegular(gc, w, chartTop, chartHeight);
+                case AIR_RAID -> drawAirRaid(gc, w, chartTop, chartHeight);
+                case EMERGENCY -> drawContinuous(gc, w, chartTop, chartHeight, 7.0, 3.0, mainDur.get(), true);
             }
+        }
+
+        private void drawRegular(GraphicsContext gc, double w, double top, double h) {
+            int eMin = extra1.get();
+            int eSec = extra2.get();
+            int dur = mainDur.get();
+            boolean hasEarly = (eMin > 0 || eSec > 0);
+
+            if (!hasEarly) {
+                drawContinuous(gc, w, top, h, 6.0, 4.0, dur, false);
+                return;
+            }
+
+            label1.setVisible(true); labelPause.setVisible(true); label2.setVisible(true);
+            divider1.setVisible(true);
+
+            double barW = 6.0; double gap = 4.0;
+            double pauseW = 120.0; // Fixed symbolic pause width
+            double bellW = (w - START_X - 10 - pauseW) / 2.0;
+            bellW = Math.max(60, bellW);
+
+            gc.setFill(color.deriveColor(0, 1, 1, 0.9));
+            
+            // 1. Early Bell (First Section)
+            int bars1 = (int)(bellW / (barW+gap));
+            for (int i = 0; i < bars1; i++) {
+                double bh = h * (0.52 + noise(i, 1.3) * 0.28);
+                gc.fillRoundRect(START_X + i*(barW+gap), top+h-bh, barW, bh, 4, 4);
+            }
+            label1.setText("дзвінок " + dur + "с");
+            label1.setLayoutX(START_X + (bellW - 60)/2.0); label1.setLayoutY(8);
+
+            // 2. Pause (Center Section)
+            double pauseStartX = START_X + bellW;
+            divider1.setStartX(pauseStartX + pauseW/2.0);
+            divider1.setEndX(pauseStartX + pauseW/2.0);
+            divider1.setStartY(top+2); divider1.setEndY(top+h);
+            
+            labelPause.setText("пауза " + (eMin > 0 ? eMin + "хв " : "") + (eSec > 0 ? eSec + "с" : ""));
+            // Center pause label over the gap
+            labelPause.setLayoutX(pauseStartX + (pauseW - 80)/2.0); labelPause.setLayoutY(8);
+
+            // 3. Main Bell (Final Section)
+            double bell2StartX = pauseStartX + pauseW;
+            int bars2 = (int)(bellW / (barW+gap));
+            for (int i = 0; i < bars2; i++) {
+                double bh = h * (0.52 + noise(i+100, 1.3) * 0.28);
+                gc.fillRoundRect(bell2StartX + i*(barW+gap), top+h-bh, barW, bh, 4, 4);
+            }
+            label2.setText("дзвінок " + dur + "с");
+            label2.setLayoutX(bell2StartX + (bellW - 60)/2.0); label2.setLayoutY(8);
+
+            drawTimeline(gc, w, top + h + 12, new String[]{"-" + (eMin > 0 ? eMin + "хв " : "") + eSec + "с", "ПОЧАТОК УРОКУ"});
         }
 
         private void drawContinuous(GraphicsContext gc, double w, double top, double h, double barW, double gap, int duration, boolean dense) {
@@ -388,11 +438,18 @@ public class BellSettingsPane extends StackPane {
             drawTimeline(gc, w, top + h + 12, buildTimelineLabels(duration));
         }
 
-        private void drawAirRaid(GraphicsContext gc, double w, double top, double h, double barW, double gap, int soundSec, int pauseSec) {
+        private void drawAirRaid(GraphicsContext gc, double w, double top, double h) {
+            int soundSec = mainDur.get();
+            int pauseSec = extra1.get();
+            label1.setVisible(true); labelPause.setVisible(true); label2.setVisible(true);
+            labelPause2.setVisible(true); label3.setVisible(true);
+            divider1.setVisible(true); divider2.setVisible(true);
+
             int total = Math.max(1, soundSec * 3 + pauseSec * 2);
             double availableWidth = w - START_X - 10;
             double pxPerSec = availableWidth / total;
             double x = START_X;
+            double barW = 6.0; double gap = 4.0;
             gc.setFill(color.deriveColor(0, 1, 1, 0.92));
 
             for (int section = 0; section < 3; section++) {
@@ -403,24 +460,18 @@ public class BellSettingsPane extends StackPane {
                     double bh = h * Math.min(0.95, amp);
                     gc.fillRoundRect(x + i * (barW + gap), top + h - bh, barW, bh, 4, 4);
                 }
-
-                Label s = section == 0 ? sound1 : (section == 1 ? sound2 : sound3);
-                s.setText("звук " + soundSec + "с");
-                s.setLayoutX(x + secWidth * 0.35);
-                s.setLayoutY(8);
+                Label s = section == 0 ? label1 : (section == 1 ? label2 : label3);
+                s.setText("дзвінок " + soundSec + "с");
+                s.setLayoutX(x + (secWidth - 60) / 2.0); s.setLayoutY(8);
                 x += secWidth;
-
                 if (section < 2) {
                     double pauseWidth = pauseSec * pxPerSec;
                     Line d = section == 0 ? divider1 : divider2;
-                    d.setStartX(x + pauseWidth / 2.0);
-                    d.setEndX(x + pauseWidth / 2.0);
-                    d.setStartY(top + 2);
-                    d.setEndY(top + h);
-                    Label p = section == 0 ? pause1 : pause2;
+                    d.setStartX(x + pauseWidth / 2.0); d.setEndX(x + pauseWidth / 2.0);
+                    d.setStartY(top + 2); d.setEndY(top + h);
+                    Label p = section == 0 ? labelPause : labelPause2;
                     p.setText("пауза " + pauseSec + "с");
-                    p.setLayoutX(x + pauseWidth * 0.18);
-                    p.setLayoutY(8);
+                    p.setLayoutX(x + (pauseWidth - 70) / 2.0); p.setLayoutY(8);
                     x += pauseWidth;
                 }
             }
@@ -430,47 +481,29 @@ public class BellSettingsPane extends StackPane {
         private void drawTimeline(GraphicsContext gc, double w, double y, String[] labels) {
             gc.setFill(Color.web("#8B97A8"));
             gc.setFont(javafx.scene.text.Font.font("Inter", 11));
-            double leftPad = START_X;
-            double rightPad = 10;
-            double span = Math.max(1, w - leftPad - rightPad);
+            double leftPad = START_X; double span = Math.max(1, w - leftPad - 10);
             double step = labels.length > 1 ? span / (labels.length - 1) : 0;
             for (int i = 0; i < labels.length; i++) {
                 double x = leftPad + i * step;
-                if (i == 0) {
-                    gc.setTextAlign(TextAlignment.CENTER); // Changed to center for better alignment with START_X
-                } else if (i == labels.length - 1) {
-                    gc.setTextAlign(TextAlignment.RIGHT);
-                } else {
-                    gc.setTextAlign(TextAlignment.CENTER);
-                }
+                gc.setTextAlign(i == 0 ? TextAlignment.LEFT : (i == labels.length - 1 ? TextAlignment.RIGHT : TextAlignment.CENTER));
                 gc.fillText(labels[i], x, y);
             }
-            gc.setTextAlign(TextAlignment.LEFT);
         }
 
         private String[] buildTimelineLabels(int durationSec) {
             int duration = Math.max(1, durationSec);
             int points = duration <= 6 ? duration + 1 : 5;
-            if (points < 2) {
-                points = 2;
-            }
             String[] labels = new String[points];
             for (int i = 0; i < points; i++) {
-                int value = (int) Math.round((double) duration * i / (points - 1));
-                labels[i] = value + "с";
+                labels[i] = (int) Math.round((double) duration * i / (points - 1)) + "с";
             }
             return labels;
         }
 
-        private double normalized(double x) {
-            return (Math.sin(x) + 1.0) * 0.5;
-        }
-
         private double noise(int i, double seed) {
-            double a = normalized(i * 0.73 + seed);
-            double b = normalized(i * 1.91 + seed * 2.3);
-            double c = normalized(i * 2.47 + seed * 0.9);
-            return Math.min(1.0, (a * 0.5) + (b * 0.35) + (c * 0.15));
+            double a = (Math.sin(i * 0.73 + seed) + 1.0) * 0.5;
+            double b = (Math.sin(i * 1.91 + seed * 2.3) + 1.0) * 0.5;
+            return (a * 0.6 + b * 0.4);
         }
     }
 }

@@ -11,6 +11,8 @@ public class ConfigService {
     private int airRaidRingDuration = 3;
     private int airRaidPauseDuration = 1;
     private int emergencyDuration = 12;
+    private int earlyBellMinutes = 0;
+    private int earlyBellSeconds = 0;
 
     // Audio
     private String audioAirRaidPath = "";
@@ -49,6 +51,8 @@ public class ConfigService {
         airRaidRingDuration = Integer.parseInt(DatabaseManager.getSetting("dur.arRing", "3"));
         airRaidPauseDuration = Integer.parseInt(DatabaseManager.getSetting("dur.arPause", "1"));
         emergencyDuration = Integer.parseInt(DatabaseManager.getSetting("dur.emergency", "12"));
+        earlyBellMinutes = Integer.parseInt(DatabaseManager.getSetting("dur.earlyMin", "0"));
+        earlyBellSeconds = Integer.parseInt(DatabaseManager.getSetting("dur.earlySec", "0"));
         audioAirRaidPath = DatabaseManager.getSetting("audio.arPath", "");
         audioAirRaidClearPath = DatabaseManager.getSetting("audio.arClearPath", "");
         audioAirRaidErrorPath = DatabaseManager.getSetting("audio.arErrorPath", "");
@@ -84,6 +88,8 @@ public class ConfigService {
         DatabaseManager.saveSetting("dur.arRing", String.valueOf(airRaidRingDuration));
         DatabaseManager.saveSetting("dur.arPause", String.valueOf(airRaidPauseDuration));
         DatabaseManager.saveSetting("dur.emergency", String.valueOf(emergencyDuration));
+        DatabaseManager.saveSetting("dur.earlyMin", String.valueOf(earlyBellMinutes));
+        DatabaseManager.saveSetting("dur.earlySec", String.valueOf(earlyBellSeconds));
         DatabaseManager.saveSetting("audio.arPath", audioAirRaidPath);
         DatabaseManager.saveSetting("audio.arClearPath", audioAirRaidClearPath);
         DatabaseManager.saveSetting("audio.arErrorPath", audioAirRaidErrorPath);
@@ -121,6 +127,10 @@ public class ConfigService {
     public void setAirRaidPauseDuration(int airRaidPauseDuration) { this.airRaidPauseDuration = airRaidPauseDuration; }
     public int getEmergencyDuration() { return emergencyDuration; }
     public void setEmergencyDuration(int emergencyDuration) { this.emergencyDuration = emergencyDuration; }
+    public int getEarlyBellMinutes() { return earlyBellMinutes; }
+    public void setEarlyBellMinutes(int earlyBellMinutes) { this.earlyBellMinutes = earlyBellMinutes; }
+    public int getEarlyBellSeconds() { return earlyBellSeconds; }
+    public void setEarlyBellSeconds(int earlyBellSeconds) { this.earlyBellSeconds = earlyBellSeconds; }
     public String getAudioAirRaidPath() { return audioAirRaidPath; }
     public void setAudioAirRaidPath(String audioAirRaidPath) { this.audioAirRaidPath = audioAirRaidPath; }
     public String getAudioAirRaidClearPath() { return audioAirRaidClearPath; }

@@ -19,13 +19,16 @@ public class DeviceRow extends HBox {
         setAlignment(Pos.CENTER_LEFT);
         setSpacing(16);
         setPadding(new Insets(12, 0, 12, 0));
+        
+        boolean isBanned = device.isBanned();
+        if (isBanned) setOpacity(0.65);
 
-        VBox iconBox = new VBox(createSVGIcon(ICON_MONITOR, Color.web(isActive ? COLOR_PRIMARY : COLOR_ZINC_500), 22));
+        VBox iconBox = new VBox(createSVGIcon(ICON_MONITOR, Color.web(isActive && !isBanned ? COLOR_PRIMARY : COLOR_ZINC_500), 22));
         iconBox.setAlignment(Pos.CENTER);
         iconBox.setPrefSize(48, 48);
         iconBox.setMinSize(48, 48);
         iconBox.setMaxSize(48, 48);
-        iconBox.setStyle("-fx-background-color: " + (isActive ? COLOR_PRIMARY + "10" : "#f1f2f6") + "; -fx-background-radius: 16;");
+        iconBox.setStyle("-fx-background-color: " + (isActive && !isBanned ? COLOR_PRIMARY + "10" : "#f1f2f6") + "; -fx-background-radius: 16;");
 
         VBox info = new VBox(3);
         Label name = new Label(device.name());
@@ -36,9 +39,13 @@ public class DeviceRow extends HBox {
         
         HBox statusLine = new HBox(6);
         statusLine.setAlignment(Pos.CENTER_LEFT);
-        Circle dot = new Circle(3.5, Color.web(isActive ? COLOR_SUCCESS : COLOR_DANGER));
-        Label statusTxt = new Label(isActive ? "В МЕРЕЖІ" : "ОФЛАЙН");
-        statusTxt.setStyle("-fx-font-size: 10px; -fx-font-weight: 800; -fx-text-fill: " + (isActive ? COLOR_SUCCESS : COLOR_DANGER) + ";");
+        
+        String statusColor = isBanned ? COLOR_ZINC_500 : (isActive ? COLOR_SUCCESS : COLOR_DANGER);
+        String statusLabel = isBanned ? "ЗАБЛОКОВАНО" : (isActive ? "В МЕРЕЖІ" : "ОФЛАЙН");
+        
+        Circle dot = new Circle(3.5, Color.web(statusColor));
+        Label statusTxt = new Label(statusLabel);
+        statusTxt.setStyle("-fx-font-size: 10px; -fx-font-weight: 800; -fx-text-fill: " + statusColor + ";");
         statusLine.getChildren().addAll(dot, statusTxt);
         
         info.getChildren().addAll(name, ip, statusLine);
@@ -46,9 +53,10 @@ public class DeviceRow extends HBox {
 
         HBox actions = new HBox(8);
         actions.setAlignment(Pos.CENTER_RIGHT);
+        
         actions.getChildren().addAll(
             createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY, onEdit),
-            createCardActionButton(ICON_BAN, "#f1f2f6", COLOR_NEUTRAL, onBan),
+            createCardActionButton(isBanned ? ICON_CHECK : ICON_BAN, isBanned ? "#f0fdf4" : "#f1f2f6", isBanned ? COLOR_SUCCESS : COLOR_NEUTRAL, onBan),
             createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER, onDelete)
         );
 
