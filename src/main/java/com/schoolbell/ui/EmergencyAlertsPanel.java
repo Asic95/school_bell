@@ -17,6 +17,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.SVGPath;
 import javafx.stage.FileChooser;
 
 import java.io.File;
@@ -123,35 +124,44 @@ public class EmergencyAlertsPanel {
 
         HBox row = new HBox(18);
         row.setAlignment(Pos.CENTER_LEFT);
+        row.setFillHeight(false); // CRITICAL: Prevent stretching
 
-        VBox iconBox = new VBox(createSVGIcon(iconPath, Color.web(accent), 26));
+        Node iconNode = createSVGIcon(iconPath, Color.web(accent), 24);
+        iconNode.setScaleX(2.0); // Very large icon, ~85% fill
+        iconNode.setScaleY(2.0);
+
+        VBox iconBox = new VBox(iconNode);
         iconBox.setAlignment(Pos.CENTER);
-        iconBox.setPrefSize(58, 58);
-        iconBox.setMinSize(58, 58);
+        // Force perfect square 54x54
+        iconBox.setPrefSize(54, 54);
+        iconBox.setMinSize(54, 54);
+        iconBox.setMaxSize(54, 54);
+        HBox.setHgrow(iconBox, Priority.NEVER);
         iconBox.setStyle("-fx-background-color: " + iconBg + "; -fx-background-radius: 18;");
 
         Label status = createStatusBadge(audioToggle.isSelected() || visualToggle.isSelected());
         Label name = new Label(title);
-        name.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: #0f172a;");
+        name.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 19px; -fx-font-weight: 700; -fx-text-fill: #0f172a;");
         Label meta = new Label(channels);
-        meta.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 13px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        meta.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 12px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
 
         audioToggle.selectedProperty().addListener((obs, oldVal, newVal) -> applyStatusStyle(status, audioToggle, visualToggle));
         visualToggle.selectedProperty().addListener((obs, oldVal, newVal) -> applyStatusStyle(status, audioToggle, visualToggle));
 
-        VBox info = new VBox(4, status, name, meta);
+        VBox info = new VBox(3, status, name, meta);
         info.setAlignment(Pos.CENTER_LEFT);
-        info.setMinWidth(200);
-        info.setPrefWidth(210);
+        info.setMinWidth(170);
+        info.setPrefWidth(180);
 
         VBox audioConfigBtn = createAudioConfigButton(alertType, pathField);
-        audioConfigBtn.setMinWidth(200);
-        audioConfigBtn.setPrefWidth(260);
-        HBox.setHgrow(audioConfigBtn, Priority.ALWAYS);
+        audioConfigBtn.setMinWidth(140);
+        audioConfigBtn.setPrefWidth(160);
+        audioConfigBtn.setPrefHeight(68); // Explicit height
+        HBox.setHgrow(audioConfigBtn, Priority.SOMETIMES);
 
         HBox controls = new HBox(10,
-                createToggleSurface("Аудіо", ICON_VOLUME, audioToggle),
-                createToggleSurface("Екран", ICON_MONITOR, visualToggle)
+                createToggleSurface("Аудіо", ICON_VOLUME, audioToggle, 68),
+                createToggleSurface("Екран", ICON_MONITOR, visualToggle, 68)
         );
         controls.setAlignment(Pos.CENTER_LEFT);
 
@@ -225,10 +235,12 @@ public class EmergencyAlertsPanel {
         return card;
     }
 
-    private HBox createToggleSurface(String text, String iconPath, ToggleButton toggle) {
+    private HBox createToggleSurface(String text, String iconPath, ToggleButton toggle, double height) {
         HBox box = new HBox(8);
         box.setAlignment(Pos.CENTER_LEFT);
-        box.setPadding(new Insets(10, 12, 10, 12));
+        box.setPadding(new Insets(0, 16, 0, 16));
+        box.setPrefHeight(height);
+        box.setMinHeight(height);
         box.setStyle(
                 "-fx-background-color: rgba(255,255,255,0.96);" +
                 "-fx-background-radius: 18;" +

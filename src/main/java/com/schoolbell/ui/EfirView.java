@@ -180,7 +180,9 @@ public class EfirView {
                      "-fx-border-width: 1; " +
                      "-fx-background-radius: 28; " +
                      "-fx-border-radius: 28; " +
-                     "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 30, 0, 0, 10);");
+                     "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.06), 12, 0, 0, 4);"); // Reduced shadow for performance
+        bar.setCache(true);
+        bar.setCacheHint(javafx.scene.CacheHint.SPEED);
 
         HBox liveStatus = createLiveStatusWidget();
         Region divider1 = createVerticalDivider();
@@ -339,11 +341,9 @@ public class EfirView {
         liveStatusLabelText.setStyle("-fx-font-size: 14px; -fx-font-weight: 800; -fx-text-fill: " + baseColor + ";");
         
         if (active) {
-            if (liveStatusGlowAnim.getStatus() != Animation.Status.RUNNING) {
-                liveStatusGlowAnim.play();
-            }
+            // liveStatusGlowAnim.play(); // Disabled to reduce GPU usage
         } else {
-            liveStatusGlowAnim.stop();
+            // liveStatusGlowAnim.stop(); // Disabled to reduce GPU usage
             liveStatusDotGlow.setScaleX(1.0);
             liveStatusDotGlow.setScaleY(1.0);
         }
@@ -591,10 +591,16 @@ public class EfirView {
             },
             () -> {
                 // Ban/Unban logic
-                BroadcastDevice toggled = new BroadcastDevice(device.ip(), device.name(), !device.isBanned(), device.deviceType(), device.os(), device.lastSeen());
+                boolean newBannedState = !device.isBanned();
+                BroadcastDevice toggled = new BroadcastDevice(device.ip(), device.name(), newBannedState, device.deviceType(), device.os(), device.lastSeen());
                 DatabaseManager.saveBroadcastDevice(toggled);
                 if (mainApp.getBroadcastService() != null) {
                     mainApp.getBroadcastService().loadBannedIps();
+                    if (newBannedState) {
+                        mainApp.getBroadcastService().getConnections().stream()
+                                .filter(c -> c.getRemoteSocketAddress() != null && c.getRemoteSocketAddress().getAddress().getHostAddress().equals(device.ip()))
+                                .forEach(c -> c.close(4003, "IP is banned"));
+                    }
                 }
                 refreshDevices();
             },

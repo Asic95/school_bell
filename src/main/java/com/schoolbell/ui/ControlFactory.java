@@ -18,10 +18,15 @@ public class ControlFactory {
     public static HBox createPageHeader(String eyebrow, String title, String subtitle, String icon, String iconColor, Node action) {
         HBox header = new HBox(18);
         header.setAlignment(Pos.CENTER_LEFT);
+        header.setFillHeight(false);
 
         VBox badge = new VBox(createSVGIcon(icon, Color.web(iconColor), 24));
         badge.setAlignment(Pos.CENTER);
         badge.setPrefSize(54, 54);
+        badge.setMinSize(54, 54);
+        badge.setMaxSize(54, 54);
+        VBox.setVgrow(badge, Priority.NEVER);
+        HBox.setHgrow(badge, Priority.NEVER);
         badge.setStyle(
                 "-fx-background-color: linear-gradient(to bottom right, #eef2ff, #dbeafe);" +
                 "-fx-background-radius: 18;" +

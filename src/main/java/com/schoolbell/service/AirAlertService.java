@@ -37,6 +37,9 @@ public class AirAlertService {
 
     private boolean lastAlertState = false;
     private LocalDateTime lastErrorAnnouncement = LocalDateTime.MIN;
+    private int consecutiveFailures = 0;
+    private static final int FAILURE_THRESHOLD = 3;
+    private boolean isCurrentlyHealthy = true;
 
     public AirAlertService(MainApp mainApp, ConfigService configService, SignalService signalService, ScheduledExecutorService scheduler) {
         this.mainApp = mainApp;
@@ -79,25 +82,39 @@ public class AirAlertService {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                handleFetchError("API Error: Status " + response.statusCode());
+                handleFetchError("API помилка: Код " + response.statusCode());
                 return;
             }
 
-            AlertData data = gson.fromJson(response.body(), AlertData.class);
+            String body = response.body();
+            if (body == null || body.isBlank()) {
+                handleFetchError("API помилка: Отримано порожню відповідь");
+                return;
+            }
+
+            AlertData data;
+            try {
+                data = gson.fromJson(body, AlertData.class);
+            } catch (Exception e) {
+                handleFetchError("Помилка обробки даних (невірний формат JSON)");
+                return;
+            }
+
             if (data == null || data.raw == null) {
-                handleFetchError("API Error: Invalid data");
+                handleFetchError("API помилка: Відсутні дані у відповіді");
                 return;
             }
 
             // Freshness Check
             try {
                 LocalDateTime cachedAt = LocalDateTime.parse(data.cachedat, DATE_TIME_FORMATTER);
-                if (cachedAt.isBefore(LocalDateTime.now().minusMinutes(3))) {
-                    handleFetchError("API Error: Data is STALE (last updated: " + data.cachedat + ")");
+                if (cachedAt.isBefore(LocalDateTime.now().minusMinutes(5))) {
+                    handleFetchError("Дані застаріли (останнє оновлення: " + data.cachedat + ")");
                     return;
                 }
             } catch (Exception e) {
-                logger.warn("Could not parse cachedat: {}", data.cachedat);
+                handleFetchError("Неможливо перевірити актуальність даних (помилка дати)");
+                return;
             }
 
             String selectedRegion = configService.getSelectedRegionId();
@@ -105,6 +122,7 @@ public class AirAlertService {
 
             if (selectedRegion == null || selectedRegion.isEmpty()) {
                 logger.info("API Fetch successful, but no location selected.");
+                handleSuccess();
                 return;
             }
 
@@ -120,8 +138,13 @@ public class AirAlertService {
                 } else {
                     currentAlert = regionInfo.alert;
                 }
+            } else {
+                handleFetchError("Обраний регіон '" + selectedRegion + "' не знайдено в API");
+                return;
             }
             
+            handleSuccess();
+
             logger.info("API Check: [{} / {}] -> Status: {}", 
                     selectedRegion, 
                     (selectedDistrict != null && !selectedDistrict.isEmpty() ? selectedDistrict : "ALL"), 
@@ -141,24 +164,40 @@ public class AirAlertService {
                 lastAlertState = false;
             }
         } catch (IOException | InterruptedException e) {
-            handleFetchError("Network error: " + e.getMessage());
+            handleFetchError("Проблема з мережею: " + e.getMessage());
         } catch (Exception e) {
             logger.error("Unexpected error in AirAlertService Live polling: ", e);
+            handleFetchError("Внутрішня помилка сервісу: " + e.getMessage());
         }
     }
 
     private void handleFetchError(String error) {
-        logger.error(error);
-        mainApp.addLog(error, "ERROR");
-        
-        // Announce error via audio every 5 minutes if data is stale/missing
-        if (configService.isAudioAirRaidEnabled() && LocalDateTime.now().isAfter(lastErrorAnnouncement.plusMinutes(5))) {
-            String errorPath = configService.getAudioAirRaidErrorPath();
-            if (errorPath != null && !errorPath.isBlank()) {
-                mainApp.getAudioService().playAudioFile(errorPath);
-                lastErrorAnnouncement = LocalDateTime.now();
+        consecutiveFailures++;
+        logger.error("AirAlertService error: {} (Consecutive failures: {})", error, consecutiveFailures);
+
+        if (consecutiveFailures >= FAILURE_THRESHOLD) {
+            if (isCurrentlyHealthy) {
+                mainApp.addLog("УВАГА: " + error, "ERROR");
+                isCurrentlyHealthy = false;
+            }
+
+            // Announce error via audio every 5 minutes if data is stale/missing
+            if (configService.isAudioAirRaidEnabled() && LocalDateTime.now().isAfter(lastErrorAnnouncement.plusMinutes(5))) {
+                String errorPath = configService.getAudioAirRaidErrorPath();
+                if (errorPath != null && !errorPath.isBlank()) {
+                    mainApp.getAudioService().playAudioFile(errorPath);
+                    lastErrorAnnouncement = LocalDateTime.now();
+                }
             }
         }
+    }
+
+    private void handleSuccess() {
+        if (!isCurrentlyHealthy) {
+            mainApp.addLog("Зв'язок з API тривог відновлено", "SUCCESS");
+            isCurrentlyHealthy = true;
+        }
+        consecutiveFailures = 0;
     }
 
     public List<String> getRegions() {

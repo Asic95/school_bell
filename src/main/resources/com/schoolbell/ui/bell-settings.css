@@ -209,9 +209,19 @@
     -fx-text-fill: #d97712;
 }
 
+.wave-badge-regular-sound {
+    -fx-background-color: #eaf1ff;
+    -fx-text-fill: #4a76ff;
+}
+
 .wave-badge-pause {
     -fx-background-color: #eef2f8;
     -fx-text-fill: #7e8ea4;
+}
+
+.wave-badge-regular-pause {
+    -fx-background-color: #f1f5f9;
+    -fx-text-fill: #64748b;
 }
 
 .wave-badge-repeat {
