@@ -39,9 +39,9 @@ public class SubstitutionReportDialog extends Stage {
         root.setPrefWidth(500);
 
         Label title = new Label("Генерація звіту замін");
-        title.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        title.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         Label subtitle = new Label("Оберіть період для створення TXT-звіту про проведені заміни.");
-        subtitle.setStyle("-fx-font-size: 15px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        subtitle.setStyle("-fx-font-size: 15px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
 
         VBox headerBox = new VBox(8, title, subtitle);
 
@@ -86,9 +86,9 @@ public class SubstitutionReportDialog extends Stage {
         actions.setPadding(new Insets(10, 0, 0, 0));
 
         Button cancelBtn = new Button("СКАСУВАТИ");
-        String cancelStyle = "-fx-background-color: white; -fx-text-fill: #64748b; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 18; -fx-cursor: hand;";
+        String cancelStyle = "-fx-background-color: white; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 18; -fx-cursor: hand;";
         cancelBtn.setStyle(cancelStyle);
-        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: #f1f2f6;"));
+        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: " + COLOR_SURFACE_SUBTLE + ";"));
         cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(cancelStyle));
         cancelBtn.setOnAction(e -> close());
 
@@ -112,7 +112,7 @@ public class SubstitutionReportDialog extends Stage {
 
     private Label createLabel(String text) {
         Label lbl = new Label(text);
-        lbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #94a3b8; -fx-letter-spacing: 1px;");
+        lbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-letter-spacing: 1px;");
         return lbl;
     }
 }

@@ -19,14 +19,28 @@ import javafx.stage.StageStyle;
 
 import java.io.File;
 
+import static com.schoolbell.ui.ControlFactory.createDialogRoot;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
+import static com.schoolbell.ui.ControlFactory.createSecondaryDialogButton;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
-import static com.schoolbell.ui.UIStyles.*;
+import static com.schoolbell.ui.UIStyles.COLOR_BORDER_SOFT;
+import static com.schoolbell.ui.UIStyles.COLOR_DANGER;
+import static com.schoolbell.ui.UIStyles.COLOR_DANGER_BORDER;
+import static com.schoolbell.ui.UIStyles.COLOR_DANGER_PALE;
+import static com.schoolbell.ui.UIStyles.COLOR_NAVY;
+import static com.schoolbell.ui.UIStyles.COLOR_PRIMARY;
+import static com.schoolbell.ui.UIStyles.COLOR_SURFACE_GLASS_START;
+import static com.schoolbell.ui.UIStyles.HEADER_STYLE;
+import static com.schoolbell.ui.UIStyles.ICON_FOLDER;
+import static com.schoolbell.ui.UIStyles.ICON_SAVE;
+import static com.schoolbell.ui.UIStyles.ICON_TRASH;
+import static com.schoolbell.ui.UIStyles.PREMIUM_BTN_STYLE;
+import static com.schoolbell.ui.UIStyles.PREMIUM_FIELD_STYLE;
 
 public class SignalAudioEditorDialog extends Stage {
     private final ConfigService config;
     private final String alertType;
-    
+
     private TextField pathStart;
     private TextField pathClear;
     private TextField pathError;
@@ -34,21 +48,18 @@ public class SignalAudioEditorDialog extends Stage {
     public SignalAudioEditorDialog(MainApp mainApp, String alertType) {
         this.config = mainApp.getConfigService();
         this.alertType = alertType;
-        
+
         initModality(Modality.APPLICATION_MODAL);
         initOwner(mainApp.getStage());
         initStyle(StageStyle.TRANSPARENT);
 
-        VBox root = new VBox(25);
-        root.setPadding(new Insets(35));
-        root.setStyle(SOFT_CARD);
-        root.setPrefWidth(600);
+        VBox root = createDialogRoot(600);
 
         Label title = new Label("Налаштування звуків: " + formatTitle(alertType));
-        title.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        title.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
 
         VBox fields = new VBox(22);
-        
+
         if (alertType.equals("AIR_RAID")) {
             pathStart = createFileRow(fields, "Звук початку тривоги", config.getAudioAirRaidPath());
             pathClear = createFileRow(fields, "Звук відбою тривоги", config.getAudioAirRaidClearPath());
@@ -63,11 +74,7 @@ public class SignalAudioEditorDialog extends Stage {
         actions.setAlignment(Pos.CENTER_RIGHT);
         actions.setPadding(new Insets(10, 0, 0, 0));
 
-        Button cancelBtn = new Button("СКАСУВАТИ");
-        String cancelStyle = "-fx-background-color: white; -fx-text-fill: #64748b; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 18; -fx-cursor: hand;";
-        cancelBtn.setStyle(cancelStyle);
-        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: #f1f2f6;"));
-        cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(cancelStyle));
+        Button cancelBtn = createSecondaryDialogButton("СКАСУВАТИ");
         cancelBtn.setOnAction(e -> close());
 
         Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ", ICON_SAVE);
@@ -89,34 +96,36 @@ public class SignalAudioEditorDialog extends Stage {
         VBox box = new VBox(8);
         Label lbl = new Label(labelText.toUpperCase());
         lbl.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
-        
+
         HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_LEFT);
-        
+
         TextField field = new TextField(initialValue);
         field.setEditable(false);
         field.setStyle(PREMIUM_FIELD_STYLE + "-fx-font-size: 14px; -fx-padding: 11 16;");
         HBox.setHgrow(field, Priority.ALWAYS);
-        
+
         Button pickBtn = new Button();
         pickBtn.setGraphic(createSVGIcon(ICON_FOLDER, Color.web(COLOR_PRIMARY), 18));
-        String pickStyle = "-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: #e2e8f0; -fx-border-radius: 14; -fx-padding: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 5, 0, 0, 1);";
+        String pickStyle = "-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 14; -fx-padding: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 5, 0, 0, 1);";
         pickBtn.setStyle(pickStyle);
-        pickBtn.setOnMouseEntered(e -> pickBtn.setStyle(pickStyle + "-fx-background-color: #f8fbff; -fx-border-color: " + COLOR_PRIMARY + ";"));
+        pickBtn.setOnMouseEntered(e -> pickBtn.setStyle(pickStyle + "-fx-background-color: " + COLOR_SURFACE_GLASS_START + "; -fx-border-color: " + COLOR_PRIMARY + ";"));
         pickBtn.setOnMouseExited(e -> pickBtn.setStyle(pickStyle));
         pickBtn.setOnAction(e -> {
             FileChooser chooser = new FileChooser();
             chooser.setTitle("Оберіть " + labelText);
             chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Аудіо", "*.mp3", "*.wav"));
             File file = chooser.showOpenDialog(this);
-            if (file != null) field.setText(file.getAbsolutePath());
+            if (file != null) {
+                field.setText(file.getAbsolutePath());
+            }
         });
 
         Button clearBtn = new Button();
         clearBtn.setGraphic(createSVGIcon(ICON_TRASH, Color.web(COLOR_DANGER), 18));
-        String clearStyle = "-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: #fee2e2; -fx-border-radius: 14; -fx-padding: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 5, 0, 0, 1);";
+        String clearStyle = "-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: " + COLOR_DANGER_BORDER + "; -fx-border-radius: 14; -fx-padding: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 5, 0, 0, 1);";
         clearBtn.setStyle(clearStyle);
-        clearBtn.setOnMouseEntered(e -> clearBtn.setStyle(clearStyle + "-fx-background-color: #fffafa; -fx-border-color: " + COLOR_DANGER + ";"));
+        clearBtn.setOnMouseEntered(e -> clearBtn.setStyle(clearStyle + "-fx-background-color: " + COLOR_DANGER_PALE + "; -fx-border-color: " + COLOR_DANGER + ";"));
         clearBtn.setOnMouseExited(e -> clearBtn.setStyle(clearStyle));
         clearBtn.setOnAction(e -> field.setText(""));
 

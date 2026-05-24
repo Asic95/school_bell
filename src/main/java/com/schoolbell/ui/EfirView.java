@@ -135,7 +135,7 @@ public class EfirView {
             "Керування ефіром",
             "Контроль трансляції, планування оголошень та моніторинг підключених пристроїв.",
             ICON_BROADCAST,
-            "#4f46e5",
+            COLOR_INDIGO,
             saveBtn
         );
 
@@ -207,7 +207,7 @@ public class EfirView {
             updateLiveStatusStyle(toggle.isSelected());
         });
         Label toggleLabel = new Label("ТРАНСЛЯЦІЯ");
-        toggleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        toggleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         broadcastToggle.getChildren().addAll(toggle, toggleLabel);
 
         Button openBtn = new Button("ВІДКРИТИ ТАБЛО");
@@ -230,7 +230,7 @@ public class EfirView {
         divider.setPrefHeight(28);
         divider.setMinHeight(28);
         divider.setMaxHeight(28);
-        divider.setStyle("-fx-background-color: #e2e8f0;");
+        divider.setStyle("-fx-background-color: " + COLOR_BORDER_SOFT + ";");
         return divider;
     }
 
@@ -243,10 +243,10 @@ public class EfirView {
         mainRow.setAlignment(Pos.TOP_LEFT);
 
         mainRow.getChildren().addAll(
-            createModernSettingsGroup("ЗАКЛАД", ICON_SCHOOL, "#4f46e5", new VBox(12, createLabeledField("НАЗВА", schoolNameField), createLabeledField("МІСТО", cityNameField))),
-            createModernSettingsGroup("WEBSOCKET", ICON_LINK, "#7c3aed", new VBox(12, createLabeledField("ПОРТ ТРАНСЛЯЦІЇ", portField))),
-            createModernSettingsGroup("ТЕМА", ICON_SETTINGS, "#2563eb", new VBox(12, createLabeledField("ДИЗАЙН ТАБЛО", themeCombo))),
-            createModernSettingsGroup("FIREWALL", ICON_SHIELD, "#059669", new VBox(15, firewallStatusLabel, createPrimaryActionButton("ОПТИМІЗУВАТИ", ICON_SHIELD)))
+            createModernSettingsGroup("ЗАКЛАД", ICON_SCHOOL, COLOR_INDIGO, new VBox(12, createLabeledField("НАЗВА", schoolNameField), createLabeledField("МІСТО", cityNameField))),
+            createModernSettingsGroup("WEBSOCKET", ICON_LINK, COLOR_VIOLET, new VBox(12, createLabeledField("ПОРТ ТРАНСЛЯЦІЇ", portField))),
+            createModernSettingsGroup("ТЕМА", ICON_SETTINGS, COLOR_PRIMARY, new VBox(12, createLabeledField("ДИЗАЙН ТАБЛО", themeCombo))),
+            createModernSettingsGroup("FIREWALL", ICON_SHIELD, COLOR_TEAL_DARK, new VBox(15, firewallStatusLabel, createPrimaryActionButton("ОПТИМІЗУВАТИ", ICON_SHIELD)))
         );
         
         mainRow.getChildren().forEach(n -> ((VBox)n).setPrefWidth(300));
@@ -284,9 +284,9 @@ public class EfirView {
         liveStatusLabelText.setStyle("-fx-font-size: 15px; -fx-font-weight: 900;");
         
         Label bullet = new Label("•");
-        bullet.setStyle("-fx-font-size: 12px; -fx-text-fill: #cbd5e1;");
+        bullet.setStyle("-fx-font-size: 12px; -fx-text-fill: " + COLOR_SLATE_MUTED + ";");
         
-        uptimeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 800; -fx-text-fill: #64748b;");
+        uptimeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SLATE + ";");
         
         contentRow.getChildren().addAll(liveStatusLabelText, bullet, uptimeLabel);
         textCol.getChildren().addAll(eyebrow, contentRow);
@@ -299,11 +299,11 @@ public class EfirView {
     }
 
     private void updateLiveStatusStyle(boolean active) {
-        String baseColor = active ? "#16a34a" : "#dc2626";
+        String baseColor = active ? COLOR_SUCCESS : COLOR_DANGER;
         String text = active ? "АКТИВНИЙ" : "ВИМКНЕНО";
         
         if (liveStatusBadge != null) {
-            String bgGradient = active ? "linear-gradient(to bottom right, #f0fdf4, #dcfce7)" : "linear-gradient(to bottom right, #fef2f2, #fee2e2)";
+            String bgGradient = active ? "linear-gradient(to bottom right, " + COLOR_SUCCESS_LIGHT + ", " + COLOR_SUCCESS_BORDER + ")" : "linear-gradient(to bottom right, " + COLOR_DANGER_SOFT + ", " + COLOR_DANGER_BORDER + ")";
             String borderColor = active ? "rgba(22, 163, 74, 0.15)" : "rgba(220, 38, 38, 0.15)";
             liveStatusBadge.setStyle(
                 "-fx-background-color: " + bgGradient + "; " +
@@ -336,7 +336,7 @@ public class EfirView {
         Label eyebrow = new Label("МОНІТОРИНГ");
         eyebrow.setStyle(HEADER_STYLE + "-fx-font-size: 10px;");
         
-        connectionsLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        connectionsLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         
         textCol.getChildren().addAll(eyebrow, connectionsLabel);
         card.getChildren().addAll(iconBox, textCol);
@@ -349,12 +349,12 @@ public class EfirView {
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(4, 8, 4, 8));
         
-        String accentColor = "#4f46e5";
+        String accentColor = COLOR_INDIGO;
         VBox iconBox = new VBox(createSVGIcon(ICON_LINK, Color.web(accentColor), 20));
         iconBox.setAlignment(Pos.CENTER);
         iconBox.setPrefSize(44, 44);
         iconBox.setMinSize(44, 44);
-        iconBox.setStyle("-fx-background-color: linear-gradient(to bottom right, #f5f3ff, #edf4ff); -fx-background-radius: 12;");
+        iconBox.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_PURPLE_SOFT + ", " + COLOR_SURFACE_GLASS_END + "); -fx-background-radius: 12;");
         
         VBox textCol = new VBox(2);
         Label eyebrow = new Label("АДРЕСА ТАБЛО");
@@ -364,19 +364,19 @@ public class EfirView {
         valueRow.setAlignment(Pos.CENTER_LEFT);
         
         addrLabel = new Label("http://" + getLocalIp() + ":" + config.getBroadcastPort());
-        addrLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #0f172a; -fx-font-family: 'Inter';");
+        addrLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + "; -fx-font-family: 'Inter';");
         
         Button copyBtn = new Button();
-        copyBtn.setGraphic(createSVGIcon(ICON_CLONE, Color.web("#64748b"), 12));
+        copyBtn.setGraphic(createSVGIcon(ICON_CLONE, Color.web(COLOR_SLATE), 12));
         String copyBaseStyle = "-fx-background-color: transparent; -fx-background-radius: 8; -fx-padding: 6; -fx-cursor: hand;";
         copyBtn.setStyle(copyBaseStyle);
         copyBtn.setOnMouseEntered(e -> {
-            copyBtn.setStyle(copyBaseStyle + "-fx-background-color: #f1f5f9;");
-            copyBtn.setGraphic(createSVGIcon(ICON_CLONE, Color.web("#0f172a"), 12));
+            copyBtn.setStyle(copyBaseStyle + "-fx-background-color: " + COLOR_SURFACE_SOFT + ";");
+            copyBtn.setGraphic(createSVGIcon(ICON_CLONE, Color.web(COLOR_NAVY), 12));
         });
         copyBtn.setOnMouseExited(e -> {
             copyBtn.setStyle(copyBaseStyle);
-            copyBtn.setGraphic(createSVGIcon(ICON_CLONE, Color.web("#64748b"), 12));
+            copyBtn.setGraphic(createSVGIcon(ICON_CLONE, Color.web(COLOR_SLATE), 12));
         });
         
         copyBtn.setOnAction(e -> {
@@ -413,7 +413,7 @@ public class EfirView {
 
     private void updateFirewallStatusLabel() {
         firewallStatusLabel.setText("ПЕРЕВІРКА...");
-        firewallStatusLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-font-family: 'Inter'; -fx-text-fill: #94a3b8;");
+        firewallStatusLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-font-family: 'Inter'; -fx-text-fill: " + COLOR_SLATE_LIGHT + ";");
 
         new Thread(() -> {
             try {
@@ -426,7 +426,7 @@ public class EfirView {
             } catch (Exception e) {
                 javafx.application.Platform.runLater(() -> {
                     firewallStatusLabel.setText("НЕВІДОМО");
-                    firewallStatusLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-font-family: 'Inter'; -fx-text-fill: #94a3b8;");
+                    firewallStatusLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-font-family: 'Inter'; -fx-text-fill: " + COLOR_SLATE_LIGHT + ";");
                 });
             }
         }).start();
@@ -444,7 +444,7 @@ public class EfirView {
         Label eyebrow = new Label("ОГОЛОШЕННЯ ТА ПОВІДОМЛЕННЯ");
         eyebrow.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
         Label title = new Label("Стрічка ефіру");
-        title.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        title.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         titleBox.getChildren().addAll(eyebrow, title);
 
         Region spacer = new Region();
@@ -511,9 +511,9 @@ public class EfirView {
         Button refreshBtn = new Button("ОНОВИТИ");
         refreshBtn.setGraphic(createSVGIcon(ICON_REFRESH, Color.web(COLOR_PRIMARY), 16));
         refreshBtn.setGraphicTextGap(10);
-        String refreshBtnBase = "-fx-background-color: white; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 8 16; -fx-background-radius: 12; -fx-border-color: #e2e8f0; -fx-border-radius: 12; -fx-cursor: hand;";
+        String refreshBtnBase = "-fx-background-color: white; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 8 16; -fx-background-radius: 12; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 12; -fx-cursor: hand;";
         refreshBtn.setStyle(refreshBtnBase);
-        refreshBtn.setOnMouseEntered(e -> refreshBtn.setStyle(refreshBtnBase + "-fx-background-color: #f8fbff; -fx-border-color: " + COLOR_PRIMARY + ";"));
+        refreshBtn.setOnMouseEntered(e -> refreshBtn.setStyle(refreshBtnBase + "-fx-background-color: " + COLOR_SURFACE_GLASS_START + "; -fx-border-color: " + COLOR_PRIMARY + ";"));
         refreshBtn.setOnMouseExited(e -> refreshBtn.setStyle(refreshBtnBase));
         refreshBtn.setOnAction(e -> refreshDevices());
         devicesHeader.getChildren().addAll(dTitle, s, refreshBtn);
@@ -540,9 +540,9 @@ public class EfirView {
             empty.setAlignment(Pos.CENTER);
             empty.setPadding(new Insets(60, 0, 60, 0));
             
-            Node icon = createSVGIcon(ICON_INFO, Color.web("#cbd5e1"), 48);
+            Node icon = createSVGIcon(ICON_INFO, Color.web(COLOR_SLATE_MUTED), 48);
             Label msg = new Label(showArchivedAnnouncements ? "В архіві порожньо" : "Оголошень поки немає");
-            msg.setStyle("-fx-font-size: 16px; -fx-font-weight: 800; -fx-text-fill: #94a3b8;");
+            msg.setStyle("-fx-font-size: 16px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SLATE_LIGHT + ";");
             
             empty.getChildren().addAll(icon, msg);
             announcementsContainer.getChildren().setAll(empty);

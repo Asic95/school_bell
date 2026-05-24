@@ -33,7 +33,7 @@ public class BroadcastView {
 
         broadcastEnableCb = new CheckBox("Увімкнути трансляцію розкладу");
         broadcastEnableCb.setSelected(config.isBroadcastEnabled());
-        broadcastEnableCb.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        broadcastEnableCb.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         
         schoolNameField = new TextField(config.getSchoolName());
         schoolNameField.setPromptText("Назва школи (для табло)");
@@ -62,10 +62,10 @@ public class BroadcastView {
                 btn.setDisable(false);
                 btn.setText(active ? "FIREWALL: ДОЗВОЛЕНО" : "ДОЗВОЛИТИ В FIREWALL");
                 String activeStyle = active ? 
-                    "-fx-background-color: #f0fdf4; -fx-text-fill: #16a34a; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 14; -fx-border-color: #dcfce7; -fx-border-radius: 14; -fx-cursor: hand;" :
-                    "-fx-background-color: white; -fx-text-fill: #ea580c; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 14; -fx-border-color: #ffedd5; -fx-border-radius: 14; -fx-cursor: hand;";
+                    "-fx-background-color: " + COLOR_SUCCESS_LIGHT + "; -fx-text-fill: " + COLOR_SUCCESS + "; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 14; -fx-border-color: " + COLOR_SUCCESS_BORDER + "; -fx-border-radius: 14; -fx-cursor: hand;" :
+                    "-fx-background-color: white; -fx-text-fill: " + COLOR_ORANGE_BRIGHT + "; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 14; -fx-border-color: " + COLOR_ORANGE_BORDER_LIGHT + "; -fx-border-radius: 14; -fx-cursor: hand;";
                 btn.setStyle(activeStyle);
-                btn.setGraphic(createSVGIcon(active ? ICON_CHECK : ICON_SETTINGS, Color.web(active ? "#16a34a" : "#ea580c"), 16));
+                btn.setGraphic(createSVGIcon(active ? ICON_CHECK : ICON_SETTINGS, Color.web(active ? COLOR_SUCCESS : COLOR_ORANGE_BRIGHT), 16));
             });
         });
         thread.setDaemon(true);
@@ -96,7 +96,7 @@ public class BroadcastView {
                 "Керування трансляцією",
                 "Налаштування веб-табло та керування підключеними пристроями у вашій локальній мережі.",
                 ICON_BROADCAST,
-                "#2980b9",
+                COLOR_SKY_DARK,
                 null
         );
 
@@ -105,24 +105,24 @@ public class BroadcastView {
         HBox.setHgrow(mainContent, Priority.ALWAYS);
 
         // --- DASHBOARD SETTINGS ---
-        VBox settingsCard = createSettingsSection("НАЛАШТУВАННЯ ТАБЛО", "#2980b9", ICON_MONITOR);
+        VBox settingsCard = createSettingsSection("НАЛАШТУВАННЯ ТАБЛО", COLOR_SKY_DARK, ICON_MONITOR);
         settingsCard.setStyle(SOFT_CARD + "-fx-padding: 30;");
         
         // --- MASTER SWITCH ---
         HBox masterSwitch = new HBox(20);
         masterSwitch.setAlignment(Pos.CENTER_LEFT);
         masterSwitch.setPadding(new Insets(0, 0, 25, 0));
-        masterSwitch.setStyle("-fx-border-color: #f1f5f9; -fx-border-width: 0 0 1 0;");
+        masterSwitch.setStyle("-fx-border-color: " + COLOR_SURFACE_SOFT + "; -fx-border-width: 0 0 1 0;");
 
         VBox switchText = new VBox(4);
         Label switchTitle = new Label("ТРАНСЛЯЦІЯ РОЗКЛАДУ");
-        switchTitle.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: #0f172a;");
+        switchTitle.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: " + COLOR_NAVY + ";");
         Label switchDesc = new Label("Активує сервер для передачі даних на віддалені табло");
-        switchDesc.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
+        switchDesc.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_SLATE + ";");
         switchText.getChildren().addAll(switchTitle, switchDesc);
 
         broadcastEnableCb.setText("СЕРВЕР АКТИВНИЙ");
-        broadcastEnableCb.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #4f46e5;");
+        broadcastEnableCb.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_INDIGO + ";");
         
         Region switchSpacer = new Region();
         HBox.setHgrow(switchSpacer, Priority.ALWAYS);
@@ -132,20 +132,20 @@ public class BroadcastView {
         
         VBox addrBox = new VBox(20);
         addrBox.setPadding(new Insets(25, 0, 0, 0));
-        addrBox.setStyle("-fx-border-color: #f1f5f9; -fx-border-width: 1 0 0 0;");
+        addrBox.setStyle("-fx-border-color: " + COLOR_SURFACE_SOFT + "; -fx-border-width: 1 0 0 0;");
 
         Label addrHeader = new Label("МЕРЕЖЕВИЙ ДОСТУП");
         addrHeader.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
 
         HBox infoCard = new HBox(20);
         infoCard.setAlignment(Pos.CENTER_LEFT);
-        infoCard.setStyle("-fx-background-color: #f8fafc; -fx-padding: 20; -fx-background-radius: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 18;");
+        infoCard.setStyle("-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-padding: 20; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 18;");
         
         VBox urlGroup = new VBox(6);
         Label urlDisplay = new Label("http://" + localIp + ":" + config.getBroadcastPort());
-        urlDisplay.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 18px; -fx-text-fill: #2563eb; -fx-font-weight: 900;");
+        urlDisplay.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 18px; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 900;");
         Label urlDesc = new Label("Локальне посилання для підключення моніторів");
-        urlDesc.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
+        urlDesc.setStyle("-fx-font-size: 12px; -fx-text-fill: " + COLOR_SLATE + ";");
         urlGroup.getChildren().addAll(urlDisplay, urlDesc);
         
         portField.textProperty().addListener((obs, oldVal, newVal) -> {
@@ -158,7 +158,7 @@ public class BroadcastView {
         Button openBrowserBtn = new Button("ВІДКРИТИ");
         openBrowserBtn.setGraphic(createSVGIcon(ICON_MONITOR, Color.WHITE, 16));
         openBrowserBtn.setGraphicTextGap(10);
-        openBrowserBtn.setStyle("-fx-background-color: #2563eb; -fx-text-fill: white; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 14; -fx-cursor: hand;");
+        openBrowserBtn.setStyle("-fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 14; -fx-cursor: hand;");
         openBrowserBtn.setOnAction(e -> mainApp.getHostServices().showDocument("http://localhost:" + portField.getText().trim()));
         
         infoCard.getChildren().addAll(urlGroup, spacer2, openBrowserBtn);
@@ -175,7 +175,7 @@ public class BroadcastView {
         });
         
         Label fwStatus = new Label("Статус брандмауера Windows для вибраного порту");
-        fwStatus.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
+        fwStatus.setStyle("-fx-font-size: 12px; -fx-text-fill: " + COLOR_SLATE + ";");
         firewallRow.getChildren().addAll(firewallBtn, fwStatus);
         
         addrBox.getChildren().addAll(addrHeader, infoCard, firewallRow);
@@ -198,9 +198,9 @@ public class BroadcastView {
         mainContent.getChildren().addAll(settingsCard, deviceMonitorNode, new HBox(saveBtn));
 
         VBox rightColumn = createSideHelpPanel(
-            createHelpCard(ICON_INFO, "Обмін даними", "Порт " + config.getBroadcastPort() + " використовується для синхронізації. Перевірте, чи не блокує його антивірус.", "#2563eb"),
-            createHelpCard(ICON_MONITOR, "Веб-панель", "Табло працює в будь-якому сучасному браузері. Ми рекомендуємо Chrome або Edge.", "#7c3aed"),
-            createHelpCard(ICON_CLASS, "Підключення", "Ви можете бачити статус підключених моніторів у списку нижче.", "#059669")
+            createHelpCard(ICON_INFO, "Обмін даними", "Порт " + config.getBroadcastPort() + " використовується для синхронізації. Перевірте, чи не блокує його антивірус.", COLOR_PRIMARY),
+            createHelpCard(ICON_MONITOR, "Веб-панель", "Табло працює в будь-якому сучасному браузері. Ми рекомендуємо Chrome або Edge.", COLOR_VIOLET),
+            createHelpCard(ICON_CLASS, "Підключення", "Ви можете бачити статус підключених моніторів у списку нижче.", COLOR_TEAL_DARK)
         );
 
         contentLayout.getChildren().addAll(mainContent, rightColumn);

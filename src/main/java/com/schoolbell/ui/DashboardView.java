@@ -28,7 +28,7 @@ public class DashboardView {
     
     private static final String MODERN_PROGRESS_STYLE = 
         ".progress-bar { -fx-background-color: transparent; -fx-padding: 0; -fx-background-insets: 0; } " +
-        ".progress-bar > .track { -fx-background-color: #f1f2f6; -fx-background-radius: 10; -fx-background-insets: 0; } " +
+        ".progress-bar > .track { -fx-background-color: " + COLOR_SURFACE_SUBTLE + "; -fx-background-radius: 10; -fx-background-insets: 0; } " +
         ".progress-bar > .bar { -fx-background-color: linear-gradient(to right, " + COLOR_PRIMARY + ", " + COLOR_PURPLE + "); -fx-background-radius: 10; -fx-background-insets: 0; }";
 
     private final MainApp mainApp;
@@ -164,7 +164,7 @@ public class DashboardView {
 
         VBox sessionText = new VBox(6);
         curLessonNumLabel = new Label("--");
-        curLessonNumLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        curLessonNumLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         curLessonStatusBadge = new Label("ОЧІКУВАННЯ");
         curLessonStatusBadge.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: white; -fx-background-color: " + COLOR_NEUTRAL + "; -fx-padding: 4 12; -fx-background-radius: 12;");
         HBox titleRow = new HBox(15, curLessonNumLabel, curLessonStatusBadge);
@@ -173,7 +173,7 @@ public class DashboardView {
         curLessonSubjectLabel = new Label("Завантаження даних...");
         curLessonSubjectLabel.setWrapText(true);
         curLessonSubjectLabel.setMaxWidth(400);
-        curLessonSubjectLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: #64748b;");
+        curLessonSubjectLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: " + COLOR_SLATE + ";");
         sessionText.getChildren().addAll(titleRow, curLessonSubjectLabel);
         
         Region sessionSpacer = new Region();
@@ -189,7 +189,7 @@ public class DashboardView {
         nextBellTypeLabel.setWrapText(true);
         nextBellTypeLabel.setTextAlignment(javafx.scene.text.TextAlignment.RIGHT);
         nextBellTypeLabel.setMaxWidth(220);
-        nextBellTypeLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #94a3b8;");
+        nextBellTypeLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_SLATE_LIGHT + ";");
         countdownBox.getChildren().addAll(countdownTitle, countdownLabel, nextBellTypeLabel);
         
         currentSessionInfo.getChildren().addAll(sessionIcon, sessionText, sessionSpacer, countdownBox);
@@ -202,7 +202,7 @@ public class DashboardView {
         
         HBox progressLabels = new HBox();
         curLessonTimeLabel = new Label("--:-- – --:--");
-        curLessonTimeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 800; -fx-text-fill: #64748b;");
+        curLessonTimeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SLATE + ";");
         Region pSpacer = new Region();
         HBox.setHgrow(pSpacer, Priority.ALWAYS);
         curLessonProgressText = new Label("0%");
@@ -233,17 +233,17 @@ public class DashboardView {
         VBox nextIconCircle = new VBox(createSVGIcon(ICON_CLOCK, Color.web(COLOR_SUCCESS), 44));
         nextIconCircle.setAlignment(Pos.CENTER);
         nextIconCircle.setPrefSize(84, 84);
-        nextIconCircle.setStyle("-fx-background-color: linear-gradient(to bottom right, #f8fbff, #edf4ff); -fx-background-radius: 22;");
+        nextIconCircle.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + "); -fx-background-radius: 22;");
         
         nextLessonNumLabel = new Label("--");
-        nextLessonNumLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        nextLessonNumLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         
         VBox nextInfoText = new VBox(4);
         nextInfoText.setAlignment(Pos.CENTER);
         nextLessonSubjectLabel = new Label("Очікування...");
-        nextLessonSubjectLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        nextLessonSubjectLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         nextLessonTimeLabel = new Label("--:-- – --:--");
-        nextLessonTimeLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
+        nextLessonTimeLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_SLATE + ";");
         nextInfoText.getChildren().addAll(nextLessonSubjectLabel, nextLessonTimeLabel);
         
         nextLessonStatusBadge = new Label("ПЕРЕРВА");
@@ -320,7 +320,7 @@ public class DashboardView {
         VBox volContent = new VBox(5, volStatusLabel, volumePresetBox);
         VBox volCard = createSmallInfoCard("СИСТЕМНА ГУЧНІСТЬ", volContent, null, null, ICON_VOLUME, COLOR_GREEN_LIGHT, COLOR_SUCCESS, false, 0, null);
         
-        VBox brCard = createSmallInfoCard("ТРАНСЛЯЦІЯ ДАШБОРДУ", new Label(config.isBroadcastEnabled() ? "Увімкнено" : "Вимкнено"), "Відкрити в браузері", () -> mainApp.getHostServices().showDocument("http://localhost:" + (config.getBroadcastPort())), ICON_MONITOR, COLOR_PURPLE_LIGHT, "#6c5ce7", false, 0, null);
+        VBox brCard = createSmallInfoCard("ТРАНСЛЯЦІЯ ДАШБОРДУ", new Label(config.isBroadcastEnabled() ? "Увімкнено" : "Вимкнено"), "Відкрити в браузері", () -> mainApp.getHostServices().showDocument("http://localhost:" + (config.getBroadcastPort())), ICON_MONITOR, COLOR_PURPLE_LIGHT, COLOR_INDIGO_SOFT, false, 0, null);
         
         infoRow.getChildren().addAll(schCard, volCard, brCard);
         grid.add(infoRow, 0, 3, 2, 1);
@@ -340,7 +340,7 @@ public class DashboardView {
                 if (val == currentVolumeValue) {
                     b.setStyle("-fx-background-color: " + COLOR_SUCCESS + "; -fx-text-fill: white; -fx-font-weight: 900; -fx-background-radius: 8; -fx-font-size: 10px; -fx-padding: 0;");
                 } else {
-                    b.setStyle("-fx-background-color: #f1f2f6; -fx-text-fill: #636e72; -fx-font-weight: bold; -fx-background-radius: 8; -fx-font-size: 10px; -fx-padding: 0; -fx-cursor: hand;");
+                    b.setStyle("-fx-background-color: " + COLOR_SURFACE_SUBTLE + "; -fx-text-fill: " + COLOR_NEUTRAL + "; -fx-font-weight: bold; -fx-background-radius: 8; -fx-font-size: 10px; -fx-padding: 0; -fx-cursor: hand;");
                 }
             }
         }
@@ -351,8 +351,8 @@ public class DashboardView {
         
         if (config.isSimulationMode()) {
             relayStatusLabel.setText("РЕЖИМ СИМУЛЯЦІЇ");
-            relayStatusLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #4f46e5;");
-            relayIndicator.setFill(Color.web("#4f46e5"));
+            relayStatusLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_INDIGO + ";");
+            relayIndicator.setFill(Color.web(COLOR_INDIGO));
             relaySubtext.setText("ФІЗИЧНЕ РЕЛЕ ВІДКЛЮЧЕНО (ЛОГУВАННЯ)");
         } else if (mainApp.getRelayController().isConnected()) {
             relayStatusLabel.setText("Підключено");

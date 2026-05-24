@@ -27,14 +27,14 @@ public class ClassesEditorTab {
     public Node createContent() {
         VBox content = new VBox(25);
         content.setPadding(new Insets(30));
-        content.setStyle("-fx-background-color: #f8f9fa;");
+        content.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
 
         HBox header = createPageHeader(
             "СТРУКТУРА",
             "Шкільні класи",
             "Керуйте переліком класів та паралелей вашого навчального закладу.",
             ICON_CLASS,
-            "#a29bfe",
+            COLOR_PURPLE,
             null
         );
 
@@ -72,15 +72,15 @@ public class ClassesEditorTab {
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
 
-                Button editBtn = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
-                Button del = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
+                Button editBtn = createCardActionButton(ICON_EDIT, COLOR_SURFACE_SUBTLE, COLOR_PRIMARY);
+                Button del = createCardActionButton(ICON_TRASH, COLOR_DANGER_LIGHT, COLOR_DANGER);
                 del.setOnAction(e -> { mainApp.getAcademicService().deleteClass(c.id()); refreshClasses.run(); });
 
                 topRow.getChildren().addAll(iconBox, spacer, editBtn, del);
 
                 VBox nameArea = new VBox(5);
                 Label nameLabel = new Label(c.name());
-                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: #0f172a;");
+                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: " + COLOR_NAVY + ";");
                 
                 TextField nameEdit = new TextField(c.name());
                 nameEdit.setStyle(PREMIUM_FIELD_STYLE + "-fx-font-size: 15px; -fx-padding: 8 12;");
@@ -124,7 +124,7 @@ public class ClassesEditorTab {
 
         VBox contentLayout = new VBox(25, header, new HBox(15, addField, addBtn), scroll);
         contentLayout.setPadding(new Insets(30));
-        contentLayout.setStyle("-fx-background-color: #f8f9fa;");
+        contentLayout.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
 
         refreshClasses.run();
         

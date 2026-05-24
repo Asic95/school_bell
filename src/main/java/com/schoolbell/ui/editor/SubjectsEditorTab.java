@@ -27,14 +27,14 @@ public class SubjectsEditorTab {
     public Node createContent() {
         VBox content = new VBox(25);
         content.setPadding(new Insets(30));
-        content.setStyle("-fx-background-color: #f8f9fa;");
+        content.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
 
         HBox header = createPageHeader(
             "ДОВІДНИК",
             "Навчальні дисципліни",
             "Керуйте переліком предметів, які викладаються у вашому закладі.",
             ICON_BOOK,
-            "#00b894",
+            COLOR_TEAL,
             null
         );
 
@@ -67,13 +67,13 @@ public class SubjectsEditorTab {
                 iconBox.setPrefSize(52, 52);
                 iconBox.setMinSize(52, 52);
                 iconBox.setMaxSize(52, 52);
-                iconBox.setStyle("-fx-background-color: linear-gradient(to bottom right, #f8fbff, #edf4ff); -fx-background-radius: 16;");
+                iconBox.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + "); -fx-background-radius: 16;");
 
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
 
-                Button editBtn = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
-                Button del = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
+                Button editBtn = createCardActionButton(ICON_EDIT, COLOR_SURFACE_SUBTLE, COLOR_PRIMARY);
+                Button del = createCardActionButton(ICON_TRASH, COLOR_DANGER_LIGHT, COLOR_DANGER);
                 del.setOnAction(e -> { mainApp.getStaffService().deleteSubject(s.id()); refreshSubjects.run(); });
                 
                 topRow.getChildren().addAll(iconBox, spacer, editBtn, del);
@@ -81,7 +81,7 @@ public class SubjectsEditorTab {
                 VBox nameArea = new VBox(5);
                 Label nameLabel = new Label(s.name());
                 nameLabel.setWrapText(true);
-                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 17px; -fx-text-fill: #0f172a;");
+                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 17px; -fx-text-fill: " + COLOR_NAVY + ";");
                 nameLabel.setMaxWidth(260);
                 
                 TextField nameEdit = new TextField(s.name());

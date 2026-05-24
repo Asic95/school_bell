@@ -57,7 +57,7 @@ public class SettingsView {
         volumeSlider = new Slider(0, 100, config.getSystemVolume());
         broadcastEnabledCb = new CheckBox("Увімкнути веб-трансляцію дашборду");
         broadcastEnabledCb.setSelected(config.isBroadcastEnabled());
-        broadcastEnabledCb.setStyle("-fx-font-weight: 900; -fx-text-fill: #0f172a; -fx-font-size: 14px;");
+        broadcastEnabledCb.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + "; -fx-font-size: 14px;");
 
         simulationModeCb = new CheckBox("РЕЖИМ СИМУЛЯЦІЇ (без фізичного реле)");
         simulationModeCb.setSelected(config.isSimulationMode());
@@ -131,7 +131,7 @@ public class SettingsView {
         col2.setPercentWidth(50);
         grid.getColumnConstraints().addAll(col1, col2);
 
-        VBox sec1 = createSettingsSection("ІДЕНТИФІКАЦІЯ ЗАКЛАДУ", "#0984e3", ICON_PERSON);
+        VBox sec1 = createSettingsSection("ІДЕНТИФІКАЦІЯ ЗАКЛАДУ", COLOR_SKY, ICON_PERSON);
         sec1.setStyle(SOFT_CARD + "-fx-padding: 30;");
         GridPane identityGrid = new GridPane();
         identityGrid.setHgap(20);
@@ -149,10 +149,10 @@ public class SettingsView {
         identityGrid.add(cityNameField, 1, 1);
         sec1.getChildren().add(identityGrid);
 
-        VBox sec2 = createSettingsSection("НАЛАШТУВАННЯ ЗВУКУ", "#00b894", ICON_VOLUME);
+        VBox sec2 = createSettingsSection("НАЛАШТУВАННЯ ЗВУКУ", COLOR_TEAL, ICON_VOLUME);
         sec2.setStyle(SOFT_CARD + "-fx-padding: 30;");
         Label volVal = new Label(config.getSystemVolume() + "%");
-        volVal.setStyle("-fx-font-weight: 900; -fx-text-fill: #0f172a; -fx-font-size: 18px;");
+        volVal.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + "; -fx-font-size: 18px;");
         volumeSlider.valueProperty().addListener((o, ov, nv) -> volVal.setText(nv.intValue() + "%"));
         HBox volRow = new HBox(20, volumeSlider, volVal);
         volRow.setAlignment(Pos.CENTER_LEFT);
@@ -160,22 +160,22 @@ public class SettingsView {
         volLabel.setStyle(HEADER_STYLE);
         sec2.getChildren().addAll(volLabel, volRow);
 
-        VBox sec4 = createSettingsSection("МЕРЕЖА ТА ТРАНСЛЯЦІЯ", "#6c5ce7", ICON_BROADCAST);
+        VBox sec4 = createSettingsSection("МЕРЕЖА ТА ТРАНСЛЯЦІЯ", COLOR_INDIGO_DARK, ICON_BROADCAST);
         sec4.setStyle(SOFT_CARD + "-fx-padding: 30;");
-        broadcastEnabledCb.setStyle("-fx-font-weight: 900; -fx-text-fill: #0f172a; -fx-font-size: 14px;");
+        broadcastEnabledCb.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + "; -fx-font-size: 14px;");
         HBox portRow = createFieldRow("ПОРТ ТРАНСЛЯЦІЇ:", portField);
         ((Label) portRow.getChildren().get(0)).setStyle(HEADER_STYLE);
         portField.setPrefWidth(120);
         sec4.getChildren().addAll(broadcastEnabledCb, portRow);
 
-        VBox sec5 = createSettingsSection("СИСТЕМНІ ПАРАМЕТРИ", "#636e72", ICON_SETTINGS);
+        VBox sec5 = createSettingsSection("СИСТЕМНІ ПАРАМЕТРИ", COLOR_NEUTRAL, ICON_SETTINGS);
         sec5.setStyle(SOFT_CARD + "-fx-padding: 30;");
         simulationModeCb.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 14px;");
         Label simDesc = new Label("Використовуйте цей режим для тестування без підключеного реле");
-        simDesc.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
+        simDesc.setStyle("-fx-font-size: 12px; -fx-text-fill: " + COLOR_SLATE + ";");
         sec5.getChildren().addAll(simulationModeCb, simDesc);
         
-        VBox secAir = createSettingsSection("АВТОМАТИЗАЦІЯ ПОВІТРЯНОЇ ТРИВОГИ", "#e17055", ICON_SETTINGS);
+        VBox secAir = createSettingsSection("АВТОМАТИЗАЦІЯ ПОВІТРЯНОЇ ТРИВОГИ", COLOR_TANGERINE, ICON_SETTINGS);
         secAir.setStyle(SOFT_CARD + "-fx-padding: 30;");
         HBox airToggleBox = new HBox(15, new Label("СТАТУС АВТОМАТИЗАЦІЇ:"), airRaidToggle);
         airToggleBox.setAlignment(Pos.CENTER_LEFT);

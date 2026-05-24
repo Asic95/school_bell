@@ -28,7 +28,7 @@ public class DeviceRow extends HBox {
         iconBox.setPrefSize(48, 48);
         iconBox.setMinSize(48, 48);
         iconBox.setMaxSize(48, 48);
-        iconBox.setStyle("-fx-background-color: " + (isActive && !isBanned ? COLOR_PRIMARY + "10" : "#f1f2f6") + "; -fx-background-radius: 16;");
+        iconBox.setStyle("-fx-background-color: " + (isActive && !isBanned ? COLOR_PRIMARY + "10" : COLOR_SURFACE_SUBTLE) + "; -fx-background-radius: 16;");
 
         VBox info = new VBox(3);
         Label name = new Label(device.name());
@@ -55,9 +55,9 @@ public class DeviceRow extends HBox {
         actions.setAlignment(Pos.CENTER_RIGHT);
         
         actions.getChildren().addAll(
-            createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY, onEdit),
-            createCardActionButton(isBanned ? ICON_CHECK : ICON_BAN, isBanned ? "#f0fdf4" : "#f1f2f6", isBanned ? COLOR_SUCCESS : COLOR_NEUTRAL, onBan),
-            createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER, onDelete)
+            createCardActionButton(ICON_EDIT, COLOR_SURFACE_SUBTLE, COLOR_PRIMARY, onEdit),
+            createCardActionButton(isBanned ? ICON_CHECK : ICON_BAN, isBanned ? COLOR_SUCCESS_LIGHT : COLOR_SURFACE_SUBTLE, isBanned ? COLOR_SUCCESS : COLOR_NEUTRAL, onBan),
+            createCardActionButton(ICON_TRASH, COLOR_DANGER_LIGHT, COLOR_DANGER, onDelete)
         );
 
         getChildren().addAll(iconBox, info, actions);

@@ -65,7 +65,7 @@ public class NotificationsView {
         VBox helpPanel = createSideHelpPanel(
                 createHelpCard(ICON_VOLUME, "Аудіо", "Швидко змінюйте пристрій відтворення і гучність без зайвих технічних налаштувань.", COLOR_SUCCESS),
                 createHelpCard(ICON_MONITOR, "Екран", "Показ розкладу буде тимчасово призупинений, а замість нього буде відображатися текст відповідного сповіщення.", COLOR_PURPLE),
-                createHelpCard(ICON_INFO, "Порада", "Для кращого сканування тримайте активними лише сценарії з уже підключеним аудіофайлом.", "#f59e0b")
+                createHelpCard(ICON_INFO, "Порада", "Для кращого сканування тримайте активними лише сценарії з уже підключеним аудіофайлом.", COLOR_WARNING_AMBER)
         );
 
         HBox content = new HBox(28, mainCol, helpPanel);
@@ -89,7 +89,7 @@ public class NotificationsView {
             "Сигнали та сповіщення",
             "Керування екстреними сигналами, фоновою музикою та вибором аудіопристроїв.",
             ICON_NOTIFICATIONS,
-            "#4f46e5",
+            COLOR_INDIGO,
             saveBtn
         );
     }
@@ -128,7 +128,7 @@ public class NotificationsView {
         HBox.setHgrow(deviceCombo, Priority.ALWAYS);
 
         Label note = new Label("Оберіть джерело аудіосигналу для всіх типів дзвінків та трансляцій.");
-        note.setStyle("-fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        note.setStyle("-fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
 
         card.getChildren().addAll(label, row, note);
         return card;
@@ -166,7 +166,7 @@ public class NotificationsView {
 
         updateVolumeStyle();
         Label note = new Label("Використовуйте пресети для швидкого налаштування.");
-        note.setStyle("-fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        note.setStyle("-fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
         card.getChildren().addAll(label, volumePresetBox, note);
         return card;
     }

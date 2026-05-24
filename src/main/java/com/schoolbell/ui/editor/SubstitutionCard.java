@@ -44,7 +44,7 @@ public class SubstitutionCard {
         VBox lessonBox = new VBox();
         lessonBox.setAlignment(Pos.CENTER);
         lessonBox.setPrefSize(54, 54);
-        lessonBox.setStyle("-fx-background-color: linear-gradient(to bottom right, #f8fbff, #edf4ff); -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.08), 12, 0, 0, 4);");
+        lessonBox.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + "); -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.08), 12, 0, 0, 4);");
         Label lessonNum = new Label(String.valueOf(sub.lessonNumber()));
         lessonNum.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + ";");
         Label lessonText = new Label("УРОК");
@@ -53,7 +53,7 @@ public class SubstitutionCard {
 
         SchoolClass cls = mainApp.getAcademicService().getAllClasses().stream().filter(c -> c.id() == sub.classId()).findFirst().orElse(null);
         Label classBadge = new Label(cls != null ? cls.name() : "?");
-        classBadge.setStyle("-fx-background-color: #f5f3ff; -fx-text-fill: #7c3aed; -fx-padding: 5 14; -fx-background-radius: 12; -fx-font-weight: 900; -fx-font-size: 11px; -fx-border-color: #7c3aed25; -fx-border-radius: 12;");
+        classBadge.setStyle("-fx-background-color: " + COLOR_PURPLE_SOFT + "; -fx-text-fill: " + COLOR_VIOLET + "; -fx-padding: 5 14; -fx-background-radius: 12; -fx-font-weight: 900; -fx-font-size: 11px; -fx-border-color: " + COLOR_VIOLET + "25; -fx-border-radius: 12;");
         
         lessonAndClass.getChildren().addAll(lessonBox, classBadge);
 
@@ -82,15 +82,15 @@ public class SubstitutionCard {
             
             VBox otStack = new VBox(2);
             Label otName = new Label(ot != null ? ot.name() : "Невідомий");
-            otName.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: #64748b;");
+            otName.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: " + COLOR_SLATE + ";");
             Label osName = new Label(os != null ? os.name().toUpperCase() : "?");
-            osName.setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: #94a3b8;");
+            osName.setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SLATE_LIGHT + ";");
             otStack.getChildren().addAll(otName, osName);
             
             fromInfo.getChildren().addAll(createAvatar(ot != null ? ot.name() : "?", 42), otStack);
         } else {
             Label noOrig = new Label("ВІЛЬНИЙ УРОК");
-            noOrig.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: #94a3b8; -fx-opacity: 0.6;");
+            noOrig.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-opacity: 0.6;");
             fromInfo.getChildren().add(noOrig);
         }
         fromBox.getChildren().addAll(fromLabel, fromInfo);
@@ -98,15 +98,15 @@ public class SubstitutionCard {
         // --- DECORATIVE TRANSITION ---
         VBox transitionBox = new VBox();
         transitionBox.setAlignment(Pos.CENTER);
-        Node arrow = createSVGIcon("M14,16.94V12.94H5.08L5.05,10.93H14V6.94L19,11.94L14,16.94Z", Color.web("#e67e22"), 28);
-        arrow.setStyle("-fx-effect: dropshadow(three-pass-box, #e67e2240, 15, 0, 0, 0);");
+        Node arrow = createSVGIcon("M14,16.94V12.94H5.08L5.05,10.93H14V6.94L19,11.94L14,16.94Z", Color.web(COLOR_ORANGE), 28);
+        arrow.setStyle("-fx-effect: dropshadow(three-pass-box, " + COLOR_ORANGE + "40, 15, 0, 0, 0);");
         transitionBox.getChildren().add(arrow);
 
         // --- REPLACEMENT BLOCK ---
         VBox toBox = new VBox(10);
         toBox.setAlignment(Pos.CENTER_LEFT);
         Label toLabel = new Label("СТАЛО (ЗАМІНА)");
-        toLabel.setStyle(HEADER_STYLE + "-fx-font-size: 9px; -fx-text-fill: #e67e22;");
+        toLabel.setStyle(HEADER_STYLE + "-fx-font-size: 9px; -fx-text-fill: " + COLOR_ORANGE + ";");
         
         HBox toInfo = new HBox(15);
         toInfo.setAlignment(Pos.CENTER_LEFT);
@@ -115,9 +115,9 @@ public class SubstitutionCard {
         
         VBox ntStack = new VBox(2);
         Label ntName = new Label(nt != null ? nt.name() : "Немає вчителя");
-        ntName.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: #0f172a;");
+        ntName.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: " + COLOR_NAVY + ";");
         Label nsName = new Label(ns != null ? ns.name().toUpperCase() : "ЗАМІНА");
-        nsName.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #e67e22;");
+        nsName.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_ORANGE + ";");
         ntStack.getChildren().addAll(ntName, nsName);
 
         // Add classroom badge
@@ -125,7 +125,7 @@ public class SubstitutionCard {
             String roomName = mainApp.getClassroomName(sub.classroomId());
             Label roomBadge = new Label(roomName);
             roomBadge.setGraphic(createSVGIcon(ICON_ROOM, Color.WHITE, 10));
-            roomBadge.setStyle("-fx-font-size: 10px; -fx-text-fill: white; -fx-background-color: #e67e22; -fx-background-radius: 8; -fx-padding: 3 10; -fx-font-weight: 900;");
+            roomBadge.setStyle("-fx-font-size: 10px; -fx-text-fill: white; -fx-background-color: " + COLOR_ORANGE + "; -fx-background-radius: 8; -fx-padding: 3 10; -fx-font-weight: 900;");
             HBox roomWrapper = new HBox(roomBadge);
             roomWrapper.setPadding(new Insets(4, 0, 0, 0));
             ntStack.getChildren().add(roomWrapper);
@@ -140,10 +140,10 @@ public class SubstitutionCard {
         HBox actions = new HBox(10);
         actions.setAlignment(Pos.CENTER_RIGHT);
 
-        Button editBtn = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
+        Button editBtn = createCardActionButton(ICON_EDIT, COLOR_SURFACE_SUBTLE, COLOR_PRIMARY);
         editBtn.setOnAction(e -> new com.schoolbell.ui.SubstitutionEditorDialog(mainApp, sub, sub.date(), refreshSubstitutions).show());
 
-        Button delBtn = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
+        Button delBtn = createCardActionButton(ICON_TRASH, COLOR_DANGER_LIGHT, COLOR_DANGER);
         delBtn.setOnAction(e -> {
             mainApp.getAcademicService().deleteSubstitution(sub.id());
             refreshSubstitutions.run();

@@ -27,19 +27,19 @@ public class CardFactory {
         VBox iconBox = new VBox(createSVGIcon(iconPath, Color.web(COLOR_PRIMARY), 44));
         iconBox.setAlignment(Pos.CENTER);
         iconBox.setPrefSize(84, 84);
-        iconBox.setStyle("-fx-background-color: linear-gradient(to bottom right, #f8fbff, #edf4ff); -fx-background-radius: 22;");
+        iconBox.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + "); -fx-background-radius: 22;");
 
         Label titleLabel = new Label(title);
-        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
 
         Label descLabel = new Label(description);
         descLabel.setWrapText(true);
         descLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
-        descLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #64748b; -fx-line-spacing: 1.2px;");
+        descLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE + "; -fx-line-spacing: 1.2px;");
 
         card.getChildren().addAll(iconBox, titleLabel, descLabel);
         card.setOnMouseClicked(e -> action.run());
-        card.setOnMouseEntered(e -> card.setStyle(SOFT_CARD + "-fx-cursor: hand; -fx-background-color: #fcfdfe; -fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.12), 40, 0, 0, 15);"));
+        card.setOnMouseEntered(e -> card.setStyle(SOFT_CARD + "-fx-cursor: hand; -fx-background-color: " + COLOR_SURFACE_ELEVATED + "; -fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.12), 40, 0, 0, 15);"));
         card.setOnMouseExited(e -> card.setStyle(SOFT_CARD + "-fx-cursor: hand;"));
         
         return card;
@@ -63,24 +63,24 @@ public class CardFactory {
         iconCircle.setAlignment(Pos.CENTER);
         iconCircle.setPrefSize(84, 84);
         iconCircle.setMinSize(84, 84);
-        iconCircle.setStyle("-fx-background-color: linear-gradient(to bottom right, #f8fbff, #edf4ff); -fx-background-radius: 22; -fx-effect: dropshadow(three-pass-box, " + iconColor + "15, 12, 0, 0, 5);");
+        iconCircle.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + "); -fx-background-radius: 22; -fx-effect: dropshadow(three-pass-box, " + iconColor + "15, 12, 0, 0, 5);");
         
         VBox textStack = new VBox(8);
         textStack.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(textStack, Priority.ALWAYS);
         
         Label t = new Label(title);
-        t.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #64748b; -fx-letter-spacing: 1.5px; -fx-text-transform: uppercase;");
+        t.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SLATE + "; -fx-letter-spacing: 1.5px; -fx-text-transform: uppercase;");
         
         if (valueNode instanceof Label l) {
-            l.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+            l.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         }
         
         textStack.getChildren().addAll(t, valueNode);
         
         if (actionText != null && action != null) {
             Hyperlink link = new Hyperlink(actionText + "  →");
-            link.setStyle("-fx-text-fill: #4f46e5; -fx-font-size: 14px; -fx-padding: 5 0 0 0; -fx-underline: false; -fx-font-weight: 900;");
+            link.setStyle("-fx-text-fill: " + COLOR_INDIGO + "; -fx-font-size: 14px; -fx-padding: 5 0 0 0; -fx-underline: false; -fx-font-weight: 900;");
             link.setFocusTraversable(false);
             link.setOnAction(e -> action.run());
             textStack.getChildren().add(link);
@@ -89,7 +89,7 @@ public class CardFactory {
         layout.getChildren().addAll(iconCircle, textStack);
         card.getChildren().add(layout);
         
-        card.setOnMouseEntered(e -> card.setStyle(SOFT_CARD + "-fx-background-color: #fcfdfe; -fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.12), 40, 0, 0, 15);"));
+        card.setOnMouseEntered(e -> card.setStyle(SOFT_CARD + "-fx-background-color: " + COLOR_SURFACE_ELEVATED + "; -fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.12), 40, 0, 0, 15);"));
         card.setOnMouseExited(e -> card.setStyle(SOFT_CARD));
         
         return card;
@@ -120,7 +120,7 @@ public class CardFactory {
         roomLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
         
         info.getChildren().addAll(titleBox, new HBox(10, timeLabel, new Label("|"), roomLabel), subjectLabel);
-        ((Label)((HBox)info.getChildren().get(1)).getChildren().get(1)).setStyle("-fx-text-fill: #dfe6e9;");
+        ((Label)((HBox)info.getChildren().get(1)).getChildren().get(1)).setStyle("-fx-text-fill: " + COLOR_WHITE_MUTED_BORDER + ";");
         
         content.getChildren().addAll(iconBox, info);
         card.getChildren().addAll(h, content);
@@ -153,7 +153,7 @@ public class CardFactory {
         
         HBox metaBox = new HBox(12, timeLabel, new Label("|"), roomLabel);
         metaBox.setAlignment(Pos.CENTER_LEFT);
-        ((Label)metaBox.getChildren().get(1)).setStyle("-fx-text-fill: #dfe6e9;");
+        ((Label)metaBox.getChildren().get(1)).setStyle("-fx-text-fill: " + COLOR_WHITE_MUTED_BORDER + ";");
         
         VBox progressBox = new VBox(5, progress, new HBox(progressText));
         ((HBox)progressBox.getChildren().get(1)).setAlignment(Pos.CENTER_RIGHT);
@@ -180,17 +180,17 @@ public class CardFactory {
         iconBox.setStyle("-fx-background-color: " + iconColor + "10; -fx-background-radius: 12;");
         
         Label titleLabel = new Label(title);
-        titleLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 14px; -fx-text-fill: #0f172a;");
+        titleLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 14px; -fx-text-fill: " + COLOR_NAVY + ";");
         
         header.getChildren().addAll(iconBox, titleLabel);
         
         Label descLabel = new Label(description);
         descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b; -fx-line-spacing: 1.2px;");
+        descLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_SLATE + "; -fx-line-spacing: 1.2px;");
         
         card.getChildren().addAll(header, descLabel);
         
-        card.setOnMouseEntered(e -> card.setStyle(SOFT_CARD + "-fx-background-color: #fcfdfe; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 20, 0, 0, 8);"));
+        card.setOnMouseEntered(e -> card.setStyle(SOFT_CARD + "-fx-background-color: " + COLOR_SURFACE_ELEVATED + "; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 20, 0, 0, 8);"));
         card.setOnMouseExited(e -> card.setStyle(SOFT_CARD));
         
         return card;
@@ -238,7 +238,7 @@ public class CardFactory {
                 "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.16), 14, 0, 0, 4);");
 
             // Визначаємо, чи це кнопка видалення (містить "danger" або відповідні стилі)
-            boolean isDanger = hoverBorder.contains(COLOR_DANGER) || hoverBorder.contains("#fff5f5") || iconPath.contains("trash");
+            boolean isDanger = hoverBorder.contains(COLOR_DANGER) || hoverBorder.contains(COLOR_DANGER_LIGHT) || iconPath.contains("trash");
 
             if (isDanger) {
                 btn.setGraphic(createSVGIcon(iconPath, Color.web(COLOR_DANGER), 18));

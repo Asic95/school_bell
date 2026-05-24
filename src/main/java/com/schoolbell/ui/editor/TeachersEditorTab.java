@@ -31,14 +31,14 @@ public class TeachersEditorTab {
     public Node createContent() {
         VBox content = new VBox(25);
         content.setPadding(new Insets(30));
-        content.setStyle("-fx-background-color: #f8f9fa;");
+        content.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
 
         HBox header = createPageHeader(
             "ПЕРСОНАЛ",
             "Викладацький склад",
             "Керування списком вчителів, їх спеціалізацією та закріпленими предметами.",
             ICON_PERSON,
-            "#0984e3",
+            COLOR_SKY,
             null
         );
 
@@ -68,15 +68,15 @@ public class TeachersEditorTab {
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
 
-                Button edit = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
-                Button del = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
+                Button edit = createCardActionButton(ICON_EDIT, COLOR_SURFACE_SUBTLE, COLOR_PRIMARY);
+                Button del = createCardActionButton(ICON_TRASH, COLOR_DANGER_LIGHT, COLOR_DANGER);
                 del.setOnAction(e -> { mainApp.getStaffService().deleteTeacher(t.id()); refreshTeachers.run(); });
 
                 topRow.getChildren().addAll(avatar, spacer, edit, del);
 
                 VBox nameArea = new VBox(5);
                 Label nameLabel = new Label(t.name());
-                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 17px; -fx-text-fill: #0f172a;");
+                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 17px; -fx-text-fill: " + COLOR_NAVY + ";");
                 nameLabel.setWrapText(true);
                 nameLabel.setMaxWidth(300);
                 
@@ -110,9 +110,9 @@ public class TeachersEditorTab {
                 FlowPane chips = new FlowPane(6, 6);
                 for (Subject sub : mainApp.getStaffService().getSubjectsForTeacher(t.id())) {
                     Label chip = new Label(sub.name().toUpperCase() + " ✕");
-                    String chipBase = "-fx-background-color: #e3f2fd; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #0984e3; -fx-cursor: hand; -fx-border-color: #0984e320; -fx-border-radius: 12;";
+                    String chipBase = "-fx-background-color: " + COLOR_BLUE_LIGHT + "; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SKY + "; -fx-cursor: hand; -fx-border-color: " + COLOR_SKY + "20; -fx-border-radius: 12;";
                     chip.setStyle(chipBase);
-                    chip.setOnMouseEntered(e -> chip.setStyle(chipBase + "-fx-background-color: #ff767515; -fx-text-fill: #ff7675; -fx-border-color: #ff767540;"));
+                    chip.setOnMouseEntered(e -> chip.setStyle(chipBase + "-fx-background-color: " + COLOR_SALMON + "15; -fx-text-fill: " + COLOR_SALMON + "; -fx-border-color: " + COLOR_SALMON + "40;"));
                     chip.setOnMouseExited(e -> chip.setStyle(chipBase));
                     chip.setOnMouseClicked(e -> { mainApp.getStaffService().unlinkTeacherFromSubject(t.id(), sub.id()); refreshTeachers.run(); });
                     chips.getChildren().add(chip);

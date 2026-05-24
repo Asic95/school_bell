@@ -53,7 +53,7 @@ public class SubstitutionsEditorTab {
             "Керування замінами",
             "Переглядайте, фільтруйте та керуйте замінами вчителів у реальному часі.",
             ICON_CLOCK,
-            "#e67e22",
+            COLOR_ORANGE,
             null
         );
 
@@ -144,11 +144,11 @@ public class SubstitutionsEditorTab {
                 empty.setAlignment(Pos.CENTER);
                 empty.setPadding(new Insets(100, 0, 0, 0));
                 
-                Node icon = createSVGIcon(ICON_INFO, Color.web("#cbd5e1"), 64);
+                Node icon = createSVGIcon(ICON_INFO, Color.web(COLOR_SLATE_MUTED), 64);
                 Label emptyLabel = new Label(showArchived ? "Архів замін порожній" : "Немає активних замін");
-                emptyLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #94a3b8;");
+                emptyLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + ";");
                 Label subLabel = new Label("Всі зміни в розкладі відображатимуться тут");
-                subLabel.setStyle("-fx-text-fill: #cbd5e1; -fx-font-size: 14px;");
+                subLabel.setStyle("-fx-text-fill: " + COLOR_SLATE_MUTED + "; -fx-font-size: 14px;");
                 
                 empty.getChildren().addAll(icon, emptyLabel, subLabel);
                 contentList.getChildren().add(empty);

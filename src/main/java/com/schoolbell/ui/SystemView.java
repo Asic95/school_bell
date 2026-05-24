@@ -102,7 +102,7 @@ public class SystemView {
             "Системні налаштування",
             "Глобальні параметри роботи програми, дизайн та поведінка системи.",
             ICON_SETTINGS,
-            "#2d3436",
+            COLOR_TEXT,
             saveBtn
         );
 
@@ -147,7 +147,7 @@ public class SystemView {
         rows.getChildren().add(createToggleRow("Режим симуляції",
                 "Робота без фізичного підключення до реле (тільки логування)", ICON_FLASK, COLOR_WARNING, simulationTg));
         rows.getChildren().add(createToggleRow("Автоматизація повітряної тривоги",
-                "Пошук та автоматичне оповіщення про повітряну тривогу", ICON_SETTINGS, "#e17055", airRaidTg));
+                "Пошук та автоматичне оповіщення про повітряну тривогу", ICON_SETTINGS, COLOR_TANGERINE, airRaidTg));
         
         // Region Selection with Label
         VBox regionBox = new VBox(8);
@@ -183,7 +183,7 @@ public class SystemView {
     }
 
     private VBox buildSignalCard() {
-        VBox card = createCard("ПАРАМЕТРИ ДЗВІНКІВ", ICON_WAVEFORM, "#f39c12");
+        VBox card = createCard("ПАРАМЕТРИ ДЗВІНКІВ", ICON_WAVEFORM, COLOR_ORANGE_DARK);
         card.getChildren().add(bellSettingsPane);
         return card;
     }
@@ -202,7 +202,7 @@ public class SystemView {
         iconBox.setStyle(ICON_BADGE_STYLE);
 
         Label t = new Label(title);
-        t.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: #0f172a; -fx-letter-spacing: 1.5px;");
+        t.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + "; -fx-letter-spacing: 1.5px;");
 
         header.getChildren().addAll(iconBox, t);
         card.getChildren().add(header);
@@ -223,16 +223,16 @@ public class SystemView {
 
         VBox texts = new VBox(4);
         Label t = new Label(title);
-        t.setStyle("-fx-font-weight: 800; -fx-font-size: 16px; -fx-text-fill: #0f172a;");
+        t.setStyle("-fx-font-weight: 800; -fx-font-size: 16px; -fx-text-fill: " + COLOR_NAVY + ";");
         Label d = new Label(desc);
-        d.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
+        d.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_SLATE + ";");
         texts.getChildren().addAll(t, d);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         row.getChildren().addAll(iconBox, texts, spacer, toggle);
 
-        row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 18;"));
+        row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: " + COLOR_SURFACE_SOFT + "; -fx-background-radius: 18;"));
         row.setOnMouseExited(e -> row.setStyle("-fx-background-color: transparent; -fx-background-radius: 18;"));
         return row;
     }

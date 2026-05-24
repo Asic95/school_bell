@@ -1,11 +1,19 @@
 package com.schoolbell.ui;
 
 import com.schoolbell.MainApp;
-import com.schoolbell.model.*;
+import com.schoolbell.model.Classroom;
+import com.schoolbell.model.SchoolClass;
+import com.schoolbell.model.Subject;
+import com.schoolbell.model.SubstitutionEntry;
+import com.schoolbell.model.Teacher;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -18,8 +26,16 @@ import javafx.stage.StageStyle;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.schoolbell.ui.ControlFactory.*;
-import static com.schoolbell.ui.UIStyles.*;
+import static com.schoolbell.ui.ControlFactory.createDialogHeader;
+import static com.schoolbell.ui.ControlFactory.createDialogRoot;
+import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
+import static com.schoolbell.ui.ControlFactory.createSecondaryDialogButton;
+import static com.schoolbell.ui.UIStyles.HEADER_STYLE;
+import static com.schoolbell.ui.UIStyles.ICON_SAVE;
+import static com.schoolbell.ui.UIStyles.MODERN_DATE_PICKER_STYLE;
+import static com.schoolbell.ui.UIStyles.MODERN_SPINNER_STYLE;
+import static com.schoolbell.ui.UIStyles.PREMIUM_BTN_STYLE;
+import static com.schoolbell.ui.UIStyles.PREMIUM_SELECT_STYLE;
 
 public class SubstitutionEditorDialog extends Stage {
     private final MainApp mainApp;
@@ -42,25 +58,20 @@ public class SubstitutionEditorDialog extends Stage {
         initStyle(StageStyle.TRANSPARENT);
         initOwner(mainApp.getStage());
 
-        VBox root = new VBox(25);
-        root.setPadding(new Insets(35));
-        root.setStyle(SOFT_CARD);
-        root.setPrefWidth(650);
-
-        Label title = new Label(entry == null ? "Нова заміна" : "Редагування заміни");
-        title.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
-        Label subtitle = new Label("Оберіть параметри для автоматичної заміни в розкладі.");
-        subtitle.setStyle("-fx-font-size: 15px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
-
-        VBox headerBox = new VBox(8, title, subtitle);
+        VBox root = createDialogRoot(650);
+        VBox headerBox = createDialogHeader(
+                entry == null ? "Створення" : "Редагування",
+                entry == null ? "Нова заміна" : "Редагування заміни",
+                "Оберіть параметри для автоматичної заміни в розкладі."
+        );
 
         GridPane grid = new GridPane();
         grid.setHgap(25);
         grid.setVgap(20);
         grid.setAlignment(Pos.CENTER_LEFT);
-        
+
         javafx.scene.layout.ColumnConstraints labelCol = new javafx.scene.layout.ColumnConstraints();
-        labelCol.setPrefWidth(180); // Increased label column width
+        labelCol.setPrefWidth(180);
         javafx.scene.layout.ColumnConstraints fieldCol = new javafx.scene.layout.ColumnConstraints();
         fieldCol.setHgrow(Priority.ALWAYS);
         grid.getColumnConstraints().addAll(labelCol, fieldCol);
@@ -109,20 +120,20 @@ public class SubstitutionEditorDialog extends Stage {
             Teacher selected = teacherCombo.getValue();
             if (selected != null) {
                 List<Subject> teacherSubjects = mainApp.getStaffService().getSubjectsForTeacher(selected.id());
-                Subject currentSub = subjectCombo.getValue();
+                Subject currentSubject = subjectCombo.getValue();
                 subjectCombo.getItems().setAll(teacherSubjects);
-                if (currentSub != null && teacherSubjects.contains(currentSub)) {
-                    subjectCombo.setValue(currentSub);
+                if (currentSubject != null && teacherSubjects.contains(currentSubject)) {
+                    subjectCombo.setValue(currentSubject);
                 }
             }
         });
 
         if (entry != null) {
             classCombo.getItems().stream().filter(c -> c.id() == entry.classId()).findFirst().ifPresent(classCombo::setValue);
-            mainApp.getStaffService().getAllTeachers().stream().filter(t -> t.id() == entry.teacherId()).findFirst().ifPresent(t -> {
-                teacherCombo.setValue(t);
-                List<Subject> ts = mainApp.getStaffService().getSubjectsForTeacher(t.id());
-                subjectCombo.getItems().setAll(ts);
+            mainApp.getStaffService().getAllTeachers().stream().filter(t -> t.id() == entry.teacherId()).findFirst().ifPresent(teacher -> {
+                teacherCombo.setValue(teacher);
+                List<Subject> teacherSubjects = mainApp.getStaffService().getSubjectsForTeacher(teacher.id());
+                subjectCombo.getItems().setAll(teacherSubjects);
                 mainApp.getStaffService().getAllSubjects().stream().filter(s -> s.id() == entry.subjectId()).findFirst().ifPresent(subjectCombo::setValue);
             });
             mainApp.getAcademicService().getAllClassrooms().stream().filter(c -> c.id() == entry.classroomId()).findFirst().ifPresent(classroomCombo::setValue);
@@ -132,11 +143,7 @@ public class SubstitutionEditorDialog extends Stage {
         actions.setAlignment(Pos.CENTER_RIGHT);
         actions.setPadding(new Insets(10, 0, 0, 0));
 
-        Button cancelBtn = new Button("СКАСУВАТИ");
-        String cancelStyle = "-fx-background-color: white; -fx-text-fill: #64748b; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 18; -fx-cursor: hand;";
-        cancelBtn.setStyle(cancelStyle);
-        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: #f1f2f6;"));
-        cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(cancelStyle));
+        Button cancelBtn = createSecondaryDialogButton("СКАСУВАТИ");
         cancelBtn.setOnAction(e -> close());
 
         Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ЗАМІНУ", ICON_SAVE);
@@ -153,8 +160,8 @@ public class SubstitutionEditorDialog extends Stage {
         Scene scene = new Scene(root);
         scene.setFill(Color.TRANSPARENT);
         scene.getStylesheets().addAll(
-            "data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"),
-            "data:text/css," + MODERN_SPINNER_STYLE.replace(" ", "%20")
+                "data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"),
+                "data:text/css," + MODERN_SPINNER_STYLE.replace(" ", "%20")
         );
         setScene(scene);
     }
@@ -172,10 +179,12 @@ public class SubstitutionEditorDialog extends Stage {
         }
 
         int classroomId = classroomCombo.getValue() != null ? classroomCombo.getValue().id() : 0;
-        if (entry != null && (entry.classId() != classCombo.getValue().id() || !entry.date().equals(datePicker.getValue()) || entry.lessonNumber() != lessonSpinner.getValue())) {
+        if (entry != null && (entry.classId() != classCombo.getValue().id()
+                || !entry.date().equals(datePicker.getValue())
+                || entry.lessonNumber() != lessonSpinner.getValue())) {
             mainApp.getAcademicService().deleteSubstitution(entry.id());
         }
-        
+
         mainApp.getAcademicService().saveSubstitution(
                 classCombo.getValue().id(),
                 datePicker.getValue(),
@@ -184,9 +193,11 @@ public class SubstitutionEditorDialog extends Stage {
                 subjectCombo.getValue().id(),
                 classroomId
         );
-        
-        if (onSave != null) onSave.run();
-        ToastService.showSuccess("Заміну збережено успішно");
+
+        if (onSave != null) {
+            onSave.run();
+        }
+        ToastService.showSuccess("Зміну збережено успішно");
         return true;
     }
 }

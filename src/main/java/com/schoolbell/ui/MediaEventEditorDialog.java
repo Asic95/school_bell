@@ -44,13 +44,13 @@ public class MediaEventEditorDialog extends Stage {
 
         VBox root = new VBox(25);
         root.setPadding(new Insets(35));
-        root.setStyle(SOFT_CARD + "-fx-background-radius: 32; -fx-border-radius: 32; -fx-border-width: 2; -fx-border-color: #e2e8f0;");
+        root.setStyle(SOFT_CARD + "-fx-background-radius: 32; -fx-border-radius: 32; -fx-border-width: 2; -fx-border-color: " + COLOR_BORDER_SOFT + ";");
         root.setPrefWidth(650);
 
         Label title = new Label(event == null ? "Додати подію" : "Редагувати подію");
         title.setStyle("-fx-font-size: 24px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT + ";");
         Label subtitle = new Label(event == null ? "Налаштування нового автоматичного сповіщення." : event.name());
-        subtitle.setStyle("-fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        subtitle.setStyle("-fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
 
         VBox headerBox = new VBox(4, title, subtitle);
 
@@ -78,7 +78,7 @@ public class MediaEventEditorDialog extends Stage {
             case "ONCE" -> "Разово";
             default -> "На перервах";
         } : "На перервах");
-        typeC.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-background-radius: 12; -fx-border-radius: 12; -fx-background-color: white; -fx-border-color: #e2e8f0; -fx-padding: 8;");
+        typeC.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-background-radius: 12; -fx-border-radius: 12; -fx-background-color: white; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-padding: 8;");
         typeC.setMaxWidth(Double.MAX_VALUE);
         grid.add(createLabel("ТИП ТРИГЕРА"), 0, 1);
         grid.add(typeC, 1, 1);
@@ -122,7 +122,7 @@ public class MediaEventEditorDialog extends Stage {
             case "OFFSET" -> "Зі зміщенням (хв)";
             default -> "Початок перерви";
         } : "Початок перерви");
-        breakAnchorC.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-background-radius: 12; -fx-border-radius: 12; -fx-background-color: white; -fx-border-color: #e2e8f0; -fx-padding: 8;");
+        breakAnchorC.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-background-radius: 12; -fx-border-radius: 12; -fx-background-color: white; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-padding: 8;");
         breakAnchorC.setPrefWidth(200);
 
         offsetF = createStyledField(String.valueOf(event != null ? event.breakOffset() : 0));
@@ -174,7 +174,7 @@ public class MediaEventEditorDialog extends Stage {
         actions.setPadding(new Insets(10, 0, 0, 0));
 
         Button cancelBtn = new Button("СКАСУВАТИ");
-        cancelBtn.setStyle("-fx-background-color: #f1f2f6; -fx-text-fill: #636e72; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 14; -fx-cursor: hand;");
+        cancelBtn.setStyle("-fx-background-color: " + COLOR_SURFACE_SUBTLE + "; -fx-text-fill: " + COLOR_NEUTRAL + "; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 14; -fx-cursor: hand;");
         cancelBtn.setOnAction(e -> close());
 
         Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ПОДІЮ", ICON_SAVE);
@@ -197,7 +197,7 @@ public class MediaEventEditorDialog extends Stage {
 
     private Label createLabel(String text) {
         Label lbl = new Label(text);
-        lbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #94a3b8; -fx-letter-spacing: 1px;");
+        lbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-letter-spacing: 1px;");
         return lbl;
     }
 

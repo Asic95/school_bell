@@ -41,15 +41,15 @@ public class AnnouncementsEditorTab {
     public Node createContent() {
         VBox content = new VBox(25);
         content.setPadding(new Insets(30));
-        content.setStyle("-fx-background-color: #f8f9fa;");
+        content.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
 
-        VBox headerArea = createSectionHeader("Оголошення для табло", "Створюйте та плануйте показ важливих повідомлень за часом та днями", "#6c5ce7", ICON_BROADCAST);
+        VBox headerArea = createSectionHeader("Оголошення для табло", "Створюйте та плануйте показ важливих повідомлень за часом та днями", COLOR_INDIGO_DARK, ICON_BROADCAST);
 
         HBox actionToolbar = new HBox(20);
         actionToolbar.setAlignment(Pos.CENTER_LEFT);
 
         Button addBtn = createPrimaryActionButton("СТВОРИТИ ОГОЛОШЕННЯ", ICON_PLUS);
-        addBtn.setStyle(addBtn.getStyle().replace(COLOR_PRIMARY, "#6c5ce7"));
+        addBtn.setStyle(addBtn.getStyle().replace(COLOR_PRIMARY, COLOR_INDIGO_DARK));
         addBtn.setOnAction(e -> openEditDialog(null));
 
         // Segmented Toggle for Active/Archive
@@ -117,9 +117,9 @@ public class AnnouncementsEditorTab {
                 VBox empty = new VBox(20);
                 empty.setAlignment(Pos.CENTER);
                 empty.setPadding(new Insets(80, 0, 80, 0));
-                Node emptyIcon = createSVGIcon(ICON_INFO, Color.web("#dfe6e9"), 64);
+                Node emptyIcon = createSVGIcon(ICON_INFO, Color.web(COLOR_WHITE_MUTED_BORDER), 64);
                 Label emptyLabel = new Label(showArchived ? "Архів оголошень порожній" : "Немає активних оголошень");
-                emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #b2bec3;");
+                emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_ICON_MUTED + ";");
                 empty.getChildren().addAll(emptyIcon, emptyLabel);
                 cardsContainer.getChildren().add(empty);
             } else {
@@ -149,7 +149,7 @@ public class AnnouncementsEditorTab {
 
         VBox info = new VBox(12);
         Label textLabel = new Label(a.text());
-        textLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 17px; -fx-text-fill: #0f172a;");
+        textLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 17px; -fx-text-fill: " + COLOR_NAVY + ";");
         textLabel.setWrapText(true);
         textLabel.setMaxWidth(800);
 
@@ -166,7 +166,7 @@ public class AnnouncementsEditorTab {
         badges.getChildren().addAll(dateBadge, timeBadge);
         
         if (a.daysOfWeek() != null && !a.daysOfWeek().isEmpty()) {
-            badges.getChildren().add(createBadge(getDaysText(a.daysOfWeek()).toUpperCase(), "#e67e22", ICON_CALENDAR));
+            badges.getChildren().add(createBadge(getDaysText(a.daysOfWeek()).toUpperCase(), COLOR_ORANGE, ICON_CALENDAR));
         }
 
         info.getChildren().addAll(textLabel, badges);
@@ -175,10 +175,10 @@ public class AnnouncementsEditorTab {
         HBox actions = new HBox(10);
         actions.setAlignment(Pos.TOP_RIGHT);
         
-        Button editBtn = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
+        Button editBtn = createCardActionButton(ICON_EDIT, COLOR_SURFACE_SUBTLE, COLOR_PRIMARY);
         editBtn.setOnAction(e -> openEditDialog(a));
         
-        Button delBtn = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
+        Button delBtn = createCardActionButton(ICON_TRASH, COLOR_DANGER_LIGHT, COLOR_DANGER);
         delBtn.setOnAction(e -> {
             announcementService.deleteAnnouncement(a.id());
             refreshList.run();
@@ -225,7 +225,7 @@ public class AnnouncementsEditorTab {
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: white;");
 
-        VBox header = createSectionHeader(a == null ? "Створення" : "Редагування", "Налаштуйте параметри показу", "#6c5ce7", ICON_BROADCAST);
+        VBox header = createSectionHeader(a == null ? "Створення" : "Редагування", "Налаштуйте параметри показу", COLOR_INDIGO_DARK, ICON_BROADCAST);
 
         TextArea textArea = new TextArea(a != null ? a.text() : "");
         textArea.setPromptText("Текст оголошення...");
@@ -257,7 +257,7 @@ public class AnnouncementsEditorTab {
 
         CheckBox activeCb = new CheckBox("Оголошення активне");
         activeCb.setSelected(a == null || a.isActive());
-        activeCb.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: #0f172a;");
+        activeCb.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_NAVY + ";");
 
         Label startDL = new Label("ПОЧАТОК (ДАТА):"); startDL.setStyle(HEADER_STYLE);
         grid.add(startDL, 0, 0); grid.add(startPicker, 1, 0);

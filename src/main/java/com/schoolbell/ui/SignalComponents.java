@@ -61,11 +61,11 @@ public class SignalComponents {
                 Rectangle p = new Rectangle(Math.max(15, pause * scale), 8); 
                 p.setArcWidth(4);
                 p.setArcHeight(4);
-                p.setFill(Color.web("#dfe6e9"));
+                p.setFill(Color.web(COLOR_WHITE_MUTED_BORDER));
                 p.setOpacity(0.5);
                 
                 Label l = new Label(pause + "с"); 
-                l.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: #bdc3c7;");
+                l.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
                 
                 pBlock.getChildren().addAll(p, l); 
                 box.getChildren().add(pBlock);

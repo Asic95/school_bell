@@ -82,13 +82,13 @@ public class DashboardTimeline {
             activeAnimations.add(st);
         } else if ("completed".equals(status)) {
             box.setStyle("-fx-background-color: " + COLOR_GREEN_LIGHT + "; -fx-background-radius: 14; -fx-border-color: " + COLOR_SUCCESS + "; -fx-border-width: 1.5; -fx-border-radius: 14;");
-            num.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: #16a085;"); 
+            num.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_TEAL_DARK + ";"); 
             Node check = createSVGIcon(ICON_CHECK, Color.web(COLOR_SUCCESS), 14);
             StackPane.setAlignment(check, Pos.TOP_RIGHT);
             StackPane.setMargin(check, new Insets(5, 5, 0, 0));
             box.getChildren().add(check);
         } else {
-            box.setStyle("-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: #dfe6e9; -fx-border-width: 1.5; -fx-border-radius: 14; -fx-opacity: 0.8;");
+            box.setStyle("-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: " + COLOR_WHITE_MUTED_BORDER + "; -fx-border-width: 1.5; -fx-border-radius: 14; -fx-opacity: 0.8;");
             num.setTextFill(Color.web(COLOR_TEXT_DIM));
         }
         
@@ -98,7 +98,7 @@ public class DashboardTimeline {
         time.setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
         
         Label label = new Label("УРОК");
-        label.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: #b2bec3; -fx-letter-spacing: 1px;");
+        label.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_ICON_MUTED + "; -fx-letter-spacing: 1px;");
         
         node.getChildren().addAll(label, box, time);
         container.getChildren().add(node);

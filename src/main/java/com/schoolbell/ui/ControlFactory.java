@@ -34,10 +34,10 @@ public class ControlFactory {
         eb.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
 
         Label t = new Label(title);
-        t.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        t.setStyle(DIALOG_TITLE_STYLE);
 
         Label s = new Label(subtitle);
-        s.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-text-fill: #64748b;");
+        s.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE + ";");
         s.setWrapText(true);
 
         text.getChildren().addAll(eb, t, s);
@@ -61,10 +61,47 @@ public class ControlFactory {
         btn.setStyle(PREMIUM_BTN_STYLE);
         
         btn.setOnMouseEntered(e -> btn.setStyle(PREMIUM_BTN_STYLE + 
-            "-fx-background-color: linear-gradient(to right, #4338ca, #1d4ed8);" +
+            "-fx-background-color: linear-gradient(to right, " + COLOR_INDIGO_DARK + ", " + COLOR_PRIMARY_DARK + ");" +
             "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.4), 28, 0, 0, 10);"));
         btn.setOnMouseExited(e -> btn.setStyle(PREMIUM_BTN_STYLE));
         
+        return btn;
+    }
+
+    public static VBox createDialogRoot(double prefWidth) {
+        VBox root = new VBox(28);
+        root.setPadding(new Insets(35));
+        root.setStyle(SOFT_CARD);
+        root.setPrefWidth(prefWidth);
+        return root;
+    }
+
+    public static VBox createDialogHeader(String eyebrow, String title, String subtitle) {
+        VBox headerText = new VBox(8);
+        Label eb = new Label(eyebrow.toUpperCase());
+        eb.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
+        Label t = new Label(title);
+        t.setStyle(DIALOG_TITLE_STYLE);
+        Label s = new Label(subtitle);
+        s.setStyle(DIALOG_SUBTITLE_STYLE);
+        s.setWrapText(true);
+        headerText.getChildren().addAll(eb, t, s);
+        return headerText;
+    }
+
+    public static Button createSecondaryDialogButton(String text) {
+        Button btn = new Button(text);
+        btn.setStyle(DIALOG_SECONDARY_BUTTON_STYLE);
+        btn.setOnMouseEntered(e -> btn.setStyle(DIALOG_SECONDARY_BUTTON_HOVER_STYLE));
+        btn.setOnMouseExited(e -> btn.setStyle(DIALOG_SECONDARY_BUTTON_STYLE));
+        return btn;
+    }
+
+    public static Button createDangerDialogButton(String text) {
+        Button btn = new Button(text);
+        btn.setStyle(DIALOG_DANGER_BUTTON_STYLE);
+        btn.setOnMouseEntered(e -> btn.setStyle(DIALOG_DANGER_BUTTON_HOVER_STYLE));
+        btn.setOnMouseExited(e -> btn.setStyle(DIALOG_DANGER_BUTTON_STYLE));
         return btn;
     }
 
@@ -87,7 +124,7 @@ public class ControlFactory {
         Runnable updateStyle = () -> {
             if (btn.isSelected()) {
                 container.setStyle(
-                    "-fx-background-color: linear-gradient(to right, #22c55e, #16a34a);" +
+                    "-fx-background-color: linear-gradient(to right, " + COLOR_GREEN_BRIGHT + ", " + COLOR_SUCCESS + ");" +
                     "-fx-background-radius: 999;" +
                     "-fx-effect: dropshadow(three-pass-box, rgba(34,197,94,0.2), 12, 0, 0, 2);"
                 );
@@ -95,7 +132,7 @@ public class ControlFactory {
                 tt.setToX(20);
                 tt.play();
             } else {
-                container.setStyle("-fx-background-color: #cbd5e1; -fx-background-radius: 999;");
+                container.setStyle("-fx-background-color: " + COLOR_SLATE_MUTED + "; -fx-background-radius: 999;");
                 TranslateTransition tt = new TranslateTransition(Duration.millis(150), thumb);
                 tt.setToX(0);
                 tt.play();
@@ -115,7 +152,7 @@ public class ControlFactory {
         
         f.focusedProperty().addListener((obs, old, newVal) -> {
             if (newVal) {
-                f.setStyle(PREMIUM_FIELD_STYLE + "-fx-border-color: #4f46e5; -fx-background-color: #f8faff;");
+                f.setStyle(PREMIUM_FIELD_FOCUSED_STYLE);
             } else {
                 f.setStyle(PREMIUM_FIELD_STYLE);
             }
@@ -144,13 +181,13 @@ public class ControlFactory {
 
         VBox text = new VBox(1);
         Label tagLabel = new Label(tag);
-        tagLabel.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: #94a3b8; -fx-letter-spacing: 1px;");
+        tagLabel.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-letter-spacing: 1px;");
 
         HBox valueLine = new HBox(8);
         valueLine.setAlignment(Pos.BASELINE_LEFT);
         Label mainLabel = new Label(label);
-        mainLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: #64748b;");
-        value.setStyle("-fx-font-size: 17px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        mainLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: " + COLOR_SLATE + ";");
+        value.setStyle("-fx-font-size: 17px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         valueLine.getChildren().addAll(mainLabel, value);
 
         text.getChildren().addAll(tagLabel, valueLine);
@@ -201,9 +238,9 @@ public class ControlFactory {
 
         VBox titleBlock = new VBox(1);
         Label tagLabel = new Label("ПАРАМЕТРИ");
-        tagLabel.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: #94a3b8; -fx-letter-spacing: 1.2px;");
+        tagLabel.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-letter-spacing: 1.2px;");
         Label titleLabel = new Label(title);
-        titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         titleBlock.getChildren().addAll(tagLabel, titleLabel);
 
         header.getChildren().addAll(iconBox, titleBlock);

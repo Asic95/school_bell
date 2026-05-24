@@ -97,7 +97,7 @@ public class ToastService {
         iconBox.setStyle("-fx-background-color: " + type.gradient + "; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);");
 
         Label label = new Label(message);
-        label.setStyle("-fx-text-fill: #0f172a; -fx-font-size: 15px; -fx-font-weight: 900;");
+        label.setStyle("-fx-text-fill: " + UIStyles.COLOR_NAVY + "; -fx-font-size: 15px; -fx-font-weight: 900;");
         label.setWrapText(true);
         HBox.setHgrow(label, Priority.ALWAYS);
 

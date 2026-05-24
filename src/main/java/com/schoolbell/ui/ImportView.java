@@ -94,7 +94,7 @@ public class ImportView {
         );
 
         Label settingsTitle = new Label("Налаштування імпорту");
-        settingsTitle.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        settingsTitle.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
 
         HBox rowContainer = new HBox(30);
         rowContainer.setAlignment(Pos.CENTER_LEFT);
@@ -129,7 +129,7 @@ public class ImportView {
         formatIconWrap.setAlignment(Pos.CENTER);
         formatIconWrap.setPrefSize(54, 54);
         formatIconWrap.setMinSize(54, 54);
-        formatIconWrap.setStyle("-fx-background-color: linear-gradient(to bottom right, #f0fdf4, #edf4ff); -fx-background-radius: 18;");
+        formatIconWrap.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_SUCCESS_LIGHT + ", " + COLOR_SURFACE_GLASS_END + "); -fx-background-radius: 18;");
 
         HBox formatRow = new HBox(16, formatIconWrap, createLabeledInnerField("ФОРМАТ ФАЙЛУ", formatCombo));
         formatRow.setAlignment(Pos.CENTER_LEFT);
@@ -141,11 +141,11 @@ public class ImportView {
         VBox dropZone = new VBox(25);
         dropZone.setAlignment(Pos.CENTER);
         dropZone.setPadding(new Insets(60));
-        dropZone.setStyle("-fx-background-color: white; -fx-background-radius: 28; -fx-border-color: #e2e8f0; -fx-border-width: 2; -fx-border-style: dashed; -fx-border-radius: 28;");
+        dropZone.setStyle("-fx-background-color: white; -fx-background-radius: 28; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-width: 2; -fx-border-style: dashed; -fx-border-radius: 28;");
         
         Node uploadIcon = createSVGIcon(ICON_FOLDER, Color.web(COLOR_PRIMARY), 64);
         Label uploadTitle = new Label("ВИБЕРІТЬ ФАЙЛ ДЛЯ ІМПОРТУ");
-        uploadTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        uploadTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         
         Button selectBtn = createPrimaryActionButton("АНАЛІЗУВАТИ ФАЙЛ", ICON_PLUS);
         selectBtn.setStyle(PREMIUM_BTN_STYLE);
@@ -242,7 +242,7 @@ public class ImportView {
             VBox noChanges = new VBox(15);
             noChanges.setAlignment(Pos.CENTER);
             noChanges.setPadding(new Insets(40));
-            noChanges.setStyle(SOFT_CARD + "-fx-background-color: #f8f9fa;");
+            noChanges.setStyle(SOFT_CARD + "-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
             
             Node infoIcon = createSVGIcon(ICON_INFO, Color.web(COLOR_PRIMARY), 48);
             Label infoTitle = new Label("Всі дані вже існують в системі");
@@ -260,9 +260,9 @@ public class ImportView {
         actions.setPadding(new Insets(20, 0, 0, 0));
         
         Button cancelBtn = new Button("СКАСУВАТИ");
-        String cancelStyle = "-fx-background-color: white; -fx-text-fill: #64748b; -fx-font-weight: 800; -fx-padding: 12 30; -fx-background-radius: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 18; -fx-cursor: hand;";
+        String cancelStyle = "-fx-background-color: white; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 800; -fx-padding: 12 30; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 18; -fx-cursor: hand;";
         cancelBtn.setStyle(cancelStyle);
-        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: #f1f2f6;"));
+        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: " + COLOR_SURFACE_SUBTLE + ";"));
         cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(cancelStyle));
         cancelBtn.setOnAction(e -> hideReviewStage());
 
@@ -368,7 +368,7 @@ public class ImportView {
     private VBox createLabeledInnerField(String labelText, Node field) {
         VBox box = new VBox(6);
         Label label = new Label(labelText);
-        label.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: #64748b; -fx-letter-spacing: 0.5px;");
+        label.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SLATE + "; -fx-letter-spacing: 0.5px;");
         box.getChildren().addAll(label, field);
         HBox.setHgrow(box, Priority.ALWAYS);
         return box;

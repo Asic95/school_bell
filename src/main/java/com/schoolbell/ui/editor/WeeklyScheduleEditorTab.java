@@ -34,14 +34,14 @@ public class WeeklyScheduleEditorTab {
     public Node createContent() {
         VBox root = new VBox(25);
         root.setPadding(new Insets(30));
-        root.setStyle("-fx-background-color: #f8f9fa;");
+        root.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
 
         HBox header = createPageHeader(
             "ПЛАНУВАННЯ",
             "Тижневий розклад",
             "Складайте та редагуйте навчальний план для кожного класу окремо.",
             ICON_CALENDAR,
-            "#27ae60",
+            COLOR_GREEN,
             null
         );
         
@@ -69,7 +69,7 @@ public class WeeklyScheduleEditorTab {
         HBox.setHgrow(classPicker, Priority.ALWAYS);
 
         Label note = new Label("Оберіть конкретний клас для налаштування його тижневого розкладу.");
-        note.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        note.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
         
         pickerCard.getChildren().addAll(pickerLabel, row, note);
 
@@ -91,7 +91,7 @@ public class WeeklyScheduleEditorTab {
         HBox helpRow = new HBox(25);
         helpRow.getChildren().addAll(
             createHelpCard(ICON_BOOK, "Парність тижнів", "Для уроків, що чергуються (чисельник/знаменник), оберіть відповідну опцію у вікні редагування.", COLOR_PRIMARY),
-            createHelpCard(ICON_INFO, "Швидке редагування", "Натисніть на картку уроку, щоб змінити вчителя або предмет. Натисніть ✕ на картці для швидкого видалення.", "#6c5ce7")
+            createHelpCard(ICON_INFO, "Швидке редагування", "Натисніть на картку уроку, щоб змінити вчителя або предмет. Натисніть ✕ на картці для швидкого видалення.", COLOR_INDIGO_SOFT)
         );
 
         root.getChildren().addAll(header, pickerCard, scheduleCard, helpRow);
@@ -148,7 +148,7 @@ public class WeeklyScheduleEditorTab {
                     VBox cardContainer = new VBox(8);
                     cardContainer.setAlignment(Pos.CENTER_LEFT);
                     Label numLabel = new Label(lessonNum + " УРОК");
-                    numLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #94a3b8; -fx-letter-spacing: 1px;");
+                    numLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-letter-spacing: 1px;");
 
                     Node card = createEnhancedCard(selectedClass, dayNum, lessonNum, slotEntries, allTeachers, allSubjects, allClassrooms, refreshGrid[0]);
                     cardContainer.getChildren().addAll(numLabel, card);
@@ -156,7 +156,7 @@ public class WeeklyScheduleEditorTab {
                 }
 
                 Button addLessonBtn = new Button("+ ДОДАТИ УРОК");
-                addLessonBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 12px; -fx-font-weight: 900; -fx-border-color: #cbd5e1; -fx-border-radius: 18; -fx-border-style: dashed; -fx-padding: 14 24; -fx-cursor: hand;");
+                addLessonBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 12px; -fx-font-weight: 900; -fx-border-color: " + COLOR_SLATE_MUTED + "; -fx-border-radius: 18; -fx-border-style: dashed; -fx-padding: 14 24; -fx-cursor: hand;");
                 addLessonBtn.setMaxWidth(Double.MAX_VALUE);
                 addLessonBtn.setOnAction(e -> parentDialog.openEditDialog(selectedClass, dayNum, lessonsToShow + 1, 0, allTeachers, allSubjects, refreshGrid[0]));
                 
@@ -166,7 +166,7 @@ public class WeeklyScheduleEditorTab {
 
             if (currentDays < 7) {
                 Button addDayBtn = new Button("+ ДОДАТИ ДЕНЬ");
-                addDayBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 12px; -fx-font-weight: 900; -fx-border-color: #cbd5e1; -fx-border-radius: 18; -fx-border-style: dashed; -fx-padding: 18 32; -fx-cursor: hand;");
+                addDayBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 12px; -fx-font-weight: 900; -fx-border-color: " + COLOR_SLATE_MUTED + "; -fx-border-radius: 18; -fx-border-style: dashed; -fx-padding: 18 32; -fx-cursor: hand;");
                 addDayBtn.setMaxHeight(Double.MAX_VALUE);
                 addDayBtn.setPrefWidth(240);
                 addDayBtn.setOnAction(e -> {
@@ -228,7 +228,7 @@ public class WeeklyScheduleEditorTab {
         VBox content = (VBox) card.getChildren().get(0);
         content.setPadding(new Insets(14, 12, 14, 12));
         Label pLabel = new Label(parity == 1 ? "ЧИСЕЛЬНИК" : "ЗНАМЕННИК");
-        pLabel.setStyle("-fx-font-size: 9px; -fx-font-weight: 900; -fx-text-fill: " + (parity == 1 ? "#4f46e5" : "#6c5ce7") + "; -fx-letter-spacing: 0.5px;");
+        pLabel.setStyle("-fx-font-size: 9px; -fx-font-weight: 900; -fx-text-fill: " + (parity == 1 ? COLOR_INDIGO : COLOR_INDIGO_SOFT) + "; -fx-letter-spacing: 0.5px;");
         content.getChildren().add(0, pLabel);
         return card;
     }
@@ -240,16 +240,16 @@ public class WeeklyScheduleEditorTab {
         content.setAlignment(Pos.CENTER_LEFT);
         
         Label subLabel = new Label("—"); 
-        subLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: #0f172a;"); 
+        subLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: " + COLOR_NAVY + ";"); 
         subLabel.setWrapText(true);
         subLabel.setMaxHeight(55);
         
         Label teaLabel = new Label(""); 
-        teaLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b; -fx-font-weight: 600;"); 
+        teaLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 600;"); 
         teaLabel.setWrapText(true);
         teaLabel.setMinHeight(34);
         
-        String tempColor = "#94a3b8";
+        String tempColor = COLOR_SLATE_LIGHT;
         if (entry != null) {
             Subject s = subjects.stream().filter(x -> x.id() == entry.subjectId()).findFirst().orElse(null);
             Teacher t = teachers.stream().filter(x -> x.id() == entry.teacherId()).findFirst().orElse(null);
@@ -271,11 +271,11 @@ public class WeeklyScheduleEditorTab {
         }
         
         StackPane card = new StackPane(content);
-        card.setStyle("-fx-background-color: white; -fx-background-radius: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 18; -fx-border-width: 1 1 1 6; -fx-border-color: #e2e8f0 #e2e8f0 #e2e8f0 " + accentColor + ";");
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 18; -fx-border-width: 1 1 1 6; -fx-border-color: " + COLOR_BORDER_SOFT + " " + COLOR_BORDER_SOFT + " " + COLOR_BORDER_SOFT + " " + accentColor + ";");
         card.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(15,23,42,0.08), 15, 0, 0, 5));
         
         Button clearBtn = new Button("✕"); 
-        clearBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-size: 11px; -fx-font-weight: 900; -fx-background-radius: 99; -fx-padding: 4 8; -fx-cursor: hand;");
+        clearBtn.setStyle("-fx-background-color: " + COLOR_ALERT_RED + "; -fx-text-fill: white; -fx-font-size: 11px; -fx-font-weight: 900; -fx-background-radius: 99; -fx-padding: 4 8; -fx-cursor: hand;");
         clearBtn.setVisible(false); 
         
         StackPane.setAlignment(clearBtn, Pos.TOP_RIGHT); 
@@ -289,11 +289,11 @@ public class WeeklyScheduleEditorTab {
         card.getChildren().add(clearBtn);
         card.setCursor(Cursor.HAND);
         card.setOnMouseEntered(e -> { 
-            card.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 18; -fx-border-color: " + accentColor + "; -fx-border-radius: 18; -fx-border-width: 1 1 1 8;"); 
+            card.setStyle("-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-background-radius: 18; -fx-border-color: " + accentColor + "; -fx-border-radius: 18; -fx-border-width: 1 1 1 8;"); 
             if (entry != null) clearBtn.setVisible(true); 
         });
         card.setOnMouseExited(e -> { 
-            card.setStyle("-fx-background-color: white; -fx-background-radius: 18; -fx-border-color: #e2e8f0 #e2e8f0 #e2e8f0 " + accentColor + "; -fx-border-radius: 18; -fx-border-width: 1 1 1 6;"); 
+            card.setStyle("-fx-background-color: white; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + " " + COLOR_BORDER_SOFT + " " + COLOR_BORDER_SOFT + " " + accentColor + "; -fx-border-radius: 18; -fx-border-width: 1 1 1 6;"); 
             clearBtn.setVisible(false); 
         });
         card.setOnMouseClicked(e -> parentDialog.openEditDialog(cls, day, lesson, parity, teachers, subjects, refreshGrid));
@@ -302,7 +302,7 @@ public class WeeklyScheduleEditorTab {
     }
 
     private String getSubjectColor(int id) {
-        String[] palette = {"#0984e3", "#00b894", "#6c5ce7", "#e17055", "#fdcb6e", "#e84393", "#2d3436", "#17c0eb", "#3ae374", "#ffb8b8"};
+        String[] palette = {COLOR_SKY, COLOR_TEAL, COLOR_INDIGO_DARK, COLOR_TANGERINE, COLOR_YELLOW_SOFT, COLOR_PINK, COLOR_TEXT, COLOR_SKY_BRIGHT, COLOR_LIME, COLOR_PINK_LIGHT};
         return palette[Math.abs(id) % palette.length];
     }
 }

@@ -1,29 +1,48 @@
 package com.schoolbell.ui;
 
 import com.schoolbell.MainApp;
-import com.schoolbell.model.*;
-import com.schoolbell.ui.editor.*;
-import javafx.geometry.Insets;
+import com.schoolbell.model.Classroom;
+import com.schoolbell.model.SchoolClass;
+import com.schoolbell.model.Subject;
+import com.schoolbell.model.Teacher;
+import com.schoolbell.ui.editor.AnnouncementsEditorTab;
+import com.schoolbell.ui.editor.BellsEditorTab;
+import com.schoolbell.ui.editor.ClassesEditorTab;
+import com.schoolbell.ui.editor.ClassroomsEditorTab;
+import com.schoolbell.ui.editor.SubjectsEditorTab;
+import com.schoolbell.ui.editor.SubstitutionsEditorTab;
+import com.schoolbell.ui.editor.TeachersEditorTab;
+import com.schoolbell.ui.editor.WeeklyScheduleEditorTab;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
-import java.time.LocalDate;
 import java.util.List;
 
-import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
-import static com.schoolbell.ui.UIStyles.*;
-
-import javafx.stage.StageStyle;
+import static com.schoolbell.ui.ControlFactory.createDangerDialogButton;
+import static com.schoolbell.ui.ControlFactory.createDialogHeader;
+import static com.schoolbell.ui.ControlFactory.createDialogRoot;
+import static com.schoolbell.ui.ControlFactory.createLabeledField;
+import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
+import static com.schoolbell.ui.ControlFactory.createSecondaryDialogButton;
+import static com.schoolbell.ui.UIStyles.ICON_SAVE;
+import static com.schoolbell.ui.UIStyles.MODERN_CHECKBOX_STYLE;
+import static com.schoolbell.ui.UIStyles.MODERN_DATE_PICKER_STYLE;
+import static com.schoolbell.ui.UIStyles.PREMIUM_BTN_STYLE;
+import static com.schoolbell.ui.UIStyles.PREMIUM_SELECT_STYLE;
 
 public class ScheduleEditorDialog {
     private final MainApp mainApp;
-    
+
     private final BellsEditorTab bellsTab;
     private final TeachersEditorTab teachersTab;
     private final SubjectsEditorTab subjectsTab;
@@ -60,27 +79,19 @@ public class ScheduleEditorDialog {
     }
 
     public void openEditDialog(SchoolClass schoolClass, int day, int lesson, int parity,
-                                List<Teacher> allTeachers, List<Subject> allSubjects, Runnable refreshGrid) {
+                               List<Teacher> allTeachers, List<Subject> allSubjects, Runnable refreshGrid) {
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initStyle(StageStyle.TRANSPARENT);
 
-        List<Classroom> allClasses = mainApp.getAcademicService().getAllClassrooms();
+        List<Classroom> allClassrooms = mainApp.getAcademicService().getAllClassrooms();
 
-        VBox root = new VBox(28);
-        root.setPadding(new Insets(35));
-        root.setStyle(SOFT_CARD);
-        root.setPrefWidth(550);
-
-        // --- MODERN PREMIUM HEADER ---
-        VBox headerText = new VBox(8);
-        Label eb = new Label("РЕДАГУВАННЯ УРОКУ");
-        eb.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
-        Label t = new Label(schoolClass.name());
-        t.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
-        Label s = new Label("Налаштуйте вчителя, предмет та кабінет для уроку №" + lesson);
-        s.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 15px; -fx-text-fill: #64748b;");
-        headerText.getChildren().addAll(eb, t, s);
+        VBox root = createDialogRoot(550);
+        VBox headerText = createDialogHeader(
+                "Редагування уроку",
+                schoolClass.name(),
+                "Налаштуйте вчителя, предмет та кабінет для уроку №" + lesson
+        );
 
         VBox fields = new VBox(20);
         fields.setAlignment(Pos.CENTER_LEFT);
@@ -96,8 +107,6 @@ public class ScheduleEditorDialog {
         subjectCombo.setPromptText("Оберіть предмет");
         subjectCombo.setMaxWidth(Double.MAX_VALUE);
         subjectCombo.setStyle(PREMIUM_SELECT_STYLE);
-        
-        // Fix for empty items artifact in dropdown
         subjectCombo.itemsProperty().addListener((obs, oldItems, newItems) -> {
             if (newItems != null) {
                 subjectCombo.setVisibleRowCount(Math.min(newItems.size(), 10));
@@ -105,7 +114,7 @@ public class ScheduleEditorDialog {
         });
 
         ComboBox<Classroom> classroomCombo = new ComboBox<>();
-        classroomCombo.getItems().addAll(allClasses);
+        classroomCombo.getItems().addAll(allClassrooms);
         classroomCombo.setPromptText("Оберіть кабінет");
         classroomCombo.setMaxWidth(Double.MAX_VALUE);
         classroomCombo.setStyle(PREMIUM_SELECT_STYLE);
@@ -120,49 +129,47 @@ public class ScheduleEditorDialog {
             Teacher selected = teacherCombo.getValue();
             if (selected != null) {
                 List<Subject> teacherSubjects = mainApp.getStaffService().getSubjectsForTeacher(selected.id());
-                Subject currentSub = subjectCombo.getValue();
+                Subject currentSubject = subjectCombo.getValue();
                 subjectCombo.getItems().setAll(teacherSubjects);
-                if (currentSub != null && teacherSubjects.contains(currentSub)) {
-                    subjectCombo.setValue(currentSub);
+                if (currentSubject != null && teacherSubjects.contains(currentSubject)) {
+                    subjectCombo.setValue(currentSubject);
                 }
             }
         });
 
-        // Pre-select current values
         mainApp.getAcademicService().getScheduleForClass(schoolClass.id()).stream()
-                .filter(e -> e.dayOfWeek() == day && e.lessonNumber() == lesson && (e.parity() == parity || e.parity() == 0))
-                .findFirst().ifPresent(e -> {
-                    mainApp.getStaffService().getAllTeachers().stream().filter(teach -> teach.id() == e.teacherId()).findFirst().ifPresent(teach -> {
-                        teacherCombo.setValue(teach);
-                        List<Subject> ts = mainApp.getStaffService().getSubjectsForTeacher(teach.id());
-                        subjectCombo.getItems().setAll(ts);
-                        mainApp.getStaffService().getAllSubjects().stream().filter(subj -> subj.id() == e.subjectId()).findFirst().ifPresent(subjectCombo::setValue);
-                    });
-                    allClasses.stream().filter(cl -> cl.id() == e.classroomId()).findFirst().ifPresent(classroomCombo::setValue);
+                .filter(entry -> entry.dayOfWeek() == day && entry.lessonNumber() == lesson && (entry.parity() == parity || entry.parity() == 0))
+                .findFirst()
+                .ifPresent(entry -> {
+                    mainApp.getStaffService().getAllTeachers().stream()
+                            .filter(teacher -> teacher.id() == entry.teacherId())
+                            .findFirst()
+                            .ifPresent(teacher -> {
+                                teacherCombo.setValue(teacher);
+                                List<Subject> teacherSubjects = mainApp.getStaffService().getSubjectsForTeacher(teacher.id());
+                                subjectCombo.getItems().setAll(teacherSubjects);
+                                mainApp.getStaffService().getAllSubjects().stream()
+                                        .filter(subject -> subject.id() == entry.subjectId())
+                                        .findFirst()
+                                        .ifPresent(subjectCombo::setValue);
+                            });
+                    allClassrooms.stream().filter(room -> room.id() == entry.classroomId()).findFirst().ifPresent(classroomCombo::setValue);
                 });
 
         fields.getChildren().addAll(
-            createLabeledField("ВЧИТЕЛЬ", teacherCombo),
-            createLabeledField("ПРЕДМЕТ", subjectCombo),
-            createLabeledField("КАБІНЕТ", classroomCombo),
-            createLabeledField("ТИЖДЕНЬ", parityCombo)
+                createLabeledField("ВЧИТЕЛЬ", teacherCombo),
+                createLabeledField("ПРЕДМЕТ", subjectCombo),
+                createLabeledField("КАБІНЕТ", classroomCombo),
+                createLabeledField("ТИЖДЕНЬ", parityCombo)
         );
 
         HBox actions = new HBox(15);
         actions.setAlignment(Pos.CENTER_RIGHT);
 
-        Button cancelBtn = new Button("СКАСУВАТИ");
-        String cancelStyle = "-fx-background-color: white; -fx-text-fill: #64748b; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 18; -fx-cursor: hand;";
-        cancelBtn.setStyle(cancelStyle);
-        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: #f1f2f6;"));
-        cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(cancelStyle));
+        Button cancelBtn = createSecondaryDialogButton("СКАСУВАТИ");
         cancelBtn.setOnAction(e -> stage.close());
 
-        Button deleteBtn = new Button("ВИДАЛИТИ");
-        String deleteStyle = "-fx-background-color: white; -fx-text-fill: #dc2626; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 18; -fx-cursor: hand; -fx-border-color: #fee2e2; -fx-border-radius: 18;";
-        deleteBtn.setStyle(deleteStyle);
-        deleteBtn.setOnMouseEntered(e -> deleteBtn.setStyle(deleteStyle + "-fx-background-color: #fef2f2; -fx-border-color: " + COLOR_DANGER + ";"));
-        deleteBtn.setOnMouseExited(e -> deleteBtn.setStyle(deleteStyle));
+        Button deleteBtn = createDangerDialogButton("ВИДАЛИТИ");
         deleteBtn.setOnAction(ev -> {
             int selectedParity = parityCombo.getSelectionModel().getSelectedIndex();
             mainApp.getAcademicService().deleteScheduleEntry(schoolClass.id(), day, lesson, selectedParity);
@@ -171,7 +178,7 @@ public class ScheduleEditorDialog {
             ToastService.showSuccess("Урок видалено");
         });
 
-        Button saveBtn = ControlFactory.createPrimaryActionButton("ЗБЕРЕГТИ", ICON_SAVE);
+        Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ", ICON_SAVE);
         saveBtn.setStyle(PREMIUM_BTN_STYLE);
         saveBtn.setOnAction(ev -> {
             if (teacherCombo.getValue() != null && subjectCombo.getValue() != null) {
@@ -181,8 +188,13 @@ public class ScheduleEditorDialog {
                     mainApp.getAcademicService().deleteScheduleEntry(schoolClass.id(), day, lesson, parity);
                 }
                 mainApp.getAcademicService().saveScheduleEntry(
-                        schoolClass.id(), day, lesson,
-                        teacherCombo.getValue().id(), subjectCombo.getValue().id(), classroomId, selectedParity
+                        schoolClass.id(),
+                        day,
+                        lesson,
+                        teacherCombo.getValue().id(),
+                        subjectCombo.getValue().id(),
+                        classroomId,
+                        selectedParity
                 );
                 refreshGrid.run();
                 stage.close();
@@ -198,18 +210,10 @@ public class ScheduleEditorDialog {
         Scene scene = new Scene(root);
         scene.setFill(Color.TRANSPARENT);
         scene.getStylesheets().addAll(
-            "data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"),
-            "data:text/css," + MODERN_CHECKBOX_STYLE.replace(" ", "%20")
+                "data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"),
+                "data:text/css," + MODERN_CHECKBOX_STYLE.replace(" ", "%20")
         );
         stage.setScene(scene);
         stage.showAndWait();
-    }
-
-    private VBox createLabeledField(String labelText, Node field) {
-        VBox box = new VBox(8);
-        Label label = new Label(labelText);
-        label.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
-        box.getChildren().addAll(label, field);
-        return box;
     }
 }
