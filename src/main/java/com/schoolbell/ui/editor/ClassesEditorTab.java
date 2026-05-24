@@ -40,11 +40,11 @@ public class ClassesEditorTab {
 
         TextField addField = new TextField();
         addField.setPromptText("Назва класу (напр. 5-А)...");
-        addField.setStyle(COMBO_STYLE);
         addField.setPrefWidth(550);
+        addField.setStyle(PREMIUM_FIELD_STYLE);
 
         Button addBtn = createPrimaryActionButton("ДОДАТИ КЛАС", ICON_PLUS);
-        addBtn.setStyle(addBtn.getStyle().replace(COLOR_PRIMARY, "#a29bfe"));
+        addBtn.setStyle(PREMIUM_BTN_STYLE);
 
         FlowPane listContainer = new FlowPane(20, 20);
         listContainer.setPadding(new Insets(10));
@@ -55,38 +55,35 @@ public class ClassesEditorTab {
         refreshClasses = () -> {
             listContainer.getChildren().clear();
             for (SchoolClass c : mainApp.getAcademicService().getAllClasses()) {
-                VBox card = new VBox(15);
-                card.setStyle(SOFT_CARD + "-fx-padding: 15; -fx-border-color: #f1f2f6; -fx-border-radius: 20;");
-                card.setPrefWidth(200);
+                VBox card = new VBox(20);
+                card.setStyle(SOFT_CARD + "-fx-padding: 24;");
+                card.setPrefWidth(240);
                 
-                HBox topRow = new HBox(10);
+                HBox topRow = new HBox(12);
                 topRow.setAlignment(Pos.CENTER_LEFT);
                 
-                VBox iconBox = new VBox(createSVGIcon(ICON_CLASS, Color.web(COLOR_PURPLE), 18));
+                VBox iconBox = new VBox(createSVGIcon(ICON_CLASS, Color.web(COLOR_PRIMARY), 22));
                 iconBox.setAlignment(Pos.CENTER);
-                iconBox.setPrefSize(36, 36);
-                iconBox.setMinSize(36, 36);
-                iconBox.setMaxSize(36, 36);
-                iconBox.setStyle("-fx-background-color: " + COLOR_PURPLE + "15; -fx-background-radius: 10;");
+                iconBox.setPrefSize(52, 52);
+                iconBox.setMinSize(52, 52);
+                iconBox.setMaxSize(52, 52);
+                iconBox.setStyle(ICON_BADGE_STYLE);
 
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
 
                 Button editBtn = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
-                editBtn.setPrefSize(30, 30); editBtn.setMinSize(30, 30);
-                
                 Button del = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
-                del.setPrefSize(30, 30); del.setMinSize(30, 30);
                 del.setOnAction(e -> { mainApp.getAcademicService().deleteClass(c.id()); refreshClasses.run(); });
 
                 topRow.getChildren().addAll(iconBox, spacer, editBtn, del);
 
                 VBox nameArea = new VBox(5);
                 Label nameLabel = new Label(c.name());
-                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: #2d3436;");
+                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: #0f172a;");
                 
                 TextField nameEdit = new TextField(c.name());
-                nameEdit.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-background-color: #f1f2f6; -fx-background-radius: 8; -fx-padding: 6 10;");
+                nameEdit.setStyle(PREMIUM_FIELD_STYLE + "-fx-font-size: 15px; -fx-padding: 8 12;");
                 nameEdit.setMaxWidth(Double.MAX_VALUE);
                 nameEdit.setManaged(false);
                 nameEdit.setVisible(false);

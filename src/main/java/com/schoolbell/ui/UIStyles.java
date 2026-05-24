@@ -27,59 +27,119 @@ public class UIStyles {
 
     public static final String DEPTH_1 = "-fx-background-color: #f1f2f6;";
     public static final String DEPTH_2 = "-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 8, 0, 0, 3);";
-    public static final String SOFT_CARD = "-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e4e4e7; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 8, 0, 0, 2);";
+    
+    public static final String SOFT_CARD = 
+            "-fx-background-color: rgba(255,255,255,0.96); " +
+            "-fx-background-radius: 28; " +
+            "-fx-border-color: rgba(226,232,240,0.7); " +
+            "-fx-border-width: 1; " +
+            "-fx-border-radius: 28; " +
+            "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 30, 0, 0, 10);";
+
+    public static final String PREMIUM_FIELD_STYLE =
+            "-fx-font-family: 'Inter';" +
+            "-fx-font-size: 17px;" +
+            "-fx-font-weight: 600;" +
+            "-fx-background-color: white;" +
+            "-fx-background-radius: 18;" +
+            "-fx-border-color: #dbe4f0;" +
+            "-fx-border-radius: 18;" +
+            "-fx-border-width: 1;" +
+            "-fx-padding: 11 16;" +
+            "-fx-text-fill: #0f172a;" +
+            "-fx-prompt-text-fill: #64748b;";
+
+    public static final String PREMIUM_BTN_STYLE =
+            "-fx-background-color: linear-gradient(to right, #4f46e5, #2563eb);" +
+            "-fx-text-fill: white;" +
+            "-fx-background-radius: 18;" +
+            "-fx-font-weight: 900;" +
+            "-fx-padding: 14 24;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.28), 24, 0, 0, 8);";
+
+    public static final String ICON_BADGE_STYLE =
+            "-fx-min-width: 54; -fx-min-height: 54; -fx-max-width: 54; -fx-max-height: 54;" +
+            "-fx-background-radius: 18;" +
+            "-fx-alignment: CENTER;" +
+            "-fx-background-color: linear-gradient(to bottom right, #f8fbff, #edf4ff);";
+
+    public static final String PREMIUM_TOGGLE_CONTAINER =
+            "-fx-background-color: rgba(241,245,249,0.92);" +
+            "-fx-background-radius: 22;" +
+            "-fx-padding: 4;";
+
+    public static final String PREMIUM_TOGGLE_ACTIVE =
+            "-fx-background-color: linear-gradient(to right, #4f46e5, #2563eb);" +
+            "-fx-text-fill: white;" +
+            "-fx-background-radius: 16;" +
+            "-fx-font-weight: bold;" +
+            "-fx-padding: 8 16;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.28), 12, 0, 0, 4);" +
+            "-fx-cursor: hand;";
+
+    public static final String PREMIUM_TOGGLE_INACTIVE =
+            "-fx-background-color: transparent;" +
+            "-fx-text-fill: #64748b;" +
+            "-fx-background-radius: 16;" +
+            "-fx-font-weight: bold;" +
+            "-fx-padding: 8 16;" +
+            "-fx-cursor: hand;";
+
     public static final String HEADER_STYLE = "-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #64748b; -fx-text-transform: uppercase; -fx-letter-spacing: 1.5px;";
     public static final String SUB_HEADER_STYLE = "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + "; -fx-letter-spacing: 0.5px;";
 
-    public static final String VALUE_STYLE = "-fx-font-size: 26px; -fx-font-family: 'Monospaced'; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + ";";
-    public static final String BTN_BASE = "-fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 12; -fx-cursor: hand;";
-    public static final String COMBO_STYLE = "-fx-font-size: 14px; -fx-background-color: white; -fx-background-insets: 0; -fx-background-radius: 8; -fx-border-color: #dfe6e9; -fx-border-radius: 8; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;";
-    public static final String FIELD_STYLE = "-fx-font-size: 14px; -fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #dfe6e9; -fx-border-radius: 8; -fx-padding: 8;";
+    public static final String PREMIUM_SELECT_STYLE =
+            "-fx-font-family: 'Inter';" +
+            "-fx-font-size: 17px;" +
+            "-fx-font-weight: 600;" +
+            "-fx-background-color: white;" +
+            "-fx-background-radius: 18;" +
+            "-fx-border-color: #dbe4f0;" +
+            "-fx-border-radius: 18;" +
+            "-fx-border-width: 1;" +
+            "-fx-padding: 11 16;" +
+            "-fx-focus-color: transparent;" +
+            "-fx-faint-focus-color: transparent;";
 
     public static final String MODERN_SPINNER_STYLE = 
-        ".spinner { -fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #dfe6e9; -fx-border-radius: 8; } " +
-        ".spinner > .text-field { -fx-font-size: 14px; -fx-background-color: white; -fx-background-radius: 8 0 0 8; -fx-background-insets: 0; -fx-padding: 8; } " +
-        ".spinner > .increment-arrow-button, .spinner > .decrement-arrow-button { -fx-background-color: #f1f2f6; -fx-background-insets: 0; -fx-cursor: hand; } " +
-        ".spinner > .increment-arrow-button { -fx-background-radius: 0 8 0 0; } " +
-        ".spinner > .decrement-arrow-button { -fx-background-radius: 0 0 8 0; } " +
-        ".spinner > .increment-arrow-button:hover, .spinner > .decrement-arrow-button:hover { -fx-background-color: " + COLOR_PRIMARY + "22; } " +
-        ".spinner > .increment-arrow-button > .increment-arrow { -fx-shape: \"M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z\"; -fx-background-color: " + COLOR_PRIMARY + "; -fx-scale-x: 0.8; -fx-scale-y: 0.8; } " +
-        ".spinner > .decrement-arrow-button > .decrement-arrow { -fx-shape: \"M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z\"; -fx-background-color: " + COLOR_PRIMARY + "; -fx-scale-x: 0.8; -fx-scale-y: 0.8; } ";
+        ".spinner { -fx-background-color: white; -fx-background-radius: 18; -fx-border-color: #dbe4f0; -fx-border-radius: 18; } " +
+        ".spinner > .text-field { -fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 600; -fx-background-color: white; -fx-background-radius: 18 0 0 18; -fx-background-insets: 0; -fx-padding: 11 16; } " +
+        ".spinner > .increment-arrow-button, .spinner > .decrement-arrow-button { -fx-background-color: #f8fafc; -fx-background-insets: 0; -fx-cursor: hand; } " +
+        ".spinner > .increment-arrow-button { -fx-background-radius: 0 18 0 0; } " +
+        ".spinner > .decrement-arrow-button { -fx-background-radius: 0 0 18 0; } " +
+        ".spinner > .increment-arrow-button:hover, .spinner > .decrement-arrow-button:hover { -fx-background-color: " + COLOR_PRIMARY + "15; } " +
+        ".spinner > .increment-arrow-button > .increment-arrow { -fx-shape: \"M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z\"; -fx-background-color: " + COLOR_PRIMARY + "; } " +
+        ".spinner > .decrement-arrow-button > .decrement-arrow { -fx-shape: \"M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z\"; -fx-background-color: " + COLOR_PRIMARY + "; } ";
 
     public static final String TAB_STYLE = ".tab-pane .tab-header-area .tab-header-background { -fx-background-color: transparent; } " +
-            ".tab-pane .tab { -fx-background-color: #e1e4e8; -fx-background-radius: 10 10 0 0; -fx-padding: 8 20; -fx-background-insets: 0 1 0 1; } " +
-            ".tab-pane .tab:selected { -fx-background-color: white; -fx-background-radius: 10 10 0 0; } " +
-            ".tab-pane .tab .tab-label { -fx-text-fill: #57606f; -fx-font-weight: bold; } " +
+            ".tab-pane .tab { -fx-background-color: #f1f5f9; -fx-background-radius: 14 14 0 0; -fx-padding: 12 24; -fx-background-insets: 0 2 0 2; -fx-cursor: hand; } " +
+            ".tab-pane .tab:selected { -fx-background-color: white; -fx-background-radius: 14 14 0 0; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0); } " +
+            ".tab-pane .tab .tab-label { -fx-text-fill: #64748b; -fx-font-weight: 800; -fx-font-size: 13px; } " +
             ".tab-pane .tab:selected .tab-label { -fx-text-fill: " + COLOR_PRIMARY + "; }";
-
-    public static final String SUBJECT_CHIP_STYLE = ".subject-chip { -fx-background-color: white; -fx-background-radius: 15; -fx-padding: 4 10; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT + "; -fx-border-color: #dfe6e9; -fx-border-radius: 15; } .subject-chip:hover { -fx-background-color: #ff7675; -fx-text-fill: white; -fx-cursor: hand; -fx-border-color: #ff7675; }";
-
-    public static final String SIDEBAR_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20 0 20 0;";
-    public static final String NAV_BTN_BASE = "-fx-background-color: transparent; -fx-padding: 12 20; -fx-cursor: hand; -fx-background-radius: 12; -fx-text-fill: #b2bec3; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; -fx-font-size: 14px;";
-    public static final String NAV_BTN_ACTIVE = "-fx-background-color: #0984e3; -fx-text-fill: white;";
-    public static final String NAV_BTN_HOVER = "-fx-background-color: rgba(255,255,255,0.05);";
-
-    public static final double ICON_SCALE = 1.0;
-
-    public static final String SIDEBAR_STATUS_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20; -fx-border-color: rgba(255,255,255,0.05); -fx-border-width: 1 0 0 0;";
 
     public static final String MODERN_DATE_PICKER_STYLE = 
         ".date-picker { -fx-background-color: transparent; } " +
-        ".date-picker > .text-field { -fx-font-size: 14px; -fx-background-color: white; -fx-background-radius: 12 0 0 12; -fx-border-color: #dfe6e9; -fx-border-radius: 12 0 0 12; -fx-border-width: 1 0 1 1; -fx-padding: 8; } " +
-        ".date-picker > .arrow-button { -fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 0 12 12 0; -fx-padding: 8; -fx-cursor: hand; } " +
+        ".date-picker > .text-field { -fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 600; -fx-background-color: white; -fx-background-radius: 18 0 0 18; -fx-border-color: #dbe4f0; -fx-border-radius: 18 0 0 18; -fx-border-width: 1 0 1 1; -fx-padding: 11 16; } " +
+        ".date-picker > .arrow-button { -fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 0 18 18 0; -fx-padding: 11 16; -fx-cursor: hand; } " +
         ".date-picker > .arrow-button > .arrow { -fx-shape: \"M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z\"; -fx-background-color: white; -fx-padding: 8; } " +
-        ".date-picker-popup { -fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 12, 0, 0, 8); -fx-border-color: #dfe6e9; -fx-border-width: 1; -fx-border-radius: 16; } " +
-        ".date-picker-popup > .month-year-pane { -fx-background-color: white; -fx-background-radius: 16 16 0 0; -fx-padding: 10; } " +
-        ".date-picker-popup > .calendar-grid { -fx-background-color: white; -fx-padding: 10; } " +
-        ".date-picker-popup > * > .spinner > .button { -fx-background-color: transparent; } " +
-        ".date-picker-popup > * > .spinner > .button:hover { -fx-background-color: #f1f2f6; } " +
-        ".date-picker-popup > * > .day-name-cell, .date-picker-popup > * > .week-number-cell { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #95a5a6; -fx-padding: 8; } " +
-        ".date-picker-popup > * > .day-cell { -fx-background-color: white; -fx-background-radius: 8; -fx-padding: 8; -fx-cursor: hand; -fx-text-fill: " + COLOR_TEXT + "; } " +
-        ".date-picker-popup > * > .day-cell:hover { -fx-background-color: #e3f2fd; -fx-text-fill: " + COLOR_PRIMARY + "; } " +
-        ".date-picker-popup > * > .today { -fx-background-color: #f8f9fa; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: bold; -fx-border-color: " + COLOR_PRIMARY + "44; -fx-border-radius: 8; } " +
-        ".date-picker-popup > * > .selected { -fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white; -fx-font-weight: bold; } " +
-        ".date-picker-popup > * > .selected:hover { -fx-text-fill: white; } " +
-        ".date-picker-popup > * > .previous-month, .date-picker-popup > * > .next-month { -fx-text-fill: #bdc3c7; }";
+        ".date-picker-popup { -fx-background-color: white; -fx-background-radius: 24; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.15), 30, 0, 0, 10); -fx-border-color: #e2e8f0; -fx-border-width: 1; -fx-border-radius: 24; -fx-padding: 15; } " +
+        ".date-picker-popup > .month-year-pane { -fx-background-color: white; -fx-padding: 10; } " +
+        ".date-picker-popup > .calendar-grid { -fx-background-color: white; -fx-padding: 5; } " +
+        ".date-picker-popup > * > .day-name-cell, .date-picker-popup > * > .week-number-cell { -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #94a3b8; -fx-padding: 10; } " +
+        ".date-picker-popup > * > .day-cell { -fx-background-color: white; -fx-background-radius: 10; -fx-padding: 10; -fx-cursor: hand; -fx-font-weight: 600; -fx-text-fill: #0f172a; } " +
+        ".date-picker-popup > * > .day-cell:hover { -fx-background-color: #f1f5f9; } " +
+        ".date-picker-popup > * > .today { -fx-background-color: #f8fafc; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 900; -fx-border-color: " + COLOR_PRIMARY + "30; -fx-border-radius: 10; } " +
+        ".date-picker-popup > * > .selected { -fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white; -fx-font-weight: 900; } ";
+
+    public static final String SIDEBAR_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20 0 20 0;";
+    public static final String NAV_BTN_BASE = "-fx-background-color: transparent; -fx-padding: 12 24; -fx-cursor: hand; -fx-background-radius: 12; -fx-text-fill: #94a3b8; -fx-font-weight: 800; -fx-alignment: CENTER_LEFT; -fx-font-size: 14px;";
+    public static final String NAV_BTN_ACTIVE = "-fx-background-color: #2563eb; -fx-text-fill: white;";
+    public static final String NAV_BTN_HOVER = "-fx-background-color: rgba(255,255,255,0.08);";
+    public static final String SIDEBAR_STATUS_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20; -fx-border-color: rgba(255,255,255,0.05); -fx-border-width: 1 0 0 0;";
+    public static final String SUBJECT_CHIP_STYLE = ".subject-chip { -fx-background-color: white; -fx-background-radius: 15; -fx-padding: 4 10; -fx-font-size: 11px; -fx-text-fill: #2d3436; -fx-border-color: #dfe6e9; -fx-border-radius: 15; } .subject-chip:hover { -fx-background-color: #ff7675; -fx-text-fill: white; -fx-cursor: hand; -fx-border-color: #ff7675; }";
+    public static final double ICON_SCALE = 1.0;
+
 
     // SVG Icons
     public static final String ICON_DASHBOARD = "M13,3V9H21V3H13M13,21H21V15H13V21M3,21H11V11H3V21M3,9H11V3H3V9Z";

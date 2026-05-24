@@ -44,11 +44,11 @@ public class TeachersEditorTab {
 
         TextField addField = new TextField();
         addField.setPromptText("Введіть ПІБ вчителя...");
-        addField.setStyle("-fx-font-size: 14px; -fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #dfe6e9; -fx-border-radius: 12; -fx-padding: 10 15;");
+        addField.setStyle(PREMIUM_FIELD_STYLE);
         addField.setPrefWidth(550);
 
         Button addBtn = createPrimaryActionButton("ДОДАТИ ВЧИТЕЛЯ", ICON_PLUS);
-        addBtn.setStyle(addBtn.getStyle().replace(COLOR_PRIMARY, "#0984e3"));
+        addBtn.setStyle(PREMIUM_BTN_STYLE);
 
         FlowPane cardsContainer = new FlowPane(20, 20);
         cardsContainer.setPadding(new Insets(10));
@@ -57,13 +57,13 @@ public class TeachersEditorTab {
             cardsContainer.getChildren().clear();
             List<Subject> allSubs = mainApp.getStaffService().getAllSubjects();
             for (Teacher t : mainApp.getStaffService().getAllTeachers()) {
-                VBox card = new VBox(15);
-                card.setStyle(SOFT_CARD + "-fx-padding: 20; -fx-border-color: #f1f2f6; -fx-border-radius: 20;");
-                card.setPrefWidth(340);
+                VBox card = new VBox(20);
+                card.setStyle(SOFT_CARD + "-fx-padding: 24;");
+                card.setPrefWidth(360);
 
                 HBox topRow = new HBox(12);
                 topRow.setAlignment(Pos.CENTER_LEFT);
-                StackPane avatar = createAvatar(t.name(), 44);
+                StackPane avatar = createAvatar(t.name(), 48);
                 
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -76,12 +76,12 @@ public class TeachersEditorTab {
 
                 VBox nameArea = new VBox(5);
                 Label nameLabel = new Label(t.name());
-                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: #2d3436;");
+                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 17px; -fx-text-fill: #0f172a;");
                 nameLabel.setWrapText(true);
                 nameLabel.setMaxWidth(300);
                 
                 TextField nameEdit = new TextField(t.name());
-                nameEdit.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-background-color: #f1f2f6; -fx-background-radius: 8; -fx-padding: 8 12;");
+                nameEdit.setStyle(PREMIUM_FIELD_STYLE + "-fx-font-size: 15px; -fx-padding: 8 12;");
                 nameEdit.setMaxWidth(Double.MAX_VALUE);
                 nameEdit.setManaged(false);
                 nameEdit.setVisible(false);
@@ -110,7 +110,7 @@ public class TeachersEditorTab {
                 FlowPane chips = new FlowPane(6, 6);
                 for (Subject sub : mainApp.getStaffService().getSubjectsForTeacher(t.id())) {
                     Label chip = new Label(sub.name().toUpperCase() + " ✕");
-                    String chipBase = "-fx-background-color: #e3f2fd; -fx-background-radius: 10; -fx-padding: 4 10; -fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: #0984e3; -fx-cursor: hand; -fx-border-color: #0984e320; -fx-border-radius: 10;";
+                    String chipBase = "-fx-background-color: #e3f2fd; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #0984e3; -fx-cursor: hand; -fx-border-color: #0984e320; -fx-border-radius: 12;";
                     chip.setStyle(chipBase);
                     chip.setOnMouseEntered(e -> chip.setStyle(chipBase + "-fx-background-color: #ff767515; -fx-text-fill: #ff7675; -fx-border-color: #ff767540;"));
                     chip.setOnMouseExited(e -> chip.setStyle(chipBase));
@@ -122,7 +122,7 @@ public class TeachersEditorTab {
                 picker.setPromptText("+ ПРИЗНАЧИТИ ПРЕДМЕТ");
                 picker.getItems().setAll(allSubs);
                 picker.setMaxWidth(Double.MAX_VALUE);
-                picker.setStyle(COMBO_STYLE + "-fx-font-size: 11px; -fx-font-weight: 900;");
+                picker.setStyle(PREMIUM_SELECT_STYLE + "-fx-font-size: 13px; -fx-padding: 8 12;");
                 picker.setOnAction(e -> { if (picker.getValue() != null) { mainApp.getStaffService().linkTeacherToSubject(t.id(), picker.getValue().id()); refreshTeachers.run(); } });
                 
                 card.getChildren().addAll(topRow, nameArea, chips, picker);

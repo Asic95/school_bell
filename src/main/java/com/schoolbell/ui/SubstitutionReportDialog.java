@@ -35,18 +35,18 @@ public class SubstitutionReportDialog extends Stage {
 
         VBox root = new VBox(25);
         root.setPadding(new Insets(35));
-        root.setStyle(SOFT_CARD + "-fx-background-radius: 32; -fx-border-radius: 32; -fx-border-width: 2; -fx-border-color: #e2e8f0;");
+        root.setStyle(SOFT_CARD);
         root.setPrefWidth(500);
 
         Label title = new Label("Генерація звіту замін");
-        title.setStyle("-fx-font-size: 24px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT + ";");
-        Label subtitle = new Label("Оберіть період для створення PDF-звіту про проведені заміни.");
-        subtitle.setStyle("-fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        title.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+        Label subtitle = new Label("Оберіть період для створення TXT-звіту про проведені заміни.");
+        subtitle.setStyle("-fx-font-size: 15px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
 
-        VBox headerBox = new VBox(4, title, subtitle);
+        VBox headerBox = new VBox(8, title, subtitle);
 
         GridPane grid = new GridPane();
-        grid.setHgap(20);
+        grid.setHgap(25);
         grid.setVgap(20);
         grid.setAlignment(Pos.CENTER_LEFT);
         
@@ -60,7 +60,7 @@ public class SubstitutionReportDialog extends Stage {
         monthPicker.getItems().addAll(Month.values());
         monthPicker.setValue(LocalDate.now().getMonth());
         monthPicker.setMaxWidth(Double.MAX_VALUE);
-        monthPicker.setStyle(COMBO_STYLE + "-fx-background-color: white; -fx-border-color: #e2e8f0; -fx-background-radius: 12; -fx-border-radius: 12;");
+        monthPicker.setStyle(PREMIUM_SELECT_STYLE);
         monthPicker.setConverter(new javafx.util.StringConverter<>() {
             @Override
             public String toString(Month m) {
@@ -86,10 +86,14 @@ public class SubstitutionReportDialog extends Stage {
         actions.setPadding(new Insets(10, 0, 0, 0));
 
         Button cancelBtn = new Button("СКАСУВАТИ");
-        cancelBtn.setStyle("-fx-background-color: #f1f2f6; -fx-text-fill: #636e72; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 14; -fx-cursor: hand;");
+        String cancelStyle = "-fx-background-color: white; -fx-text-fill: #64748b; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 18; -fx-cursor: hand;";
+        cancelBtn.setStyle(cancelStyle);
+        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: #f1f2f6;"));
+        cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(cancelStyle));
         cancelBtn.setOnAction(e -> close());
 
-        Button generateBtn = createPrimaryActionButton("ЗГЕНЕРУВАТИ PDF", ICON_SAVE);
+        Button generateBtn = createPrimaryActionButton("ЗГЕНЕРУВАТИ TXT", ICON_SAVE);
+        generateBtn.setStyle(PREMIUM_BTN_STYLE);
         generateBtn.setOnAction(e -> {
             reportService.generateReport(monthPicker.getValue(), yearPicker.getValue());
             close();

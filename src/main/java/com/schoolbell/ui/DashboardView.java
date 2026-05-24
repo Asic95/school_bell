@@ -139,8 +139,8 @@ public class DashboardView {
 
         // --- MIDDLE ROW ---
         VBox heroCard = new VBox(25);
-        heroCard.setPadding(new Insets(30));
-        heroCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e4e4e7; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 2);");
+        heroCard.setPadding(new Insets(35));
+        heroCard.setStyle(SOFT_CARD);
         heroCard.setCache(true);
         heroCard.setCacheHint(CacheHint.SPEED);
         
@@ -151,7 +151,7 @@ public class DashboardView {
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
         topActiveScheduleLabel = new Label(config.getSelectedScheduleName() != null ? config.getSelectedScheduleName() : "Не вибрано");
-        topActiveScheduleLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-background-color: " + COLOR_BLUE_LIGHT + "; -fx-padding: 4 12; -fx-background-radius: 20;");
+        topActiveScheduleLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-background-color: " + COLOR_BLUE_LIGHT + "; -fx-padding: 6 14; -fx-background-radius: 20;");
         heroHeader.getChildren().addAll(flowHeader, headerSpacer, topActiveScheduleLabel);
 
         HBox currentSessionInfo = new HBox(30);
@@ -159,21 +159,21 @@ public class DashboardView {
         
         VBox sessionIcon = new VBox(createSVGIcon(ICON_BOOK, Color.web(COLOR_PRIMARY), 48));
         sessionIcon.setAlignment(Pos.CENTER);
-        sessionIcon.setPrefSize(90, 90);
-        sessionIcon.setStyle("-fx-background-color: " + COLOR_BLUE_LIGHT + "; -fx-background-radius: 24; -fx-effect: dropshadow(three-pass-box, rgba(9, 132, 227, 0.2), 15, 0, 0, 5);");
+        sessionIcon.setPrefSize(94, 94);
+        sessionIcon.setStyle(ICON_BADGE_STYLE);
 
-        VBox sessionText = new VBox(5);
+        VBox sessionText = new VBox(6);
         curLessonNumLabel = new Label("--");
-        curLessonNumLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + ";");
+        curLessonNumLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
         curLessonStatusBadge = new Label("ОЧІКУВАННЯ");
-        curLessonStatusBadge.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: white; -fx-background-color: " + COLOR_NEUTRAL + "; -fx-padding: 4 10; -fx-background-radius: 8;");
+        curLessonStatusBadge.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: white; -fx-background-color: " + COLOR_NEUTRAL + "; -fx-padding: 4 12; -fx-background-radius: 12;");
         HBox titleRow = new HBox(15, curLessonNumLabel, curLessonStatusBadge);
         titleRow.setAlignment(Pos.CENTER_LEFT);
         
         curLessonSubjectLabel = new Label("Завантаження даних...");
         curLessonSubjectLabel.setWrapText(true);
         curLessonSubjectLabel.setMaxWidth(400);
-        curLessonSubjectLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        curLessonSubjectLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: #64748b;");
         sessionText.getChildren().addAll(titleRow, curLessonSubjectLabel);
         
         Region sessionSpacer = new Region();
@@ -184,29 +184,29 @@ public class DashboardView {
         Label countdownTitle = new Label("ДО НАСТУПНОГО ДЗВІНКА");
         countdownTitle.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
         countdownLabel = new Label("00:00:00");
-        countdownLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + ";");
+        countdownLabel.setStyle("-fx-font-size: 36px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + ";");
         nextBellTypeLabel = new Label("—");
         nextBellTypeLabel.setWrapText(true);
         nextBellTypeLabel.setTextAlignment(javafx.scene.text.TextAlignment.RIGHT);
         nextBellTypeLabel.setMaxWidth(220);
-        nextBellTypeLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        nextBellTypeLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #94a3b8;");
         countdownBox.getChildren().addAll(countdownTitle, countdownLabel, nextBellTypeLabel);
         
         currentSessionInfo.getChildren().addAll(sessionIcon, sessionText, sessionSpacer, countdownBox);
 
-        VBox progressArea = new VBox(10);
+        VBox progressArea = new VBox(12);
         curLessonProgress = new ProgressBar(0);
         curLessonProgress.setMaxWidth(Double.MAX_VALUE);
-        curLessonProgress.setPrefHeight(20); 
+        curLessonProgress.setPrefHeight(22); 
         curLessonProgress.getStylesheets().add("data:text/css," + MODERN_PROGRESS_STYLE.replace(" ", "%20"));
         
         HBox progressLabels = new HBox();
         curLessonTimeLabel = new Label("--:-- – --:--");
-        curLessonTimeLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        curLessonTimeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 800; -fx-text-fill: #64748b;");
         Region pSpacer = new Region();
         HBox.setHgrow(pSpacer, Priority.ALWAYS);
         curLessonProgressText = new Label("0%");
-        curLessonProgressText.setStyle("-fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + ";");
+        curLessonProgressText.setStyle("-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + ";");
         progressLabels.getChildren().addAll(curLessonTimeLabel, pSpacer, curLessonProgressText);
         progressArea.getChildren().addAll(progressLabels, curLessonProgress);
 
@@ -218,36 +218,36 @@ public class DashboardView {
         heroCard.getChildren().addAll(heroHeader, currentSessionInfo, progressArea, scheduleFlowContainer);
         grid.add(heroCard, 0, 1);
 
-        VBox nextEventCard = new VBox(20);
-        nextEventCard.setPadding(new Insets(30));
-        nextEventCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e4e4e7; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 2);");
+        VBox nextEventCard = new VBox(25);
+        nextEventCard.setPadding(new Insets(35));
+        nextEventCard.setStyle(SOFT_CARD);
         nextEventCard.setCache(true);
         nextEventCard.setCacheHint(CacheHint.SPEED);
         
         Label nextHeader = new Label("НАСТУПНА ПОДІЯ");
         nextHeader.setStyle(HEADER_STYLE);
         
-        VBox nextContent = new VBox(15);
+        VBox nextContent = new VBox(18);
         nextContent.setAlignment(Pos.CENTER);
         
-        VBox nextIconCircle = new VBox(createSVGIcon(ICON_CLOCK, Color.web(COLOR_SUCCESS), 40));
+        VBox nextIconCircle = new VBox(createSVGIcon(ICON_CLOCK, Color.web(COLOR_SUCCESS), 44));
         nextIconCircle.setAlignment(Pos.CENTER);
-        nextIconCircle.setPrefSize(80, 80);
-        nextIconCircle.setStyle("-fx-background-color: " + COLOR_GREEN_LIGHT + "; -fx-background-radius: 50;");
+        nextIconCircle.setPrefSize(84, 84);
+        nextIconCircle.setStyle("-fx-background-color: linear-gradient(to bottom right, #f8fbff, #edf4ff); -fx-background-radius: 22;");
         
         nextLessonNumLabel = new Label("--");
-        nextLessonNumLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + ";");
+        nextLessonNumLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
         
         VBox nextInfoText = new VBox(4);
         nextInfoText.setAlignment(Pos.CENTER);
         nextLessonSubjectLabel = new Label("Очікування...");
-        nextLessonSubjectLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + ";");
+        nextLessonSubjectLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
         nextLessonTimeLabel = new Label("--:-- – --:--");
-        nextLessonTimeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        nextLessonTimeLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
         nextInfoText.getChildren().addAll(nextLessonSubjectLabel, nextLessonTimeLabel);
         
         nextLessonStatusBadge = new Label("ПЕРЕРВА");
-        nextLessonStatusBadge.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: white; -fx-background-color: " + COLOR_SUCCESS + "; -fx-padding: 4 12; -fx-background-radius: 20;");
+        nextLessonStatusBadge.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: white; -fx-background-color: " + COLOR_SUCCESS + "; -fx-padding: 5 15; -fx-background-radius: 20;");
         
         nextContent.getChildren().addAll(nextIconCircle, nextLessonNumLabel, nextInfoText, nextLessonStatusBadge);
         
@@ -279,10 +279,10 @@ public class DashboardView {
         
         actionsBox.getChildren().addAll(airRaidBtn, emergencyBtn);
         
-        VBox quickActionsCard = new VBox(15, new Label("ШВИДКІ ДІЇ"), actionsBox);
+        VBox quickActionsCard = new VBox(20, new Label("ШВИДКІ ДІЇ"), actionsBox);
         ((Label)quickActionsCard.getChildren().get(0)).setStyle(HEADER_STYLE);
-        quickActionsCard.setPadding(new Insets(25));
-        quickActionsCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e4e4e7; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 2);");
+        quickActionsCard.setPadding(new Insets(30));
+        quickActionsCard.setStyle(SOFT_CARD);
         quickActionsCard.setCache(true);
         quickActionsCard.setCacheHint(CacheHint.SPEED);
         grid.add(quickActionsCard, 0, 2, 2, 1);

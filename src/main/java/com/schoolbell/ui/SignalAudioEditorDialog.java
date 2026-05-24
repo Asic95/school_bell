@@ -41,13 +41,13 @@ public class SignalAudioEditorDialog extends Stage {
 
         VBox root = new VBox(25);
         root.setPadding(new Insets(35));
-        root.setStyle(SOFT_CARD + "-fx-background-radius: 32; -fx-border-radius: 32; -fx-border-width: 2; -fx-border-color: #e2e8f0;");
-        root.setPrefWidth(550);
+        root.setStyle(SOFT_CARD);
+        root.setPrefWidth(600);
 
         Label title = new Label("Налаштування звуків: " + formatTitle(alertType));
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT + ";");
+        title.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
 
-        VBox fields = new VBox(18);
+        VBox fields = new VBox(22);
         
         if (alertType.equals("AIR_RAID")) {
             pathStart = createFileRow(fields, "Звук початку тривоги", config.getAudioAirRaidPath());
@@ -64,10 +64,14 @@ public class SignalAudioEditorDialog extends Stage {
         actions.setPadding(new Insets(10, 0, 0, 0));
 
         Button cancelBtn = new Button("СКАСУВАТИ");
-        cancelBtn.setStyle("-fx-background-color: #f1f2f6; -fx-text-fill: #636e72; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 14; -fx-cursor: hand;");
+        String cancelStyle = "-fx-background-color: white; -fx-text-fill: #64748b; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 18; -fx-cursor: hand;";
+        cancelBtn.setStyle(cancelStyle);
+        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: #f1f2f6;"));
+        cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(cancelStyle));
         cancelBtn.setOnAction(e -> close());
 
         Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ", ICON_SAVE);
+        saveBtn.setStyle(PREMIUM_BTN_STYLE);
         saveBtn.setOnAction(e -> {
             save();
             close();
@@ -82,21 +86,24 @@ public class SignalAudioEditorDialog extends Stage {
     }
 
     private TextField createFileRow(VBox container, String labelText, String initialValue) {
-        VBox box = new VBox(6);
+        VBox box = new VBox(8);
         Label lbl = new Label(labelText.toUpperCase());
-        lbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #94a3b8; -fx-letter-spacing: 1px;");
+        lbl.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
         
-        HBox row = new HBox(10);
+        HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_LEFT);
         
         TextField field = new TextField(initialValue);
         field.setEditable(false);
-        field.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-border-color: #e2e8f0; -fx-border-radius: 12; -fx-padding: 10; -fx-font-size: 13px;");
+        field.setStyle(PREMIUM_FIELD_STYLE + "-fx-font-size: 14px; -fx-padding: 11 16;");
         HBox.setHgrow(field, Priority.ALWAYS);
         
         Button pickBtn = new Button();
         pickBtn.setGraphic(createSVGIcon(ICON_FOLDER, Color.web(COLOR_PRIMARY), 18));
-        pickBtn.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e2e8f0; -fx-border-radius: 12; -fx-padding: 8; -fx-cursor: hand;");
+        String pickStyle = "-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: #e2e8f0; -fx-border-radius: 14; -fx-padding: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 5, 0, 0, 1);";
+        pickBtn.setStyle(pickStyle);
+        pickBtn.setOnMouseEntered(e -> pickBtn.setStyle(pickStyle + "-fx-background-color: #f8fbff; -fx-border-color: " + COLOR_PRIMARY + ";"));
+        pickBtn.setOnMouseExited(e -> pickBtn.setStyle(pickStyle));
         pickBtn.setOnAction(e -> {
             FileChooser chooser = new FileChooser();
             chooser.setTitle("Оберіть " + labelText);
@@ -107,7 +114,10 @@ public class SignalAudioEditorDialog extends Stage {
 
         Button clearBtn = new Button();
         clearBtn.setGraphic(createSVGIcon(ICON_TRASH, Color.web(COLOR_DANGER), 18));
-        clearBtn.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e2e8f0; -fx-border-radius: 12; -fx-padding: 8; -fx-cursor: hand;");
+        String clearStyle = "-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: #fee2e2; -fx-border-radius: 14; -fx-padding: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 5, 0, 0, 1);";
+        clearBtn.setStyle(clearStyle);
+        clearBtn.setOnMouseEntered(e -> clearBtn.setStyle(clearStyle + "-fx-background-color: #fffafa; -fx-border-color: " + COLOR_DANGER + ";"));
+        clearBtn.setOnMouseExited(e -> clearBtn.setStyle(clearStyle));
         clearBtn.setOnAction(e -> field.setText(""));
 
         row.getChildren().addAll(field, pickBtn, clearBtn);

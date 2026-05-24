@@ -44,19 +44,19 @@ public class SubstitutionEditorDialog extends Stage {
 
         VBox root = new VBox(25);
         root.setPadding(new Insets(35));
-        root.setStyle(SOFT_CARD + "-fx-background-radius: 32; -fx-border-radius: 32; -fx-border-width: 2; -fx-border-color: #e2e8f0;");
-        root.setPrefWidth(650); // Increased width
+        root.setStyle(SOFT_CARD);
+        root.setPrefWidth(650);
 
         Label title = new Label(entry == null ? "Нова заміна" : "Редагування заміни");
-        title.setStyle("-fx-font-size: 24px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT + ";");
+        title.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
         Label subtitle = new Label("Оберіть параметри для автоматичної заміни в розкладі.");
-        subtitle.setStyle("-fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        subtitle.setStyle("-fx-font-size: 15px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
 
-        VBox headerBox = new VBox(4, title, subtitle);
+        VBox headerBox = new VBox(8, title, subtitle);
 
         GridPane grid = new GridPane();
-        grid.setHgap(20);
-        grid.setVgap(18);
+        grid.setHgap(25);
+        grid.setVgap(20);
         grid.setAlignment(Pos.CENTER_LEFT);
         
         javafx.scene.layout.ColumnConstraints labelCol = new javafx.scene.layout.ColumnConstraints();
@@ -70,7 +70,7 @@ public class SubstitutionEditorDialog extends Stage {
         grid.add(createLabel("ДАТА"), 0, 0);
         grid.add(datePicker, 1, 0);
 
-        lessonSpinner = new Spinner<>(1, 10, entry != null ? entry.lessonNumber() : 1);
+        lessonSpinner = new Spinner<>(1, 15, entry != null ? entry.lessonNumber() : 1);
         lessonSpinner.setEditable(true);
         lessonSpinner.setMaxWidth(120);
         grid.add(createLabel("УРОК №"), 0, 1);
@@ -79,28 +79,28 @@ public class SubstitutionEditorDialog extends Stage {
         classCombo = new ComboBox<>();
         classCombo.getItems().addAll(mainApp.getAcademicService().getAllClasses());
         classCombo.setMaxWidth(Double.MAX_VALUE);
-        classCombo.setStyle(COMBO_STYLE + "-fx-background-color: white; -fx-border-color: #e2e8f0; -fx-background-radius: 12; -fx-border-radius: 12;");
+        classCombo.setStyle(PREMIUM_SELECT_STYLE);
         grid.add(createLabel("КЛАС"), 0, 2);
         grid.add(classCombo, 1, 2);
 
         teacherCombo = new ComboBox<>();
         teacherCombo.getItems().addAll(mainApp.getStaffService().getAllTeachers());
         teacherCombo.setMaxWidth(Double.MAX_VALUE);
-        teacherCombo.setStyle(COMBO_STYLE + "-fx-background-color: white; -fx-border-color: #e2e8f0; -fx-background-radius: 12; -fx-border-radius: 12;");
+        teacherCombo.setStyle(PREMIUM_SELECT_STYLE);
         grid.add(createLabel("ВЧИТЕЛЬ"), 0, 3);
         grid.add(teacherCombo, 1, 3);
 
         subjectCombo = new ComboBox<>();
         subjectCombo.getItems().addAll(mainApp.getStaffService().getAllSubjects());
         subjectCombo.setMaxWidth(Double.MAX_VALUE);
-        subjectCombo.setStyle(COMBO_STYLE + "-fx-background-color: white; -fx-border-color: #e2e8f0; -fx-background-radius: 12; -fx-border-radius: 12;");
+        subjectCombo.setStyle(PREMIUM_SELECT_STYLE);
         grid.add(createLabel("ПРЕДМЕТ"), 0, 4);
         grid.add(subjectCombo, 1, 4);
 
         classroomCombo = new ComboBox<>();
         classroomCombo.getItems().addAll(mainApp.getAcademicService().getAllClassrooms());
         classroomCombo.setMaxWidth(Double.MAX_VALUE);
-        classroomCombo.setStyle(COMBO_STYLE + "-fx-background-color: white; -fx-border-color: #e2e8f0; -fx-background-radius: 12; -fx-border-radius: 12;");
+        classroomCombo.setStyle(PREMIUM_SELECT_STYLE);
         classroomCombo.setPromptText("Оберіть кабінет");
         grid.add(createLabel("КАБІНЕТ"), 0, 5);
         grid.add(classroomCombo, 1, 5);
@@ -133,10 +133,14 @@ public class SubstitutionEditorDialog extends Stage {
         actions.setPadding(new Insets(10, 0, 0, 0));
 
         Button cancelBtn = new Button("СКАСУВАТИ");
-        cancelBtn.setStyle("-fx-background-color: #f1f2f6; -fx-text-fill: #636e72; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 14; -fx-cursor: hand;");
+        String cancelStyle = "-fx-background-color: white; -fx-text-fill: #64748b; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 18; -fx-cursor: hand;";
+        cancelBtn.setStyle(cancelStyle);
+        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: #f1f2f6;"));
+        cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(cancelStyle));
         cancelBtn.setOnAction(e -> close());
 
         Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ЗАМІНУ", ICON_SAVE);
+        saveBtn.setStyle(PREMIUM_BTN_STYLE);
         saveBtn.setOnAction(ev -> {
             if (saveSubstitution()) {
                 close();
@@ -157,7 +161,7 @@ public class SubstitutionEditorDialog extends Stage {
 
     private Label createLabel(String text) {
         Label lbl = new Label(text);
-        lbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #94a3b8; -fx-letter-spacing: 1px;");
+        lbl.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
         return lbl;
     }
 

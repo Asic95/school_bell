@@ -124,7 +124,7 @@ public class EmergencyAlertsPanel {
 
         HBox row = new HBox(18);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setFillHeight(false); // CRITICAL: Prevent stretching
+        row.setFillHeight(true); // Allow stretching to match tallest sibling
 
         Node iconNode = createSVGIcon(iconPath, Color.web(accent), 24);
         iconNode.setScaleX(2.0); // Very large icon, ~85% fill
@@ -156,12 +156,12 @@ public class EmergencyAlertsPanel {
         VBox audioConfigBtn = createAudioConfigButton(alertType, pathField);
         audioConfigBtn.setMinWidth(140);
         audioConfigBtn.setPrefWidth(160);
-        audioConfigBtn.setPrefHeight(68); // Explicit height
+        audioConfigBtn.setPrefHeight(78); // Slightly taller for better balance
         HBox.setHgrow(audioConfigBtn, Priority.SOMETIMES);
 
         HBox controls = new HBox(10,
-                createToggleSurface("Аудіо", ICON_VOLUME, audioToggle, 68),
-                createToggleSurface("Екран", ICON_MONITOR, visualToggle, 68)
+                createToggleSurface("Аудіо", ICON_VOLUME, audioToggle, 78),
+                createToggleSurface("Екран", ICON_MONITOR, visualToggle, 78)
         );
         controls.setAlignment(Pos.CENTER_LEFT);
 
@@ -218,9 +218,9 @@ public class EmergencyAlertsPanel {
 
         Label fileName = new Label();
         fileName.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: #0f172a;");
-        fileName.setText(alertType.equals("AIR_RAID") ? "3 файли налаштовано" : "Звуковий файл");
+        fileName.setText(alertType.equals("AIR_RAID") ? "Параметри звуків" : "Звуковий файл");
         
-        Label fileMeta = new Label("Натисніть для редагування");
+        Label fileMeta = new Label("Натисніть для зміни");
         fileMeta.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 12px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
 
         VBox meta = new VBox(3, fileName, fileMeta);

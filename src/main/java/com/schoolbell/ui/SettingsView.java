@@ -49,21 +49,24 @@ public class SettingsView {
         this.airAlertService = mainApp.getAirAlertService();
 
         schoolNameField = createStyledField(config.getSchoolName());
+        schoolNameField.setStyle(PREMIUM_FIELD_STYLE);
         cityNameField = createStyledField(config.getCityName());
+        cityNameField.setStyle(PREMIUM_FIELD_STYLE);
         portField = createStyledField(String.valueOf(config.getBroadcastPort()));
+        portField.setStyle(PREMIUM_FIELD_STYLE);
         volumeSlider = new Slider(0, 100, config.getSystemVolume());
         broadcastEnabledCb = new CheckBox("Увімкнути веб-трансляцію дашборду");
         broadcastEnabledCb.setSelected(config.isBroadcastEnabled());
-        broadcastEnabledCb.setStyle("-fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + ";");
+        broadcastEnabledCb.setStyle("-fx-font-weight: 900; -fx-text-fill: #0f172a; -fx-font-size: 14px;");
 
         simulationModeCb = new CheckBox("РЕЖИМ СИМУЛЯЦІЇ (без фізичного реле)");
         simulationModeCb.setSelected(config.isSimulationMode());
-        simulationModeCb.setStyle("-fx-font-weight: bold; -fx-text-fill: " + COLOR_PRIMARY + ";");
+        simulationModeCb.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 14px;");
 
         announcementArea = new TextArea(config.getAnnouncementText());
         announcementArea.setPrefRowCount(3);
         announcementArea.setWrapText(true);
-        announcementArea.setStyle("-fx-font-size: 14px; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #dfe6e9; -fx-padding: 10;");
+        announcementArea.setStyle(PREMIUM_FIELD_STYLE);
 
         bellSettingsPane = new SignalSettingsPane(
                 config.getRegularBellDuration(),
@@ -74,17 +77,18 @@ public class SettingsView {
 
         airRaidToggle = new ToggleButton(config.isAirRaidAutomationEnabled() ? "УВІМКНЕНО" : "ВИМКНЕНО");
         airRaidToggle.setSelected(config.isAirRaidAutomationEnabled());
-        airRaidToggle.setStyle(config.isAirRaidAutomationEnabled() ? "-fx-background-color: " + COLOR_SUCCESS + "; -fx-text-fill: white; -fx-background-radius: 12;" : "-fx-background-color: #dfe6e9; -fx-text-fill: white; -fx-background-radius: 12;");
+        airRaidToggle.setStyle(config.isAirRaidAutomationEnabled() ? PREMIUM_TOGGLE_ACTIVE : PREMIUM_TOGGLE_INACTIVE);
         airRaidToggle.setOnAction(e -> {
             boolean active = airRaidToggle.isSelected();
             airRaidToggle.setText(active ? "УВІМКНЕНО" : "ВИМКНЕНО");
-            airRaidToggle.setStyle(active ? "-fx-background-color: " + COLOR_SUCCESS + "; -fx-text-fill: white; -fx-background-radius: 12;" : "-fx-background-color: #dfe6e9; -fx-text-fill: white; -fx-background-radius: 12;");
+            airRaidToggle.setStyle(active ? PREMIUM_TOGGLE_ACTIVE : PREMIUM_TOGGLE_INACTIVE);
         });
 
         regionCombo = new ComboBox<>();
         regionCombo.getItems().addAll(airAlertService.getRegions());
         regionCombo.setValue(config.getSelectedRegionId());
         regionCombo.setPrefWidth(300);
+        regionCombo.setStyle(PREMIUM_SELECT_STYLE);
         
         districtCombo = new ComboBox<>();
         if (config.getSelectedRegionId() != null) {
@@ -92,6 +96,7 @@ public class SettingsView {
             districtCombo.setValue(config.getSelectedDistrictId());
         }
         districtCombo.setPrefWidth(300);
+        districtCombo.setStyle(PREMIUM_SELECT_STYLE);
 
         regionCombo.setOnAction(e -> {
             districtCombo.getItems().clear();
@@ -105,6 +110,7 @@ public class SettingsView {
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
         Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ НАЛАШТУВАННЯ", ICON_SAVE);
+        saveBtn.setStyle(PREMIUM_BTN_STYLE);
         saveBtn.setOnAction(e -> save());
 
         HBox header = createPageHeader(
@@ -126,52 +132,66 @@ public class SettingsView {
         grid.getColumnConstraints().addAll(col1, col2);
 
         VBox sec1 = createSettingsSection("ІДЕНТИФІКАЦІЯ ЗАКЛАДУ", "#0984e3", ICON_PERSON);
-        sec1.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
+        sec1.setStyle(SOFT_CARD + "-fx-padding: 30;");
         GridPane identityGrid = new GridPane();
         identityGrid.setHgap(20);
-        identityGrid.setVgap(15);
-        identityGrid.setPadding(new Insets(10, 0, 0, 0));
+        identityGrid.setVgap(20);
+        identityGrid.setPadding(new Insets(15, 0, 0, 0));
         Label lblSchool = new Label("Назва закладу:");
-        lblSchool.setStyle("-fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-font-size: 13px;");
+        lblSchool.setStyle(HEADER_STYLE);
         schoolNameField.setPrefWidth(400);
         identityGrid.add(lblSchool, 0, 0);
         identityGrid.add(schoolNameField, 1, 0);
         Label lblCity = new Label("Місто:");
-        lblCity.setStyle("-fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-font-size: 13px;");
+        lblCity.setStyle(HEADER_STYLE);
         cityNameField.setPrefWidth(400);
         identityGrid.add(lblCity, 0, 1);
         identityGrid.add(cityNameField, 1, 1);
         sec1.getChildren().add(identityGrid);
 
         VBox sec2 = createSettingsSection("НАЛАШТУВАННЯ ЗВУКУ", "#00b894", ICON_VOLUME);
-        sec2.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
+        sec2.setStyle(SOFT_CARD + "-fx-padding: 30;");
         Label volVal = new Label(config.getSystemVolume() + "%");
-        volVal.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_SUCCESS + "; -fx-font-size: 16px;");
+        volVal.setStyle("-fx-font-weight: 900; -fx-text-fill: #0f172a; -fx-font-size: 18px;");
         volumeSlider.valueProperty().addListener((o, ov, nv) -> volVal.setText(nv.intValue() + "%"));
         HBox volRow = new HBox(20, volumeSlider, volVal);
         volRow.setAlignment(Pos.CENTER_LEFT);
         Label volLabel = new Label("ЗАГАЛЬНА ГУЧНІСТЬ СИСТЕМИ:");
-        volLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        volLabel.setStyle(HEADER_STYLE);
         sec2.getChildren().addAll(volLabel, volRow);
 
         VBox sec4 = createSettingsSection("МЕРЕЖА ТА ТРАНСЛЯЦІЯ", "#6c5ce7", ICON_BROADCAST);
-        sec4.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
-        broadcastEnabledCb.setStyle("-fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT + "; -fx-font-size: 13px;");
+        sec4.setStyle(SOFT_CARD + "-fx-padding: 30;");
+        broadcastEnabledCb.setStyle("-fx-font-weight: 900; -fx-text-fill: #0f172a; -fx-font-size: 14px;");
         HBox portRow = createFieldRow("ПОРТ ТРАНСЛЯЦІЇ:", portField);
-        ((Label) portRow.getChildren().get(0)).setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        ((Label) portRow.getChildren().get(0)).setStyle(HEADER_STYLE);
         portField.setPrefWidth(120);
         sec4.getChildren().addAll(broadcastEnabledCb, portRow);
 
         VBox sec5 = createSettingsSection("СИСТЕМНІ ПАРАМЕТРИ", "#636e72", ICON_SETTINGS);
-        sec5.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
-        simulationModeCb.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 13px;");
+        sec5.setStyle(SOFT_CARD + "-fx-padding: 30;");
+        simulationModeCb.setStyle("-fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 14px;");
         Label simDesc = new Label("Використовуйте цей режим для тестування без підключеного реле");
-        simDesc.setStyle("-fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        simDesc.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
         sec5.getChildren().addAll(simulationModeCb, simDesc);
         
         VBox secAir = createSettingsSection("АВТОМАТИЗАЦІЯ ПОВІТРЯНОЇ ТРИВОГИ", "#e17055", ICON_SETTINGS);
-        secAir.setStyle(SOFT_CARD + "-fx-padding: 25; -fx-border-color: #f1f2f6; -fx-border-radius: 24;");
-        secAir.getChildren().addAll(new HBox(10, new Label("УВІМКНУТИ:"), airRaidToggle), new Label("Регіон:"), regionCombo, new Label("Район:"), districtCombo);
+        secAir.setStyle(SOFT_CARD + "-fx-padding: 30;");
+        HBox airToggleBox = new HBox(15, new Label("СТАТУС АВТОМАТИЗАЦІЇ:"), airRaidToggle);
+        airToggleBox.setAlignment(Pos.CENTER_LEFT);
+        ((Label)airToggleBox.getChildren().get(0)).setStyle(HEADER_STYLE);
+        
+        VBox airGrid = new VBox(20);
+        airGrid.setPadding(new Insets(15, 0, 0, 0));
+        
+        VBox regBox = new VBox(8, new Label("ОБЛАСТЬ / РЕГІОН:"), regionCombo);
+        ((Label)regBox.getChildren().get(0)).setStyle(HEADER_STYLE);
+        
+        VBox distBox = new VBox(8, new Label("РАЙОН / ТГ:"), districtCombo);
+        ((Label)distBox.getChildren().get(0)).setStyle(HEADER_STYLE);
+        
+        airGrid.getChildren().addAll(airToggleBox, regBox, distBox);
+        secAir.getChildren().add(airGrid);
 
         grid.add(sec1, 0, 0);
         grid.add(sec2, 1, 0);
@@ -185,6 +205,10 @@ public class SettingsView {
         ScrollPane scroll = new ScrollPane(root);
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        
+        String css = MODERN_CHECKBOX_STYLE + "\n" + MODERN_DATE_PICKER_STYLE;
+        scroll.getStylesheets().add("data:text/css," + css.replace(" ", "%20").replace("\n", "%20"));
+        
         return scroll;
     }
 

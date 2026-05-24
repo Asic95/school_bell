@@ -58,10 +58,10 @@ public class SystemView {
         regionCombo = new ComboBox<>();
         regionCombo.getItems().addAll(mainApp.getAirAlertService().getRegions());
         regionCombo.setValue(config.getSelectedRegionId());
-        regionCombo.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-background-radius: 14; -fx-border-radius: 14; -fx-background-color: white; -fx-border-color: #e2e8f0;");
+        regionCombo.setStyle(PREMIUM_SELECT_STYLE);
         
         districtCombo = new ComboBox<>();
-        districtCombo.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-background-radius: 14; -fx-border-radius: 14; -fx-background-color: white; -fx-border-color: #e2e8f0;");
+        districtCombo.setStyle(PREMIUM_SELECT_STYLE);
         
         if (config.getSelectedRegionId() != null) {
             districtCombo.getItems().addAll(mainApp.getAirAlertService().getDistricts(config.getSelectedRegionId()));
@@ -94,6 +94,7 @@ public class SystemView {
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
         Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ВСЕ", ICON_SAVE);
+        saveBtn.setStyle(PREMIUM_BTN_STYLE);
         saveBtn.setOnAction(e -> save());
 
         HBox header = createPageHeader(
@@ -106,7 +107,7 @@ public class SystemView {
         );
 
         mainCol = new VBox(25);
-        HBox.setHgrow(mainCol, Priority.ALWAYS); // Critical fix for compressed layout
+        HBox.setHgrow(mainCol, Priority.ALWAYS);
         mainCol.getChildren().addAll(buildOperationCard(), buildSignalCard());
         
         updateJournalVisibility(simulationTg.isSelected());
@@ -149,18 +150,20 @@ public class SystemView {
                 "Пошук та автоматичне оповіщення про повітряну тривогу", ICON_SETTINGS, "#e17055", airRaidTg));
         
         // Region Selection with Label
-        VBox regionBox = new VBox(5);
+        VBox regionBox = new VBox(8);
         Label regionLbl = new Label("ОБЕРІТЬ РЕГІОН:");
-        regionLbl.setStyle("-fx-font-weight: 800; -fx-font-size: 11px; -fx-text-fill: #636e72;");
+        regionLbl.setStyle(HEADER_STYLE);
         regionCombo.setMaxWidth(Double.MAX_VALUE);
         regionBox.getChildren().addAll(regionLbl, regionCombo);
+        regionBox.setPadding(new Insets(10, 15, 0, 15));
         
         // District Selection with Label and Container for dynamic visibility
-        VBox districtBox = new VBox(5);
+        VBox districtBox = new VBox(8);
         Label districtLbl = new Label("ОБЕРІТЬ РАЙОН:");
-        districtLbl.setStyle("-fx-font-weight: 800; -fx-font-size: 11px; -fx-text-fill: #636e72;");
+        districtLbl.setStyle(HEADER_STYLE);
         districtCombo.setMaxWidth(Double.MAX_VALUE);
         districtBox.getChildren().addAll(districtLbl, districtCombo);
+        districtBox.setPadding(new Insets(0, 15, 10, 15));
         
         // Dynamic visibility logic integration
         Runnable refreshVisibility = () -> {
@@ -186,8 +189,8 @@ public class SystemView {
     }
 
     private VBox createCard(String title, String icon, String color) {
-        VBox card = new VBox(20);
-        card.setPadding(new Insets(25));
+        VBox card = new VBox(25);
+        card.setPadding(new Insets(30));
         card.setStyle(SOFT_CARD);
 
         HBox header = new HBox(15);
@@ -195,11 +198,11 @@ public class SystemView {
 
         VBox iconBox = new VBox(createSVGIcon(icon, Color.web(color), 24));
         iconBox.setAlignment(Pos.CENTER);
-        iconBox.setPrefSize(48, 48);
-        iconBox.setStyle("-fx-background-color: " + color + "15; -fx-background-radius: 12;");
+        iconBox.setPrefSize(54, 54);
+        iconBox.setStyle(ICON_BADGE_STYLE);
 
         Label t = new Label(title);
-        t.setStyle("-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + "; -fx-letter-spacing: 1.2px;");
+        t.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: #0f172a; -fx-letter-spacing: 1.5px;");
 
         header.getChildren().addAll(iconBox, t);
         card.getChildren().add(header);
@@ -208,29 +211,29 @@ public class SystemView {
     }
 
     private HBox createToggleRow(String title, String desc, String icon, String iconColor, ToggleButton toggle) {
-        HBox row = new HBox(15);
+        HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(10, 15, 10, 15));
-        row.setStyle("-fx-background-radius: 12;");
+        row.setPadding(new Insets(12, 18, 12, 18));
+        row.setStyle("-fx-background-radius: 18;");
 
-        VBox iconBox = new VBox(createSVGIcon(icon, Color.web(iconColor), 20));
+        VBox iconBox = new VBox(createSVGIcon(icon, Color.web(iconColor), 22));
         iconBox.setAlignment(Pos.CENTER);
-        iconBox.setPrefSize(40, 40);
-        iconBox.setStyle("-fx-background-color: " + iconColor + "12; -fx-background-radius: 10;");
+        iconBox.setPrefSize(48, 48);
+        iconBox.setStyle("-fx-background-color: " + iconColor + "10; -fx-background-radius: 14;");
 
-        VBox texts = new VBox(2);
+        VBox texts = new VBox(4);
         Label t = new Label(title);
-        t.setStyle("-fx-font-weight: 700; -fx-font-size: 15px; -fx-text-fill: " + COLOR_TEXT + ";");
+        t.setStyle("-fx-font-weight: 800; -fx-font-size: 16px; -fx-text-fill: #0f172a;");
         Label d = new Label(desc);
-        d.setStyle("-fx-font-size: 13px; -fx-text-fill: #636e72;");
+        d.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
         texts.getChildren().addAll(t, d);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         row.getChildren().addAll(iconBox, texts, spacer, toggle);
 
-        row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 12;"));
-        row.setOnMouseExited(e -> row.setStyle("-fx-background-color: transparent; -fx-background-radius: 12;"));
+        row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 18;"));
+        row.setOnMouseExited(e -> row.setStyle("-fx-background-color: transparent; -fx-background-radius: 18;"));
         return row;
     }
 

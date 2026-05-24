@@ -80,42 +80,75 @@ public class ImportView {
             null
         );
 
-        HBox settingsRow = new HBox(25);
-        settingsRow.setAlignment(Pos.CENTER_LEFT);
+        // --- UNIFIED IMPORT SETTINGS CARD ---
+        VBox settingsCard = new VBox(22);
+        settingsCard.setPadding(new Insets(28));
+        settingsCard.setPrefWidth(750);
+        settingsCard.setStyle(
+            "-fx-background-color: rgba(255,255,255,0.96);" +
+            "-fx-background-radius: 28;" +
+            "-fx-border-color: rgba(226,232,240,0.7);" +
+            "-fx-border-width: 1;" +
+            "-fx-border-radius: 28;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 30, 0, 0, 10);"
+        );
 
-        VBox sourceBox = new VBox(8);
-        Label sourceLabel = new Label("ДЖЕРЕЛО ДАНИХ");
-        sourceLabel.setStyle(HEADER_STYLE);
+        Label settingsTitle = new Label("Налаштування імпорту");
+        settingsTitle.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
+
+        HBox rowContainer = new HBox(30);
+        rowContainer.setAlignment(Pos.CENTER_LEFT);
+
+        // Source Section
         sourceCombo = new ComboBox<>();
         sourceCombo.getItems().addAll("NZ.UA (Електронний журнал)", "Інше джерело");
         sourceCombo.setValue("NZ.UA (Електронний журнал)");
-        sourceCombo.setStyle(COMBO_STYLE);
-        sourceCombo.setPrefWidth(300);
-        sourceBox.getChildren().addAll(sourceLabel, sourceCombo);
+        sourceCombo.setStyle(PREMIUM_SELECT_STYLE);
+        sourceCombo.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(sourceCombo, Priority.ALWAYS);
 
-        VBox formatBox = new VBox(8);
-        Label formatLabel = new Label("ФОРМАТ ФАЙЛУ");
-        formatLabel.setStyle(HEADER_STYLE);
+        VBox sourceIconWrap = new VBox(createSVGIcon(ICON_NET, Color.web(COLOR_PRIMARY), 24));
+        sourceIconWrap.setAlignment(Pos.CENTER);
+        sourceIconWrap.setPrefSize(54, 54);
+        sourceIconWrap.setMinSize(54, 54);
+        sourceIconWrap.setStyle(ICON_BADGE_STYLE);
+
+        HBox sourceRow = new HBox(16, sourceIconWrap, createLabeledInnerField("ДЖЕРЕЛО ДАНИХ", sourceCombo));
+        sourceRow.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(sourceRow, Priority.ALWAYS);
+
+        // Format Section
         formatCombo = new ComboBox<>();
         formatCombo.getItems().addAll("PDF файл", "JSON", "CSV", "TXT");
         formatCombo.setValue("PDF файл");
-        formatCombo.setStyle(COMBO_STYLE);
-        formatCombo.setPrefWidth(200);
-        formatBox.getChildren().addAll(formatLabel, formatCombo);
+        formatCombo.setStyle(PREMIUM_SELECT_STYLE);
+        formatCombo.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(formatCombo, Priority.ALWAYS);
 
-        settingsRow.getChildren().addAll(sourceBox, formatBox);
+        VBox formatIconWrap = new VBox(createSVGIcon(ICON_BOOK, Color.web(COLOR_SUCCESS), 24));
+        formatIconWrap.setAlignment(Pos.CENTER);
+        formatIconWrap.setPrefSize(54, 54);
+        formatIconWrap.setMinSize(54, 54);
+        formatIconWrap.setStyle("-fx-background-color: linear-gradient(to bottom right, #f0fdf4, #edf4ff); -fx-background-radius: 18;");
 
-        VBox dropZone = new VBox(20);
+        HBox formatRow = new HBox(16, formatIconWrap, createLabeledInnerField("ФОРМАТ ФАЙЛУ", formatCombo));
+        formatRow.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(formatRow, Priority.ALWAYS);
+
+        rowContainer.getChildren().addAll(sourceRow, formatRow);
+        settingsCard.getChildren().addAll(settingsTitle, rowContainer);
+
+        VBox dropZone = new VBox(25);
         dropZone.setAlignment(Pos.CENTER);
         dropZone.setPadding(new Insets(60));
-        dropZone.setStyle("-fx-background-color: white; -fx-background-radius: 24; -fx-border-color: #dfe6e9; -fx-border-width: 2; -fx-border-style: dashed; -fx-border-radius: 24;");
+        dropZone.setStyle("-fx-background-color: white; -fx-background-radius: 28; -fx-border-color: #e2e8f0; -fx-border-width: 2; -fx-border-style: dashed; -fx-border-radius: 28;");
         
-        Node uploadIcon = createSVGIcon(ICON_FOLDER, Color.web(COLOR_PURPLE), 64);
-        Label uploadTitle = new Label("Виберіть файл для імпорту");
-        uploadTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + ";");
+        Node uploadIcon = createSVGIcon(ICON_FOLDER, Color.web(COLOR_PRIMARY), 64);
+        Label uploadTitle = new Label("ВИБЕРІТЬ ФАЙЛ ДЛЯ ІМПОРТУ");
+        uploadTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
         
         Button selectBtn = createPrimaryActionButton("АНАЛІЗУВАТИ ФАЙЛ", ICON_PLUS);
-        selectBtn.setStyle(selectBtn.getStyle().replace(COLOR_PRIMARY, COLOR_PURPLE));
+        selectBtn.setStyle(PREMIUM_BTN_STYLE);
         
         selectBtn.setOnAction(e -> {
             String format = formatCombo.getValue();
@@ -129,13 +162,14 @@ public class ImportView {
 
         dropZone.getChildren().addAll(uploadIcon, uploadTitle, selectBtn);
 
+
         HBox helpRow = new HBox(25);
         helpRow.getChildren().addAll(
             createHelpCard(ICON_INFO, "Автоматична нормалізація", "Система автоматично розпізнає вчителів, предмети та кабінети.", COLOR_PURPLE),
             createHelpCard(ICON_SETTINGS, "Оновлення даних", "Якщо в розкладі з'явився новий предмет, система автоматично додасть цей зв'язок.", COLOR_SUCCESS)
         );
 
-        root.getChildren().addAll(header, settingsRow, dropZone, helpRow);
+        root.getChildren().addAll(header, settingsCard, dropZone, helpRow);
         return root;
     }
 
@@ -226,7 +260,10 @@ public class ImportView {
         actions.setPadding(new Insets(20, 0, 0, 0));
         
         Button cancelBtn = new Button("СКАСУВАТИ");
-        cancelBtn.setStyle(BTN_BASE + "-fx-background-color: #dfe6e9; -fx-text-fill: " + COLOR_TEXT + "; -fx-padding: 12 30;");
+        String cancelStyle = "-fx-background-color: white; -fx-text-fill: #64748b; -fx-font-weight: 800; -fx-padding: 12 30; -fx-background-radius: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 18; -fx-cursor: hand;";
+        cancelBtn.setStyle(cancelStyle);
+        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: #f1f2f6;"));
+        cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(cancelStyle));
         cancelBtn.setOnAction(e -> hideReviewStage());
 
         Button applyBtn = createPrimaryActionButton("ПІДТВЕРДИТИ ТА ОНОВИТИ", ICON_CHECK);
@@ -326,5 +363,14 @@ public class ImportView {
         task.setOnFailed(e -> ToastService.showError("Помилка імпорту: " + task.getException().getMessage()));
 
         new Thread(task).start();
+    }
+
+    private VBox createLabeledInnerField(String labelText, Node field) {
+        VBox box = new VBox(6);
+        Label label = new Label(labelText);
+        label.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: #64748b; -fx-letter-spacing: 0.5px;");
+        box.getChildren().addAll(label, field);
+        HBox.setHgrow(box, Priority.ALWAYS);
+        return box;
     }
 }

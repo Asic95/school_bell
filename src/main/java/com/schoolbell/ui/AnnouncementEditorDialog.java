@@ -4,10 +4,12 @@ import com.schoolbell.model.Announcement;
 import com.schoolbell.service.AnnouncementService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -41,43 +43,38 @@ public class AnnouncementEditorDialog {
 
         VBox root = new VBox(28);
         root.setPadding(new Insets(35));
-        root.setStyle(SOFT_CARD + "-fx-background-radius: 32; -fx-border-radius: 32; -fx-border-width: 2; -fx-border-color: #e2e8f0;");
+        root.setStyle(SOFT_CARD);
         root.setPrefWidth(650);
 
-        // --- SIMPLIFIED HEADER (NO ICON BOX) ---
-        VBox headerText = new VBox(2);
+        // --- MODERN PREMIUM HEADER ---
+        VBox headerText = new VBox(8);
         Label eb = new Label((a == null ? "СТВОРЕННЯ" : "РЕДАГУВАННЯ").toUpperCase());
-        eb.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: #64748b; -fx-letter-spacing: 1.2px;");
+        eb.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
         Label t = new Label("Параметри оголошення");
-        t.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 32px; -fx-font-weight: 700; -fx-text-fill: #0f172a;");
+        t.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
         Label s = new Label("Налаштуйте текст та розклад відображення повідомлення.");
-        s.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-text-fill: #64748b;");
+        s.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 15px; -fx-text-fill: #64748b;");
         headerText.getChildren().addAll(eb, t, s);
 
         TextArea textArea = new TextArea(a != null ? a.text() : "");
         textArea.setPromptText("Введіть текст оголошення тут...");
         textArea.setPrefRowCount(4);
         textArea.setWrapText(true);
-        
-        String textAreaBaseStyle = 
-            "-fx-font-family: 'Inter'; -fx-font-size: 15px; " +
-            "-fx-control-inner-background: white; " +
-            "-fx-background-color: white; " +
-            "-fx-background-radius: 14; " +
-            "-fx-border-color: #e2e8f0; " +
-            "-fx-border-radius: 14; " +
-            "-fx-padding: 8; " +
-            "-fx-text-box-border: transparent; " +
-            "-fx-focus-color: transparent; " +
-            "-fx-faint-focus-color: transparent;";
-            
+
+        String textAreaBaseStyle = PREMIUM_FIELD_STYLE + "-fx-padding: 0;";
         textArea.setStyle(textAreaBaseStyle);
-        
-        textArea.focusedProperty().addListener((obs, old, newVal) -> {
-            if (newVal) {
-                textArea.setStyle(textAreaBaseStyle + "-fx-border-color: #4f46e5; -fx-control-inner-background: #f8faff; -fx-background-color: #f8faff;");
+
+        textArea.skinProperty().addListener((obs, oldSkin, newSkin) -> {
+            updateInternalStyles(textArea, false);
+        });
+
+        textArea.focusedProperty().addListener((obs, old, focused) -> {
+            if (focused) {
+                textArea.setStyle(textAreaBaseStyle + "-fx-border-color: #4f46e5; -fx-background-color: #f8faff;");
+                updateInternalStyles(textArea, true);
             } else {
                 textArea.setStyle(textAreaBaseStyle);
+                updateInternalStyles(textArea, false);
             }
         });
 
@@ -94,7 +91,7 @@ public class AnnouncementEditorDialog {
 
         // Time Section
         LocalTime st = a != null && a.startTime() != null ? a.startTime() : LocalTime.of(8, 0);
-        LocalTime et = a != null && a.endTime() != null ? et = a.endTime() : LocalTime.of(18, 0);
+        LocalTime et = a != null && a.endTime() != null ? a.endTime() : LocalTime.of(18, 0);
         
         ComboBox<String> startH = createTimeCombo(24, st.getHour());
         ComboBox<String> startM = createTimeCombo(60, st.getMinute());
@@ -106,7 +103,7 @@ public class AnnouncementEditorDialog {
         Label endHL = new Label("год.");
         Label endML = new Label("хв.");
         
-        String labelStyle = "-fx-font-size: 13px; -fx-text-fill: #64748b; -fx-font-weight: normal;";
+        String labelStyle = "-fx-font-size: 13px; -fx-text-fill: #64748b; -fx-font-weight: 800;";
         startHL.setStyle(labelStyle); startML.setStyle(labelStyle);
         endHL.setStyle(labelStyle); endML.setStyle(labelStyle);
 
@@ -121,7 +118,7 @@ public class AnnouncementEditorDialog {
         );
 
         // Days Section
-        HBox daysBox = new HBox(18);
+        HBox daysBox = new HBox(12);
         daysBox.setAlignment(Pos.CENTER_LEFT);
         String[] dayNames = {"ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "НД"};
         List<CheckBox> dayCbs = new ArrayList<>();
@@ -138,20 +135,25 @@ public class AnnouncementEditorDialog {
         // --- FLATTENED SCHEDULE SECTION (NO INNER BLOCK) ---
         VBox scheduleSettings = new VBox(22);
         Label scheduleHeader = new Label("РОЗКЛАД ПОКАЗУ");
-        scheduleHeader.setStyle("-fx-font-size: 13px; -fx-font-weight: 800; -fx-text-fill: #64748b; -fx-letter-spacing: 0.5px;");
+        scheduleHeader.setStyle(HEADER_STYLE);
         scheduleSettings.getChildren().addAll(scheduleHeader, dateRow, timeRow, daysSection);
 
-        CheckBox activeCb = new CheckBox("Це оголошення зараз активне");
+        CheckBox activeCb = new CheckBox("ЦЕ ОГОЛОШЕННЯ ЗАРАЗ АКТИВНЕ");
         activeCb.setSelected(a == null || a.isActive());
+        activeCb.setStyle("-fx-font-weight: 900; -fx-font-size: 14px; -fx-text-fill: #0f172a;");
 
         HBox actions = new HBox(15);
         actions.setAlignment(Pos.CENTER_RIGHT);
 
         Button cancelBtn = new Button("СКАСУВАТИ");
-        cancelBtn.setStyle("-fx-background-color: #f1f2f6; -fx-text-fill: #636e72; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 14; -fx-cursor: hand;");
+        String cancelStyle = "-fx-background-color: white; -fx-text-fill: #64748b; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 18; -fx-cursor: hand;";
+        cancelBtn.setStyle(cancelStyle);
+        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: #f1f2f6;"));
+        cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(cancelStyle));
         cancelBtn.setOnAction(e -> stage.close());
 
         Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ОГОЛОШЕННЯ", ICON_SAVE);
+        saveBtn.setStyle(PREMIUM_BTN_STYLE);
         saveBtn.setOnAction(ev -> {
             String text = textArea.getText().trim();
             if (text.isEmpty()) {
@@ -194,6 +196,33 @@ public class AnnouncementEditorDialog {
             "data:text/css," + MODERN_CHECKBOX_STYLE.replace(" ", "%20")
         );
         stage.setScene(scene);
+        textArea.applyCss();
+        textArea.layout();
         stage.showAndWait();
+    }
+
+    private void updateInternalStyles(TextArea ta, boolean focused) {
+        String bg = focused ? "#f8faff" : "white";
+        Region content = (Region) ta.lookup(".content");
+        if (content != null) {
+            content.setStyle("-fx-background-color: transparent; -fx-padding: 15;");
+        }
+        Region viewport = (Region) ta.lookup(".viewport");
+        if (viewport != null) {
+            viewport.setStyle("-fx-background-color: transparent;");
+        }
+        Region scrollPane = (Region) ta.lookup(".scroll-pane");
+        if (scrollPane != null) {
+            scrollPane.setStyle("-fx-background-color: " + bg + "; -fx-background-radius: 17; -fx-background-insets: 0; -fx-padding: 0;");
+        }
+    }
+
+    private VBox createLabeledField(String labelText, Node field) {
+        VBox box = new VBox(8);
+        Label label = new Label(labelText);
+        label.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
+        box.getChildren().addAll(label, field);
+        VBox.setVgrow(field, Priority.ALWAYS);
+        return box;
     }
 }

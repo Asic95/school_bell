@@ -32,52 +32,21 @@ public class SignalSettingsPane extends StackPane {
     private final IntegerProperty emergencyDuration = new SimpleIntegerProperty();
 
     public SignalSettingsPane() {
-        this(false);
-    }
-
-    public SignalSettingsPane(boolean embedded) {
         getStyleClass().add("bell-settings-root");
-        if (embedded) {
-            getStyleClass().add("bell-settings-embedded");
-        }
         applyStylesheet();
 
         VBox container = new VBox(28);
         container.setMaxWidth(Double.MAX_VALUE);
         container.setFillWidth(true);
-
-        if (!embedded) {
-            container.getStyleClass().add("bell-settings-container");
-            container.getChildren().add(ControlFactory.createPageHeader(
-                "НАЛАШТУВАННЯ",
-                "Сигнали та сповіщення",
-                "Налаштування тривалості та візуалізація сигналів дзвінків та тривоги.",
-                ICON_AIR_RAID,
-                "#f39c12",
-                null
-            ));
-        } else {
-            container.getStyleClass().add("bell-settings-content-only");
-        }
-
+        container.getStyleClass().add("bell-settings-content-only");
+        
         container.getChildren().addAll(buildRegularCard(), buildAirRaidCard(), buildEmergencyCard());
 
-        if (!embedded) {
-            VBox centered = new VBox(container);
-            centered.setAlignment(Pos.TOP_CENTER);
-            centered.setPadding(new Insets(26, 32, 26, 32));
-            getChildren().add(centered);
-        } else {
-            getChildren().add(container);
-        }
+        getChildren().add(container);
     }
 
     public SignalSettingsPane(int regular, int airRing, int airPause, int emergency) {
-        this(regular, airRing, airPause, emergency, false);
-    }
-
-    public SignalSettingsPane(int regular, int airRing, int airPause, int emergency, boolean embedded) {
-        this(embedded);
+        this();
         regularDuration.set(regular);
         airRaidRingDuration.set(airRing);
         airRaidPauseDuration.set(airPause);
@@ -105,33 +74,6 @@ public class SignalSettingsPane extends StackPane {
         if (css != null) {
             getStylesheets().add(css.toExternalForm());
         }
-    }
-
-    private HBox buildHeader() {
-        HBox header = new HBox(16);
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setPadding(new Insets(0, 0, 16, 0));
-
-        // Device Selection
-        HBox deviceBox = new HBox(8, icon("M2,14H4V16H2V14M6,10H8V20H6V10M10,4H12V22H10V4M14,12H16V18H14V12M18,8H20V20H18V8M22,14H24V16H22V14Z", "icon-muted"), new Label("Пристрій:")); // Placeholder for dropdown
-        deviceBox.setAlignment(Pos.CENTER_LEFT);
-
-        // Volume Segmented Control
-        HBox volumeBox = new HBox();
-        volumeBox.getStyleClass().add("segmented-control");
-        // Simplified representation of Segmented Control
-        String[] levels = {"ВИМК", "25%", "50%", "75%", "100%"};
-        for (String level : levels) {
-            Button btn = new Button(level);
-            if (level.equals("25%")) btn.getStyleClass().add("active");
-            volumeBox.getChildren().add(btn);
-        }
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        header.getChildren().addAll(deviceBox, spacer, volumeBox);
-        return header;
     }
 
     private HBox buildRegularCard() {

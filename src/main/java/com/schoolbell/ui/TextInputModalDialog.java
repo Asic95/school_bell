@@ -33,25 +33,25 @@ public class TextInputModalDialog extends Stage {
 
         VBox root = new VBox(25);
         root.setPadding(new Insets(35));
-        root.setStyle(SOFT_CARD + "-fx-background-radius: 32; -fx-border-radius: 32; -fx-border-width: 2; -fx-border-color: #e2e8f0;");
+        root.setStyle(SOFT_CARD);
         root.setPrefWidth(500);
 
         Label title = new Label(titleText);
-        title.setStyle("-fx-font-size: 24px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT + ";");
+        title.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #0f172a;");
         Label subtitle = new Label(subtitleText);
-        subtitle.setStyle("-fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        subtitle.setStyle("-fx-font-size: 15px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
 
-        VBox headerBox = new VBox(4, title, subtitle);
+        VBox headerBox = new VBox(8, title, subtitle);
 
         textField = new TextField(initialValue);
         textField.setPromptText(promptText);
-        textField.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 14; -fx-border-color: #e2e8f0; -fx-border-radius: 14; -fx-padding: 12 16; -fx-font-size: 15px; -fx-font-weight: 600;");
+        textField.setStyle(PREMIUM_FIELD_STYLE);
         
         textField.focusedProperty().addListener((obs, old, newVal) -> {
             if (newVal) {
-                textField.setStyle(textField.getStyle() + "-fx-border-color: " + COLOR_PRIMARY + "; -fx-background-color: #f8faff;");
+                textField.setStyle(PREMIUM_FIELD_STYLE + "-fx-border-color: #4f46e5; -fx-background-color: #f8faff;");
             } else {
-                textField.setStyle(textField.getStyle().replace("-fx-border-color: " + COLOR_PRIMARY + ";", "-fx-border-color: #e2e8f0;").replace("-fx-background-color: #f8faff;", "-fx-background-color: #f8fafc;"));
+                textField.setStyle(PREMIUM_FIELD_STYLE);
             }
         });
 
@@ -60,10 +60,14 @@ public class TextInputModalDialog extends Stage {
         actions.setPadding(new Insets(10, 0, 0, 0));
 
         Button cancelBtn = new Button("СКАСУВАТИ");
-        cancelBtn.setStyle("-fx-background-color: #f1f2f6; -fx-text-fill: #636e72; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 14; -fx-cursor: hand;");
+        String cancelStyle = "-fx-background-color: white; -fx-text-fill: #64748b; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 18; -fx-cursor: hand;";
+        cancelBtn.setStyle(cancelStyle);
+        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: #f1f2f6;"));
+        cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(cancelStyle));
         cancelBtn.setOnAction(e -> close());
 
         Button confirmBtn = createPrimaryActionButton("ПІДТВЕРДИТИ", ICON_SAVE);
+        confirmBtn.setStyle(PREMIUM_BTN_STYLE);
         confirmBtn.setOnAction(ev -> {
             String val = textField.getText().trim();
             if (!val.isEmpty()) {
