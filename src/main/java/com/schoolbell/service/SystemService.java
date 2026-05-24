@@ -24,23 +24,33 @@ public class SystemService {
         if (!System.getProperty("os.name").toLowerCase().contains("win")) return;
 
         try {
-            String jarPath = getRunningJarPath();
-            if (jarPath == null || !jarPath.endsWith(".jar")) {
-                logger.warn("Not running from a JAR, skipping autostart update.");
+            String runningPath = getRunningJarPath();
+            if (runningPath == null) {
+                logger.warn("Could not determine running path, skipping autostart update.");
                 return;
             }
 
             String command;
             if (enable) {
-                // reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "SchoolBell" /t REG_SZ /d "javaw -jar \"PATH\"" /f
-                String appCommand = "javaw -jar \"" + jarPath + "\"";
+                String appCommand;
+                if (runningPath.endsWith(".exe")) {
+                    // Running as a packaged EXE
+                    appCommand = "\"" + runningPath + "\"";
+                } else if (runningPath.endsWith(".jar")) {
+                    // Running as a standalone JAR
+                    appCommand = "javaw -jar \"" + runningPath + "\"";
+                } else {
+                    logger.warn("Not running from a JAR or EXE, skipping autostart update: " + runningPath);
+                    return;
+                }
+                
                 command = "reg add \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v \"SchoolBell\" /t REG_SZ /d \"" + appCommand + "\" /f";
             } else {
                 command = "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v \"SchoolBell\" /f";
             }
 
             executeCommand(command);
-            logger.info("Autostart " + (enable ? "enabled" : "disabled") + " for path: " + jarPath);
+            logger.info("Autostart " + (enable ? "enabled" : "disabled") + " for path: " + runningPath);
         } catch (Exception e) {
             logger.error("Failed to update autostart", e);
         }

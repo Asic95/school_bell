@@ -35,8 +35,8 @@ public class ConfigService {
     private boolean isAirRaidAutomationEnabled = false;
     private String selectedRegionId = null;
     private String selectedDistrictId = null;
-    private String schoolName = "Ліцей №24";
-    private String cityName = "Київ";
+    private String schoolName = "Сквирська гімназія №5";
+    private String cityName = "Сквира";
     private String announcementText = "Вітаємо у системі School Bell!";
     
     private String selectedScheduleName;
@@ -72,8 +72,8 @@ public class ConfigService {
         isAirRaidAutomationEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("airAutomation.enabled", "false"));
         selectedRegionId = DatabaseManager.getSetting("airAutomation.region", null);
         selectedDistrictId = DatabaseManager.getSetting("airAutomation.district", null);
-        schoolName = DatabaseManager.getSetting("school.name", "Ліцей №24");
-        cityName = DatabaseManager.getSetting("school.city", "Київ");
+        schoolName = DatabaseManager.getSetting("school.name", "Сквирська гімназія №5");
+        cityName = DatabaseManager.getSetting("school.city", "Сквира");
         announcementText = DatabaseManager.getSetting("school.announcement", "Вітаємо у системі School Bell!");
         isSimulationMode = Boolean.parseBoolean(DatabaseManager.getSetting("system.simulation", "false"));
         isAutostartEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("system.autostart", "false"));

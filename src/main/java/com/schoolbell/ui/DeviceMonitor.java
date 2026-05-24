@@ -34,12 +34,12 @@ public class DeviceMonitor {
     }
 
     public Node build() {
-        VBox deviceCard = createSettingsSection("КЕРУВАННЯ ПРИСТРОЯМИ", "#8e44ad", ICON_MONITOR);
+        VBox deviceCard = createSettingsSection("КЕРУВАННЯ ПРИСТРОЯМИ", COLOR_PURPLE_DARK, ICON_MONITOR);
         deviceCard.setStyle(SOFT_CARD);
         deviceCard.setPadding(new Insets(25));
         
         Button refreshBtn = new Button("ОНОВИТИ СПИСОК");
-        refreshBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #3498db; -fx-font-weight: bold; -fx-font-size: 12px; -fx-cursor: hand;");
+        refreshBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + COLOR_BLUE + "; -fx-font-weight: bold; -fx-font-size: 12px; -fx-cursor: hand;");
         refreshBtn.setOnAction(e -> refreshDevices());
 
         HBox header = (HBox) deviceCard.getChildren().get(0);
@@ -58,14 +58,14 @@ public class DeviceMonitor {
         
         HBox listHeader = new HBox(20);
         listHeader.setPadding(new Insets(10, 20, 10, 20));
-        listHeader.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 12;");
+        listHeader.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + "; -fx-background-radius: 12;");
         
         Label hDevice = new Label("ПРИСТРІЙ"); hDevice.setPrefWidth(300);
         Label hNetwork = new Label("МЕРЕЖА"); hNetwork.setPrefWidth(180);
         Label hLastSeen = new Label("ОСТАННЯ АКТИВНІСТЬ"); hLastSeen.setPrefWidth(200);
         Label hActions = new Label("ДІЇ");
         
-        String hStyle = "-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: #95a5a6; -fx-letter-spacing: 1px;";
+        String hStyle = "-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-letter-spacing: 1px;";
         hDevice.setStyle(hStyle); hNetwork.setStyle(hStyle); hLastSeen.setStyle(hStyle); hActions.setStyle(hStyle);
         
         listHeader.getChildren().addAll(hDevice, hNetwork, hLastSeen, hActions);
@@ -76,7 +76,7 @@ public class DeviceMonitor {
         
         if (savedDevices.isEmpty() && activeIps.isEmpty()) {
             Label none = new Label("Немає підключених пристроїв");
-            none.setStyle("-fx-font-style: italic; -fx-text-fill: #95a5a6; -fx-padding: 30;");
+            none.setStyle("-fx-font-style: italic; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-padding: 30;");
             deviceListContainer.getChildren().add(none);
         } else {
             for (BroadcastDevice device : savedDevices) {
@@ -89,7 +89,7 @@ public class DeviceMonitor {
         HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(15, 20, 15, 20));
-        row.setStyle("-fx-background-color: white; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 1 0;");
+        row.setStyle("-fx-background-color: white; -fx-border-color: " + COLOR_SURFACE_SUBTLE + "; -fx-border-width: 0 0 1 0;");
         
         // --- DEVICE INFO ---
         VBox deviceBox = new VBox(4);
@@ -105,7 +105,7 @@ public class DeviceMonitor {
         VBox iconCircle = new VBox(createSVGIcon(iconPath, Color.web(isActive ? COLOR_PRIMARY : COLOR_TEXT_DIM), 20));
         iconCircle.setAlignment(Pos.CENTER);
         iconCircle.setPrefSize(40, 40);
-        iconCircle.setStyle("-fx-background-color: " + (isActive ? COLOR_BLUE_LIGHT : "#f1f2f6") + "; -fx-background-radius: 10;");
+        iconCircle.setStyle("-fx-background-color: " + (isActive ? COLOR_BLUE_LIGHT : COLOR_SURFACE_SUBTLE) + "; -fx-background-radius: 10;");
         
         VBox labels = new VBox(2);
         Label name = new Label(device.name());
@@ -156,8 +156,8 @@ public class DeviceMonitor {
         row.getChildren().addAll(deviceBox, netBox, lastSeenText, actions);
         if (device.isBanned()) row.setOpacity(0.7);
         
-        row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: #fafafa; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 1 0; -fx-cursor: hand;"));
-        row.setOnMouseExited(e -> row.setStyle("-fx-background-color: white; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 1 0;"));
+        row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: " + COLOR_SURFACE_FAINT + "; -fx-border-color: " + COLOR_SURFACE_SUBTLE + "; -fx-border-width: 0 0 1 0; -fx-cursor: hand;"));
+        row.setOnMouseExited(e -> row.setStyle("-fx-background-color: white; -fx-border-color: " + COLOR_SURFACE_SUBTLE + "; -fx-border-width: 0 0 1 0;"));
         
         return row;
     }

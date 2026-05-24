@@ -55,44 +55,28 @@ public class BellsEditorTab {
             "Налаштування дзвінків",
             "Створюйте та редагуйте розклади уроків для вашого закладу.",
             ICON_BELL,
-            "#0984e3",
+            COLOR_SKY,
             saveBtn
         );
 
-        HBox contentLayout = new HBox(25);
-        VBox mainContent = new VBox(20);
+        HBox contentLayout = new HBox(28); // Standard section gap
+        VBox mainContent = new VBox(28); // Gap between cards
         HBox.setHgrow(mainContent, Priority.ALWAYS);
 
-        VBox workbench = new VBox(14);
-        workbench.setPadding(new Insets(18));
-        workbench.setStyle(
-                "-fx-background-color: white;" +
-                        "-fx-background-radius: 18;" +
-                        "-fx-border-color: #e6edf7;" +
-                        "-fx-border-width: 1;" +
-                        "-fx-border-radius: 18;" +
-                        "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.06), 18, 0.16, 0, 4);"
-        );
+        // --- CARD 1: MANAGEMENT ---
+        VBox managementCard = new VBox(14);
+        managementCard.setPadding(new Insets(28));
+        managementCard.setStyle(SOFT_CARD); // Uses the centralized style from UIStyles
 
         HBox topBar = new HBox(14);
         topBar.setAlignment(Pos.CENTER_LEFT);
 
         VBox selectorBox = new VBox(7);
         Label selectorLabel = new Label("ОБЕРІТЬ РОЗКЛАД ДЛЯ РЕДАГУВАННЯ");
-        selectorLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #6b7a90;");
+        selectorLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE + "; -fx-letter-spacing: 0.5px;");
         ComboBox<String> selector = new ComboBox<>();
         selector.setPrefWidth(390);
-        selector.setPrefHeight(46);
-        selector.setStyle(
-                "-fx-font-size: 14px;" +
-                        "-fx-font-weight: 700;" +
-                        "-fx-background-color: #f8fbff;" +
-                        "-fx-background-radius: 12;" +
-                        "-fx-border-color: #dbe6f4;" +
-                        "-fx-border-width: 1;" +
-                        "-fx-border-radius: 12;" +
-                        "-fx-padding: 0 8;"
-        );
+        selector.setStyle(PREMIUM_SELECT_STYLE);
         selector.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -104,7 +88,7 @@ public class BellsEditorTab {
                     setGraphic(createSVGIcon(ICON_CALENDAR, Color.web(COLOR_PRIMARY), 16));
                     setText(item);
                     setGraphicTextGap(12);
-                    setStyle("-fx-padding: 10 14; -fx-font-weight: 700; -fx-text-fill: #223249;");
+                    setStyle("-fx-padding: 10 14; -fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + ";");
                 }
             }
         });
@@ -119,36 +103,60 @@ public class BellsEditorTab {
                     setGraphic(createSVGIcon(ICON_CALENDAR, Color.web(COLOR_PRIMARY), 18));
                     setText(item);
                     setGraphicTextGap(12);
-                    setStyle("-fx-font-weight: 700; -fx-text-fill: #223249; -fx-padding: 0 5;");
+                    setStyle("-fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + "; -fx-padding: 0 5;");
                 }
             }
         });
         selectorBox.getChildren().addAll(selectorLabel, selector);
 
-        Button addBtn = createToolbarButton("Додати", ICON_PLUS, "#ffffff", "#6f63f6", "#6f63f6");
-        Button renameBtn = createToolbarButton("Перейменувати", ICON_EDIT, "#3a4f70", "#ffffff", "#dfe6f2");
-        Button deleteBtn = createToolbarButton("Видалити", ICON_TRASH, "#ef3f3f", "#ffffff", "#f5c7c7");
+        Button addBtn = createPrimaryActionButton("ДОДАТИ", ICON_PLUS);
+        addBtn.setStyle(addBtn.getStyle().replace(COLOR_PRIMARY, COLOR_PURPLE));
+
+        Button renameBtn = new Button("ПЕРЕЙМЕНУВАТИ");
+        renameBtn.setGraphic(createSVGIcon(ICON_EDIT, Color.web(COLOR_SLATE), 16));
+        renameBtn.setGraphicTextGap(10);
+        String renameBaseStyle = "-fx-background-color: white; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 800; -fx-font-size: 13px; -fx-padding: 12 20; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 18; -fx-cursor: hand;";
+        renameBtn.setStyle(renameBaseStyle);
+        renameBtn.setOnMouseEntered(e -> renameBtn.setStyle(renameBaseStyle + "-fx-background-color: " + COLOR_SURFACE_GLASS_START + "; -fx-border-color: " + COLOR_SLATE_MUTED + "; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.05), 10, 0, 0, 2);"));
+        renameBtn.setOnMouseExited(e -> renameBtn.setStyle(renameBaseStyle));
+
+        Button deleteBtn = new Button("ВИДАЛИТИ");
+        deleteBtn.setGraphic(createSVGIcon(ICON_TRASH, Color.web(COLOR_DANGER), 16));
+        deleteBtn.setGraphicTextGap(10);
+        String deleteBaseStyle = "-fx-background-color: white; -fx-text-fill: " + COLOR_DANGER + "; -fx-font-weight: 800; -fx-font-size: 13px; -fx-padding: 12 20; -fx-background-radius: 18; -fx-border-color: " + COLOR_DANGER_BORDER + "; -fx-border-radius: 18; -fx-cursor: hand;";
+        deleteBtn.setStyle(deleteBaseStyle);
+        deleteBtn.setOnMouseEntered(e -> deleteBtn.setStyle(deleteBaseStyle + "-fx-background-color: " + COLOR_DANGER_SOFT + "; -fx-border-color: " + COLOR_DANGER + "; -fx-effect: dropshadow(three-pass-box, rgba(220,38,38,0.05), 10, 0, 0, 2);"));
+        deleteBtn.setOnMouseExited(e -> deleteBtn.setStyle(deleteBaseStyle));
+
         HBox actions = new HBox(10, addBtn, renameBtn, deleteBtn);
         actions.setAlignment(Pos.BOTTOM_RIGHT);
 
         Region topSpacer = new Region();
         HBox.setHgrow(topSpacer, Priority.ALWAYS);
         topBar.getChildren().addAll(selectorBox, topSpacer, actions);
+        managementCard.getChildren().add(topBar);
 
-        Region divider = new Region();
-        divider.setPrefHeight(1);
-        divider.setStyle("-fx-background-color: #e8eef8;");
+        // --- CARD 2: EDITOR ---
+        VBox editorCard = new VBox(22);
+        editorCard.setPadding(new Insets(28));
+        editorCard.setStyle(SOFT_CARD);
 
-        HBox sectionHead = new HBox(10);
+        HBox sectionHead = new HBox(14);
         sectionHead.setAlignment(Pos.CENTER_LEFT);
-        StackPane dot = new StackPane();
-        dot.setPrefSize(10, 10);
-        dot.setStyle("-fx-background-color: #4f7cff; -fx-background-radius: 99;");
+        
+        VBox iconBadge = new VBox(createSVGIcon(ICON_EDIT, Color.web(COLOR_PRIMARY), 22));
+        iconBadge.setAlignment(Pos.CENTER);
+        iconBadge.setPrefSize(54, 54);
+        iconBadge.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_SOFT + "); -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 18;");
+
+        VBox titleCol = new VBox(4);
         Label editorTitle = new Label("РЕДАГУВАННЯ РОЗКЛАДУ");
-        editorTitle.setStyle("-fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #2a3c56;");
-        Label editorSub = new Label("Оновлюйте час уроків і тривалість перерв в одному потоці");
-        editorSub.setStyle("-fx-font-size: 12px; -fx-text-fill: #8393a8;");
-        sectionHead.getChildren().addAll(dot, editorTitle, editorSub);
+        editorTitle.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE + "; -fx-letter-spacing: 0.5px;");
+        Label editorMainTitle = new Label("Налаштування уроків");
+        editorMainTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
+        titleCol.getChildren().addAll(editorTitle, editorMainTitle);
+        
+        sectionHead.getChildren().addAll(iconBadge, titleCol);
 
         VBox rows = new VBox(8);
         VBox.setVgrow(rows, Priority.ALWAYS);
@@ -156,13 +164,14 @@ public class BellsEditorTab {
         HBox editorBody = new HBox(14, rows);
         HBox.setHgrow(rows, Priority.ALWAYS);
 
-        workbench.getChildren().addAll(topBar, divider, sectionHead, editorBody);
-        mainContent.getChildren().add(workbench);
+        editorCard.getChildren().addAll(sectionHead, editorBody);
+        
+        mainContent.getChildren().addAll(managementCard, editorCard);
 
         VBox rightColumn = createSideHelpPanel(
-                createHelpCard(ICON_CALENDAR, "Гнучкість", "Можна вести декілька варіантів розкладу і швидко між ними перемикатись.", "#6c5ce7"),
-                createHelpCard(ICON_CLOCK, "Перерви", "Перерва задається після уроку і впливає на старт наступного.", "#00b894"),
-                createHelpCard(ICON_SAVE, "Збереження", "Кнопка \"ЗБЕРЕГТИ ЗМІНИ\" знаходиться у верхньому правому куті.", "#e17055")
+                createHelpCard(ICON_CALENDAR, "Гнучкість", "Можна вести декілька варіантів розкладу і швидко між ними перемикатись.", COLOR_INDIGO_DARK),
+                createHelpCard(ICON_CLOCK, "Перерви", "Перерва задається після уроку і впливає на старт наступного.", COLOR_TEAL),
+                createHelpCard(ICON_SAVE, "Збереження", "Кнопка \"ЗБЕРЕГТИ ЗМІНИ\" знаходиться у верхньому правому куті.", COLOR_TANGERINE)
         );
 
         contentLayout.getChildren().addAll(mainContent, rightColumn);
@@ -260,7 +269,7 @@ public class BellsEditorTab {
                     .findFirst().orElse(null);
             if (ds == null) return;
 
-            String[] tones = {"#8a6cf6", "#4f9bff", "#00b3c4", "#f08a1b", "#cb6bd1", "#4f7cff", "#27ae60"};
+            String[] tones = {COLOR_LAVENDER, COLOR_BLUE_BRIGHT, COLOR_TURQUOISE, COLOR_GOLDEN_ORANGE, COLOR_MAGENTA_SOFT, COLOR_BLUE_VIVID, COLOR_GREEN};
             for (int i = 0; i < ds.getLessons().size(); i++) {
                 LessonRow row = createLessonRow(i, tones[i % tones.length], ds.getLessons().get(i));
                 lessonRows.add(row);
@@ -289,17 +298,12 @@ public class BellsEditorTab {
         ComboBox<String> em = createTimeCombo(60, info.end != null ? info.end.getMinute() : 0);
         TextField breakF = new TextField(String.valueOf(info.breakAfterMinutes));
 
-        String comboStyle = "-fx-font-size: 13px; -fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #dbe5f2; -fx-border-radius: 8; -fx-font-weight: 500;";
-        styleTimeCombo(sh, comboStyle);
-        styleTimeCombo(sm, comboStyle);
-        styleTimeCombo(eh, comboStyle);
-        styleTimeCombo(em, comboStyle);
-        breakF.setPrefSize(72, 36);
-        breakF.setStyle("-fx-font-size: 13px; -fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #dbe5f2; -fx-border-radius: 8; -fx-font-weight: 700; -fx-padding: 0 8;");
+        breakF.setPrefSize(84, 45);
+        breakF.setStyle(PREMIUM_FIELD_STYLE + "-fx-font-size: 14px; -fx-padding: 0 12;");
 
         HBox lessonBox = lessonBox(index, tone);
-        VBox startBox = labeledTimeBox("Початок", sh, sm);
-        VBox endBox = labeledTimeBox("Кінець", eh, em);
+        VBox startBox = labeledTimeBox("ПОЧАТОК", sh, sm);
+        VBox endBox = labeledTimeBox("КІНЕЦЬ", eh, em);
         VBox breakBox = breakLabeledBox(breakF);
 
         HBox.setHgrow(startBox, Priority.ALWAYS);
@@ -310,72 +314,75 @@ public class BellsEditorTab {
         breakBox.setMaxWidth(Double.MAX_VALUE);
 
         Label dash = new Label("—");
-        dash.setStyle("-fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: #c2cadd; -fx-padding: 14 4 0 4;");
+        dash.setStyle("-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_MUTED + "; -fx-padding: 14 4 0 4;");
 
-        HBox row = new HBox(10, lessonBox, startBox, dash, endBox, breakBox);
+        HBox row = new HBox(15, lessonBox, startBox, dash, endBox, breakBox);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(10, 12, 10, 12));
+        row.setPadding(new Insets(14, 20, 14, 20));
         row.setStyle(
-                "-fx-background-color: #ffffff;" +
-                        "-fx-background-radius: 10;" +
-                        "-fx-border-color: #e6edf7;" +
-                        "-fx-border-width: 1;" +
-                        "-fx-border-radius: 10;"
+                "-fx-background-color: white;" +
+                "-fx-background-radius: 18;" +
+                "-fx-border-color: " + COLOR_BORDER_SOFT + ";" +
+                "-fx-border-width: 1;" +
+                "-fx-border-radius: 18;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.03), 8, 0, 0, 2);"
         );
+
+        row.setOnMouseEntered(e -> row.setStyle(row.getStyle() + "-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-border-color: " + tone + "40;"));
+        row.setOnMouseExited(e -> row.setStyle(row.getStyle().replace("-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-border-color: " + tone + "40;", "")));
 
         return new LessonRow(row, sh, sm, eh, em, breakF);
     }
 
     private void styleTimeCombo(ComboBox<String> combo, String style) {
-        combo.setStyle(style);
-        combo.setPrefSize(80, 36);
+        // Not used anymore as createTimeCombo uses premium style
     }
 
     private HBox lessonBox(int index, String tone) {
         StackPane badge = new StackPane();
-        badge.setMinSize(40, 40);
-        badge.setPrefSize(40, 40);
-        badge.setMaxSize(40, 40);
+        badge.setMinSize(44, 44);
+        badge.setPrefSize(44, 44);
+        badge.setMaxSize(44, 44);
         badge.setStyle(
-                "-fx-background-color: derive(" + tone + ", 94%);" +
-                        "-fx-background-radius: 8;" +
-                        "-fx-border-color: derive(" + tone + ", 82%);" +
-                        "-fx-border-width: 1;" +
-                        "-fx-border-radius: 8;"
+                "-fx-background-color: " + tone + "12;" +
+                "-fx-background-radius: 12;" +
+                "-fx-border-color: " + tone + "30;" +
+                "-fx-border-width: 1.5;" +
+                "-fx-border-radius: 12;"
         );
         Label num = new Label(String.format("%02d", index + 1));
-        num.setStyle("-fx-text-fill: derive(" + tone + ", -20%); -fx-font-weight: 900; -fx-font-size: 14px;");
+        num.setStyle("-fx-text-fill: " + tone + "; -fx-font-weight: 900; -fx-font-size: 15px;");
         badge.getChildren().add(num);
 
-        Label lessonText = new Label((index + 1) + " урок");
-        lessonText.setStyle("-fx-font-size: 13px; -fx-font-weight: 800; -fx-text-fill: #2b3b52;");
+        Label lessonText = new Label((index + 1) + " УРОК");
+        lessonText.setStyle("-fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + "; -fx-letter-spacing: 0.5px;");
         String openBook = "M19,2H14C12.9,2 12,2.9 12,4C12,2.9 11.1,2 10,2H5C3.9,2 3,2.9 3,4V20C3,18.9 3.9,18 5,18H10C11.1,18 12,18.9 12,20C12,18.9 12.9,18 14,18H19C20.1,18 21,18.9 21,20V4C21,2.9 20.1,2 19,2Z";
-        HBox box = new HBox(10, badge, createSVGIcon(openBook, Color.web(tone), 20), lessonText);
+        HBox box = new HBox(12, badge, createSVGIcon(openBook, Color.web(tone), 22), lessonText);
         box.setAlignment(Pos.CENTER_LEFT);
-        box.setPrefWidth(140);
-        box.setMinWidth(140);
+        box.setPrefWidth(160);
+        box.setMinWidth(160);
         return box;
     }
 
     private VBox labeledTimeBox(String labelText, ComboBox<String> h, ComboBox<String> m) {
         Label label = new Label(labelText);
-        label.setStyle("-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #6b7893;");
+        label.setStyle(HEADER_STYLE + "-fx-font-size: 10px;");
         HBox box = timeBox(h, m);
-        return new VBox(4, label, box);
+        return new VBox(6, label, box);
     }
 
     private VBox breakLabeledBox(TextField breakF) {
-        Label label = new Label("Перерва після уроку");
-        label.setStyle("-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #6b7893;");
-        HBox row = new HBox(8, createSVGIcon(ICON_CLOCK, Color.web("#9aa9c1"), 20), breakF, new Label("хв"));
-        ((Label) row.getChildren().get(2)).setStyle("-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #5d6f87;");
+        Label label = new Label("ПЕРЕРВА");
+        label.setStyle(HEADER_STYLE + "-fx-font-size: 10px;");
+        HBox row = new HBox(8, createSVGIcon(ICON_CLOCK, Color.web(COLOR_SLATE_LIGHT), 20), breakF, new Label("ХВ"));
+        ((Label) row.getChildren().get(2)).setStyle("-fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE + ";");
         row.setAlignment(Pos.CENTER_LEFT);
-        return new VBox(4, label, row);
+        return new VBox(6, label, row);
     }
 
     private HBox timeBox(ComboBox<String> h, ComboBox<String> m) {
         Label sep = new Label(":");
-        sep.setStyle("-fx-font-weight: 800; -fx-font-size: 14px; -fx-text-fill: #c4cfde;");
+        sep.setStyle("-fx-font-weight: 800; -fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE_PALE + ";");
         HBox box = new HBox(6, h, sep, m);
         box.setAlignment(Pos.CENTER_LEFT);
         return box;

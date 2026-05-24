@@ -20,6 +20,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static com.schoolbell.ui.ControlFactory.createPageHeader;
+import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
@@ -52,7 +53,7 @@ public class SubstitutionsEditorTab {
             "Керування замінами",
             "Переглядайте, фільтруйте та керуйте замінами вчителів у реальному часі.",
             ICON_CLOCK,
-            "#e67e22",
+            COLOR_ORANGE,
             null
         );
 
@@ -60,27 +61,25 @@ public class SubstitutionsEditorTab {
         HBox actionToolbar = new HBox(20);
         actionToolbar.setAlignment(Pos.CENTER_LEFT);
 
-        Button addBtn = new Button("НОВА ЗАМІНА");
-        addBtn.setGraphic(createSVGIcon(ICON_PLUS, Color.WHITE, 16));
-        addBtn.setStyle(BTN_BASE + "-fx-background-color: " + COLOR_SUCCESS + "; -fx-padding: 10 20;");
+        Button addBtn = createPrimaryActionButton("НОВА ЗАМІНА", ICON_PLUS);
         addBtn.setOnAction(e -> new SubstitutionEditorDialog(mainApp, null, LocalDate.now(), refreshSubstitutions).show());
 
-        Button reportBtn = new Button("ЗВІТ");
-        reportBtn.setGraphic(createSVGIcon(ICON_SAVE, Color.WHITE, 16));
-        reportBtn.setStyle(BTN_BASE + "-fx-background-color: " + COLOR_PURPLE + "; -fx-padding: 10 20;");
+        Button reportBtn = createPrimaryActionButton("ЗВІТ", ICON_SAVE);
+        reportBtn.setStyle(reportBtn.getStyle().replace(COLOR_PRIMARY, COLOR_PURPLE));
         reportBtn.setOnAction(e -> new SubstitutionReportDialog(mainApp, reportService).show());
 
         TextField searchField = new TextField();
         searchField.setPromptText("Пошук за вчителем або класом...");
-        searchField.setPrefWidth(300);
-        searchField.setStyle(FIELD_STYLE);
+        searchField.setPrefWidth(320);
+        searchField.setStyle(PREMIUM_FIELD_STYLE);
         searchField.textProperty().addListener((o, ov, nv) -> {
             searchText = nv.toLowerCase();
             refreshSubstitutions.run();
         });
 
         HBox toggleGroup = new HBox(0);
-        toggleGroup.setStyle("-fx-background-color: #dfe6e9; -fx-background-radius: 12; -fx-padding: 2;");
+        toggleGroup.setAlignment(Pos.CENTER);
+        toggleGroup.setStyle(PREMIUM_TOGGLE_CONTAINER);
         
         ToggleButton activeBtn = new ToggleButton("Активні");
         ToggleButton archiveBtn = new ToggleButton("Архів");
@@ -89,20 +88,17 @@ public class SubstitutionsEditorTab {
         archiveBtn.setToggleGroup(group);
         activeBtn.setSelected(true);
 
-        String activeStyle = "-fx-background-color: white; -fx-text-fill: #e67e22; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 20; -fx-cursor: hand;";
-        String inactiveStyle = "-fx-background-color: transparent; -fx-text-fill: " + COLOR_NEUTRAL + "; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 20; -fx-cursor: hand;";
-
-        activeBtn.setStyle(activeStyle);
-        archiveBtn.setStyle(inactiveStyle);
+        activeBtn.setStyle(PREMIUM_TOGGLE_ACTIVE);
+        archiveBtn.setStyle(PREMIUM_TOGGLE_INACTIVE);
 
         group.selectedToggleProperty().addListener((o, ov, nv) -> {
             if (nv == activeBtn) {
-                activeBtn.setStyle(activeStyle);
-                archiveBtn.setStyle(inactiveStyle);
+                activeBtn.setStyle(PREMIUM_TOGGLE_ACTIVE);
+                archiveBtn.setStyle(PREMIUM_TOGGLE_INACTIVE);
                 showArchived = false;
             } else {
-                activeBtn.setStyle(inactiveStyle);
-                archiveBtn.setStyle(activeStyle);
+                activeBtn.setStyle(PREMIUM_TOGGLE_INACTIVE);
+                archiveBtn.setStyle(PREMIUM_TOGGLE_ACTIVE);
                 showArchived = true;
             }
             refreshSubstitutions.run();
@@ -147,11 +143,14 @@ public class SubstitutionsEditorTab {
                 VBox empty = new VBox(20);
                 empty.setAlignment(Pos.CENTER);
                 empty.setPadding(new Insets(100, 0, 0, 0));
-                Label emptyIcon = new Label("∅");
-                emptyIcon.setStyle("-fx-font-size: 64px; -fx-text-fill: #dfe6e9;");
-                Label emptyLabel = new Label(showArchived ? "Архів порожній" : "Немає активних замін");
-                emptyLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #b2bec3;");
-                empty.getChildren().addAll(emptyIcon, emptyLabel);
+                
+                Node icon = createSVGIcon(ICON_INFO, Color.web(COLOR_SLATE_MUTED), 64);
+                Label emptyLabel = new Label(showArchived ? "Архів замін порожній" : "Немає активних замін");
+                emptyLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + ";");
+                Label subLabel = new Label("Всі зміни в розкладі відображатимуться тут");
+                subLabel.setStyle("-fx-text-fill: " + COLOR_SLATE_MUTED + "; -fx-font-size: 14px;");
+                
+                empty.getChildren().addAll(icon, emptyLabel, subLabel);
                 contentList.getChildren().add(empty);
             } else {
                 LocalDate lastDate = null;

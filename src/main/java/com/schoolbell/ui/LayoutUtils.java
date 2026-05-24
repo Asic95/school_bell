@@ -24,10 +24,10 @@ public class LayoutUtils {
 
         VBox textStack = new VBox(2);
         Label titleLabel = new Label(title.toUpperCase());
-        titleLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 20px; -fx-text-fill: #2d3436; -fx-letter-spacing: 1.5px;");
+        titleLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 20px; -fx-text-fill: " + COLOR_TEXT + "; -fx-letter-spacing: 1.5px;");
         
         Label subLabel = new Label(subtitle);
-        subLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #636e72;");
+        subLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_NEUTRAL + ";");
         
         textStack.getChildren().addAll(titleLabel, subLabel);
         textStack.setAlignment(Pos.CENTER_LEFT);
@@ -44,7 +44,7 @@ public class LayoutUtils {
         
         Region line = new Region();
         line.setPrefHeight(2);
-        line.setStyle("-fx-background-color: #dfe6e9;");
+        line.setStyle("-fx-background-color: " + COLOR_WHITE_MUTED_BORDER + ";");
         
         VBox v = new VBox(20, h, line);
         v.setPadding(new javafx.geometry.Insets(10, 0, 20, 0));
@@ -67,7 +67,7 @@ public class LayoutUtils {
         if (initials.isEmpty()) initials = "?";
 
         int hash = name != null ? name.hashCode() : 0;
-        String[] colors = {"#74b9ff", "#55efc4", "#fab1a0", "#a29bfe", "#ffeaa7", "#81ecec"};
+        String[] colors = {COLOR_SKY_PASTEL, COLOR_MINT, COLOR_PEACH, COLOR_PURPLE, COLOR_BUTTER, COLOR_AQUA};
         String bgColor = colors[Math.abs(hash) % colors.length];
 
         StackPane avatar = new StackPane();
@@ -85,7 +85,7 @@ public class LayoutUtils {
 
     public static javafx.scene.shape.Line createSeparator() {
         javafx.scene.shape.Line line = new javafx.scene.shape.Line(0, 0, 100, 0);
-        line.setStroke(Color.web("#dfe6e9"));
+        line.setStroke(Color.web(COLOR_WHITE_MUTED_BORDER));
         line.setStrokeWidth(1.5);
         return line;
     }

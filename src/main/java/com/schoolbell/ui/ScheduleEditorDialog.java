@@ -1,27 +1,48 @@
 package com.schoolbell.ui;
 
 import com.schoolbell.MainApp;
-import com.schoolbell.model.*;
-import com.schoolbell.ui.editor.*;
-import javafx.geometry.Insets;
+import com.schoolbell.model.Classroom;
+import com.schoolbell.model.SchoolClass;
+import com.schoolbell.model.Subject;
+import com.schoolbell.model.Teacher;
+import com.schoolbell.ui.editor.AnnouncementsEditorTab;
+import com.schoolbell.ui.editor.BellsEditorTab;
+import com.schoolbell.ui.editor.ClassesEditorTab;
+import com.schoolbell.ui.editor.ClassroomsEditorTab;
+import com.schoolbell.ui.editor.SubjectsEditorTab;
+import com.schoolbell.ui.editor.SubstitutionsEditorTab;
+import com.schoolbell.ui.editor.TeachersEditorTab;
+import com.schoolbell.ui.editor.WeeklyScheduleEditorTab;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
-import java.time.LocalDate;
 import java.util.List;
 
-import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
-import static com.schoolbell.ui.UIStyles.*;
+import static com.schoolbell.ui.ControlFactory.createDangerDialogButton;
+import static com.schoolbell.ui.ControlFactory.createDialogHeader;
+import static com.schoolbell.ui.ControlFactory.createDialogRoot;
+import static com.schoolbell.ui.ControlFactory.createLabeledField;
+import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
+import static com.schoolbell.ui.ControlFactory.createSecondaryDialogButton;
+import static com.schoolbell.ui.UIStyles.ICON_SAVE;
+import static com.schoolbell.ui.UIStyles.MODERN_CHECKBOX_STYLE;
+import static com.schoolbell.ui.UIStyles.MODERN_DATE_PICKER_STYLE;
+import static com.schoolbell.ui.UIStyles.PREMIUM_BTN_STYLE;
+import static com.schoolbell.ui.UIStyles.PREMIUM_SELECT_STYLE;
 
 public class ScheduleEditorDialog {
     private final MainApp mainApp;
-    
+
     private final BellsEditorTab bellsTab;
     private final TeachersEditorTab teachersTab;
     private final SubjectsEditorTab subjectsTab;
@@ -58,94 +79,107 @@ public class ScheduleEditorDialog {
     }
 
     public void openEditDialog(SchoolClass schoolClass, int day, int lesson, int parity,
-                                List<Teacher> allTeachers, List<Subject> allSubjects, Runnable refreshGrid) {
+                               List<Teacher> allTeachers, List<Subject> allSubjects, Runnable refreshGrid) {
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setTitle("Редагування уроку: " + schoolClass.name());
+        stage.initStyle(StageStyle.TRANSPARENT);
 
-        List<Classroom> allClasses = mainApp.getAcademicService().getAllClassrooms();
+        List<Classroom> allClassrooms = mainApp.getAcademicService().getAllClassrooms();
 
-        VBox root = new VBox(20);
-        root.setPadding(new Insets(25));
-        root.setStyle("-fx-background-color: " + COLOR_BG + ";");
+        VBox root = createDialogRoot(550);
+        VBox headerText = createDialogHeader(
+                "Редагування уроку",
+                schoolClass.name(),
+                "Налаштуйте вчителя, предмет та кабінет для уроку №" + lesson
+        );
 
-        VBox header = createSectionHeader("Редагування уроку", schoolClass.name() + " | Урок " + lesson, COLOR_PRIMARY, ICON_EDIT);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(5);
-        grid.setVgap(15);
-        ColumnConstraints col1 = new ColumnConstraints();
-        col1.setMinWidth(130);
-        col1.setPrefWidth(130);
-        grid.getColumnConstraints().addAll(col1, new ColumnConstraints());
+        VBox fields = new VBox(20);
+        fields.setAlignment(Pos.CENTER_LEFT);
 
         ComboBox<Teacher> teacherCombo = new ComboBox<>();
         teacherCombo.getItems().addAll(mainApp.getStaffService().getAllTeachers());
         teacherCombo.setPromptText("Оберіть вчителя");
         teacherCombo.setMaxWidth(Double.MAX_VALUE);
-        teacherCombo.setStyle(COMBO_STYLE);
+        teacherCombo.setStyle(PREMIUM_SELECT_STYLE);
 
         ComboBox<Subject> subjectCombo = new ComboBox<>();
         subjectCombo.getItems().addAll(mainApp.getStaffService().getAllSubjects());
         subjectCombo.setPromptText("Оберіть предмет");
         subjectCombo.setMaxWidth(Double.MAX_VALUE);
-        subjectCombo.setStyle(COMBO_STYLE);
+        subjectCombo.setStyle(PREMIUM_SELECT_STYLE);
+        subjectCombo.itemsProperty().addListener((obs, oldItems, newItems) -> {
+            if (newItems != null) {
+                subjectCombo.setVisibleRowCount(Math.min(newItems.size(), 10));
+            }
+        });
 
         ComboBox<Classroom> classroomCombo = new ComboBox<>();
-        classroomCombo.getItems().addAll(allClasses);
+        classroomCombo.getItems().addAll(allClassrooms);
         classroomCombo.setPromptText("Оберіть кабінет");
         classroomCombo.setMaxWidth(Double.MAX_VALUE);
-        classroomCombo.setStyle(COMBO_STYLE);
+        classroomCombo.setStyle(PREMIUM_SELECT_STYLE);
 
         ComboBox<String> parityCombo = new ComboBox<>();
         parityCombo.getItems().addAll("Всі тижні", "Чисельник (непарний)", "Знаменник (парний)");
         parityCombo.getSelectionModel().select(parity);
         parityCombo.setMaxWidth(Double.MAX_VALUE);
-        parityCombo.setStyle(COMBO_STYLE);
+        parityCombo.setStyle(PREMIUM_SELECT_STYLE);
 
         teacherCombo.setOnAction(e -> {
             Teacher selected = teacherCombo.getValue();
             if (selected != null) {
                 List<Subject> teacherSubjects = mainApp.getStaffService().getSubjectsForTeacher(selected.id());
-                Subject currentSub = subjectCombo.getValue();
+                Subject currentSubject = subjectCombo.getValue();
                 subjectCombo.getItems().setAll(teacherSubjects);
-                if (currentSub != null && teacherSubjects.contains(currentSub)) {
-                    subjectCombo.setValue(currentSub);
+                if (currentSubject != null && teacherSubjects.contains(currentSubject)) {
+                    subjectCombo.setValue(currentSubject);
                 }
             }
         });
 
-        // Pre-select current values
         mainApp.getAcademicService().getScheduleForClass(schoolClass.id()).stream()
-                .filter(e -> e.dayOfWeek() == day && e.lessonNumber() == lesson && (e.parity() == parity || e.parity() == 0))
-                .findFirst().ifPresent(e -> {
-                    mainApp.getStaffService().getAllTeachers().stream().filter(t -> t.id() == e.teacherId()).findFirst().ifPresent(t -> {
-                        teacherCombo.setValue(t);
-                        List<Subject> ts = mainApp.getStaffService().getSubjectsForTeacher(t.id());
-                        subjectCombo.getItems().setAll(ts);
-                        mainApp.getStaffService().getAllSubjects().stream().filter(s -> s.id() == e.subjectId()).findFirst().ifPresent(subjectCombo::setValue);
-                    });
-                    allClasses.stream().filter(c -> c.id() == e.classroomId()).findFirst().ifPresent(classroomCombo::setValue);
+                .filter(entry -> entry.dayOfWeek() == day && entry.lessonNumber() == lesson && (entry.parity() == parity || entry.parity() == 0))
+                .findFirst()
+                .ifPresent(entry -> {
+                    mainApp.getStaffService().getAllTeachers().stream()
+                            .filter(teacher -> teacher.id() == entry.teacherId())
+                            .findFirst()
+                            .ifPresent(teacher -> {
+                                teacherCombo.setValue(teacher);
+                                List<Subject> teacherSubjects = mainApp.getStaffService().getSubjectsForTeacher(teacher.id());
+                                subjectCombo.getItems().setAll(teacherSubjects);
+                                mainApp.getStaffService().getAllSubjects().stream()
+                                        .filter(subject -> subject.id() == entry.subjectId())
+                                        .findFirst()
+                                        .ifPresent(subjectCombo::setValue);
+                            });
+                    allClassrooms.stream().filter(room -> room.id() == entry.classroomId()).findFirst().ifPresent(classroomCombo::setValue);
                 });
 
-        Label teacherL = new Label("Вчитель:"); teacherL.setStyle(HEADER_STYLE);
-        grid.add(teacherL, 0, 0);
-        grid.add(teacherCombo, 1, 0);
-        
-        Label subjectL = new Label("Предмет:"); subjectL.setStyle(HEADER_STYLE);
-        grid.add(subjectL, 0, 1);
-        grid.add(subjectCombo, 1, 1);
-        
-        Label classroomL = new Label("Кабінет:"); classroomL.setStyle(HEADER_STYLE);
-        grid.add(classroomL, 0, 2);
-        grid.add(classroomCombo, 1, 2);
-        
-        Label weekL = new Label("Тиждень:"); weekL.setStyle(HEADER_STYLE);
-        grid.add(weekL, 0, 3);
-        grid.add(parityCombo, 1, 3);
+        fields.getChildren().addAll(
+                createLabeledField("ВЧИТЕЛЬ", teacherCombo),
+                createLabeledField("ПРЕДМЕТ", subjectCombo),
+                createLabeledField("КАБІНЕТ", classroomCombo),
+                createLabeledField("ТИЖДЕНЬ", parityCombo)
+        );
 
-        Button saveBtn = new Button("ЗБЕРЕГТИ");
-        saveBtn.setStyle(BTN_BASE + "-fx-background-color: " + COLOR_SUCCESS + "; -fx-padding: 10 30;");
+        HBox actions = new HBox(15);
+        actions.setAlignment(Pos.CENTER_RIGHT);
+
+        Button cancelBtn = createSecondaryDialogButton("СКАСУВАТИ");
+        cancelBtn.setOnAction(e -> stage.close());
+
+        Button deleteBtn = createDangerDialogButton("ВИДАЛИТИ");
+        deleteBtn.setOnAction(ev -> {
+            int selectedParity = parityCombo.getSelectionModel().getSelectedIndex();
+            mainApp.getAcademicService().deleteScheduleEntry(schoolClass.id(), day, lesson, selectedParity);
+            refreshGrid.run();
+            stage.close();
+            ToastService.showSuccess("Урок видалено");
+        });
+
+        Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ", ICON_SAVE);
+        saveBtn.setStyle(PREMIUM_BTN_STYLE);
         saveBtn.setOnAction(ev -> {
             if (teacherCombo.getValue() != null && subjectCombo.getValue() != null) {
                 int selectedParity = parityCombo.getSelectionModel().getSelectedIndex();
@@ -154,30 +188,31 @@ public class ScheduleEditorDialog {
                     mainApp.getAcademicService().deleteScheduleEntry(schoolClass.id(), day, lesson, parity);
                 }
                 mainApp.getAcademicService().saveScheduleEntry(
-                        schoolClass.id(), day, lesson,
-                        teacherCombo.getValue().id(), subjectCombo.getValue().id(), classroomId, selectedParity
+                        schoolClass.id(),
+                        day,
+                        lesson,
+                        teacherCombo.getValue().id(),
+                        subjectCombo.getValue().id(),
+                        classroomId,
+                        selectedParity
                 );
                 refreshGrid.run();
                 stage.close();
+                ToastService.showSuccess("Розклад оновлено");
+            } else {
+                ToastService.showError("Оберіть вчителя та предмет");
             }
         });
 
-        Button deleteBtn = new Button("ВИДАЛИТИ");
-        deleteBtn.setStyle(BTN_BASE + "-fx-background-color: " + COLOR_DANGER + "; -fx-padding: 10 30;");
-        deleteBtn.setOnAction(ev -> {
-            int selectedParity = parityCombo.getSelectionModel().getSelectedIndex();
-            mainApp.getAcademicService().deleteScheduleEntry(schoolClass.id(), day, lesson, selectedParity);
-            refreshGrid.run();
-            stage.close();
-        });
+        actions.getChildren().addAll(cancelBtn, deleteBtn, saveBtn);
+        root.getChildren().addAll(headerText, fields, actions);
 
-        HBox buttons = new HBox(15, saveBtn, deleteBtn);
-        buttons.setAlignment(Pos.CENTER);
-
-        root.getChildren().addAll(header, grid, buttons);
-        Scene scene = new Scene(root, 400, 450);
-        scene.getStylesheets().add("data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"));
-        scene.getStylesheets().add("data:text/css," + MODERN_SPINNER_STYLE.replace(" ", "%20"));
+        Scene scene = new Scene(root);
+        scene.setFill(Color.TRANSPARENT);
+        scene.getStylesheets().addAll(
+                "data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"),
+                "data:text/css," + MODERN_CHECKBOX_STYLE.replace(" ", "%20")
+        );
         stage.setScene(scene);
         stage.showAndWait();
     }

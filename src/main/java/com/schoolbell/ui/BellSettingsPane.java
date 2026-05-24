@@ -55,7 +55,7 @@ public class BellSettingsPane extends StackPane {
                 "Розклад та дзвінки",
                 "Конфігурація тривалості сигналів та режимів роботи шкільної системи.",
                 ICON_CLOCK,
-                "#4f46e5",
+                COLOR_INDIGO,
                 null
             ));
         } else {
@@ -115,7 +115,7 @@ public class BellSettingsPane extends StackPane {
                 labeledControl("Завчасне сповіщення перед основним дзвінком", new HBox(8, eMin, eSec))
         );
 
-        WaveformCanvas waveform = new WaveformCanvas(WaveType.REGULAR, Color.web("#4A76FF"), regularDuration, earlyMin, earlySec);
+        WaveformCanvas waveform = new WaveformCanvas(WaveType.REGULAR, Color.web(COLOR_BLUE_SIGNAL), regularDuration, earlyMin, earlySec);
         HBox card = createCard(
                 "Звичайний дзвінок",
                 "Сигнали уроків та завчасне сповіщення",
@@ -143,7 +143,7 @@ public class BellSettingsPane extends StackPane {
         );
         controlsRow.getStyleClass().add("multi-control-row");
 
-        WaveformCanvas waveform = new WaveformCanvas(WaveType.AIR_RAID, Color.web("#FF9D3F"), ring.valueProperty(), pause.valueProperty(), null);
+        WaveformCanvas waveform = new WaveformCanvas(WaveType.AIR_RAID, Color.web(COLOR_ORANGE_SIGNAL), ring.valueProperty(), pause.valueProperty(), null);
         HBox card = createCard(
                 "Повітряна тривога",
                 "Три коротких сигнали з паузами",
@@ -162,7 +162,7 @@ public class BellSettingsPane extends StackPane {
         duration.getStyleClass().add("stepper-emergency");
         duration.valueProperty().bindBidirectional(emergencyDuration);
 
-        WaveformCanvas waveform = new WaveformCanvas(WaveType.EMERGENCY, Color.web("#FF5F5F"), duration.valueProperty(), null, null);
+        WaveformCanvas waveform = new WaveformCanvas(WaveType.EMERGENCY, Color.web(COLOR_RED_SIGNAL), duration.valueProperty(), null, null);
         HBox card = createCard(
                 "Екстрена ситуація",
                 "Один тривалий безперервний сигнал",
@@ -205,9 +205,9 @@ public class BellSettingsPane extends StackPane {
         VBox titleBlock = new VBox(2);
         Label title = new Label(titleText);
         title.getStyleClass().add("card-title");
-        title.setStyle("-fx-font-size: 16px; -fx-font-weight: 800; -fx-text-fill: #2d3436;");
+        title.setStyle("-fx-font-size: 16px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT + ";");
         Label subtitle = new Label(subtitleText);
-        subtitle.setStyle("-fx-font-size: 13px; -fx-text-fill: #636e72;");
+        subtitle.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_NEUTRAL + ";");
         titleBlock.getChildren().addAll(title, subtitle);
         headerRow.getChildren().addAll(iconWrap, titleBlock);
 
@@ -251,11 +251,11 @@ public class BellSettingsPane extends StackPane {
 
             Button minus = new Button();
             minus.getStyleClass().add("step-button");
-            setPlusMinusIcon(minus, "M19,13H5V11H19V13Z");
+            setPlusMinusIcon(minus, ICON_STEP_MINUS);
 
             Button plus = new Button();
             plus.getStyleClass().add("step-button");
-            setPlusMinusIcon(plus, "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z");
+            setPlusMinusIcon(plus, ICON_STEP_PLUS);
 
             Label valueLabel = new Label();
             valueLabel.getStyleClass().add("step-value");
@@ -479,7 +479,7 @@ public class BellSettingsPane extends StackPane {
         }
 
         private void drawTimeline(GraphicsContext gc, double w, double y, String[] labels) {
-            gc.setFill(Color.web("#8B97A8"));
+            gc.setFill(Color.web(COLOR_WAVE_MUTED));
             gc.setFont(javafx.scene.text.Font.font("Inter", 11));
             double leftPad = START_X; double span = Math.max(1, w - leftPad - 10);
             double step = labels.length > 1 ? span / (labels.length - 1) : 0;

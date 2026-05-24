@@ -28,126 +28,128 @@
 }
 
 .bell-card {
-    -fx-background-color: #ffffff;
-    -fx-background-radius: 12; /* rounded-xl */
-    -fx-border-color: #e4e4e7; /* zinc-200/80 */
+    -fx-background-color: rgba(255,255,255,0.96);
+    -fx-background-radius: 28;
+    -fx-border-color: rgba(226,232,240,0.7);
     -fx-border-width: 1;
-    -fx-border-radius: 12;
-    -fx-padding: 20; /* p-5 */
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1); /* shadow-sm */
+    -fx-border-radius: 28;
+    -fx-padding: 28;
+    -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 30, 0, 0, 10);
 }
 
 .bell-card:hover {
-    -fx-effect: dropshadow(three-pass-box, rgba(74, 118, 255, 0.13), 30, 0.2, 0, 10);
+    -fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.12), 40, 0, 0, 15);
 }
 
 .card-left {
-    -fx-spacing: 18;
+    -fx-spacing: 20;
 }
 
 .card-icon-wrap {
-    -fx-background-radius: 24;
+    -fx-background-radius: 18;
 }
 
 .card-icon {
     -fx-fill: #365172;
-    -fx-scale-x: 1.2;
-    -fx-scale-y: 1.2;
+    -fx-scale-x: 1.0;
+    -fx-scale-y: 1.0;
 }
 
 .tone-regular .card-icon {
-    -fx-fill: #1f4f9e;
+    -fx-fill: #2563eb;
 }
 
 .tone-air .card-icon {
-    -fx-fill: #f08a1b;
+    -fx-fill: #d97706;
 }
 
 .tone-emergency .card-icon {
-    -fx-fill: #ef3f3f;
+    -fx-fill: #dc2626;
 }
 
 .tone-regular {
-    -fx-background-color: #eaf1ff;
+    -fx-background-color: linear-gradient(to bottom right, #f8fbff, #edf4ff);
 }
 
 .tone-air {
-    -fx-background-color: #fff1e2;
+    -fx-background-color: linear-gradient(to bottom right, #fffdf8, #fff8e1);
 }
 
 .tone-emergency {
-    -fx-background-color: #ffe9e9;
+    -fx-background-color: linear-gradient(to bottom right, #fffafa, #fff1f1);
 }
 
 .card-title {
     -fx-font-family: "Inter";
-    -fx-font-size: 23px;
-    -fx-font-weight: 700;
-    -fx-text-fill: #16324f;
+    -fx-font-size: 20px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #0f172a;
 }
 
 .card-subtitle {
     -fx-font-family: "Inter";
-    -fx-font-size: 15px;
+    -fx-font-size: 14px;
     -fx-font-weight: 500;
-    -fx-text-fill: #95a2b2;
+    -fx-text-fill: #64748b;
 }
 
 .duration-stepper {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-padding: 0;
+    -fx-background-color: rgba(241,245,249,0.92);
+    -fx-background-radius: 18;
+    -fx-padding: 6;
 }
 
 .step-button {
-    -fx-min-width: 28;
-    -fx-min-height: 28;
-    -fx-pref-width: 28;
-    -fx-pref-height: 28;
-    -fx-max-width: 28;
-    -fx-max-height: 28;
+    -fx-min-width: 32;
+    -fx-min-height: 32;
+    -fx-pref-width: 32;
+    -fx-pref-height: 32;
+    -fx-max-width: 32;
+    -fx-max-height: 32;
     -fx-background-color: #ffffff;
-    -fx-background-radius: 8;
-    -fx-border-color: #e4eaf4;
-    -fx-border-radius: 8;
+    -fx-background-radius: 12;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 12;
     -fx-font-family: "Inter";
-    -fx-font-size: 20px;
-    -fx-font-weight: 700;
-    -fx-text-fill: #3a5371;
+    -fx-font-size: 18px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #0f172a;
     -fx-cursor: hand;
 }
 
 .step-button:hover {
-    -fx-background-color: #eff4ff;
-    -fx-border-color: #c9d8f2;
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #cbd5e1;
 }
 
 .step-button:focused {
-    -fx-effect: dropshadow(three-pass-box, rgba(74, 118, 255, 0.3), 12, 0.2, 0, 0);
+    -fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.3), 12, 0, 0, 0);
 }
 
 .step-value {
-    -fx-pref-width: 86;
+    -fx-pref-width: 90;
     -fx-alignment: center;
     -fx-font-family: "Inter";
     -fx-font-size: 16px;
-    -fx-font-weight: 600;
-    -fx-text-fill: #1d3c58;
+    -fx-font-weight: 700;
+    -fx-text-fill: #0f172a;
 }
 
 .card-preview {
-    -fx-background-color: #fafbfd;
-    -fx-background-radius: 20;
-    -fx-padding: 24;
-    -fx-border-color: #edf1f8;
+    -fx-background-color: #fcfdfe;
+    -fx-background-radius: 22;
+    -fx-padding: 20;
+    -fx-border-color: #f1f5f9;
     -fx-border-width: 1;
-    -fx-border-radius: 20;
+    -fx-border-radius: 22;
 }
 
 .preview-label {
     -fx-font-family: "Inter";
-    -fx-font-size: 11px;
-    -fx-font-weight: 700;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #64748b;
+    -fx-letter-spacing: 1px;
 }
 
 .tone-text-regular {

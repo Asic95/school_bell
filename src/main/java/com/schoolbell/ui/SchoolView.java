@@ -42,10 +42,10 @@ public class SchoolView {
         VBox.setVgrow(grid, Priority.ALWAYS);
         
         grid.getChildren().addAll(
-            createManagementCard("Вчителі", "Керування списком вчителів та їх спеціалізацією", ICON_PERSON, "#0984e3", "#e3f2fd", () -> mainApp.showEditorTab(1)),
-            createManagementCard("Предмети", "Довідник навчальних предметів", ICON_BOOK, "#00b894", "#e8f8f5", () -> mainApp.showEditorTab(2)),
-            createManagementCard("Класи", "Список навчальних класів та груп", ICON_CLASS, "#a29bfe", "#f3efff", () -> mainApp.showEditorTab(3)),
-            createManagementCard("Аудиторії", "Перелік кабінетів та залів", ICON_ROOM, "#00cec9", "#e0fcfb", () -> mainApp.showEditorTab(7))
+            createManagementCard("Вчителі", "Керування списком вчителів та їх спеціалізацією", ICON_PERSON, COLOR_SKY, COLOR_BLUE_LIGHT, () -> mainApp.showEditorTab(1)),
+            createManagementCard("Предмети", "Довідник навчальних предметів", ICON_BOOK, COLOR_TEAL, COLOR_GREEN_LIGHT, () -> mainApp.showEditorTab(2)),
+            createManagementCard("Класи", "Список навчальних класів та груп", ICON_CLASS, COLOR_PURPLE, COLOR_PURPLE_LIGHT, () -> mainApp.showEditorTab(3)),
+            createManagementCard("Аудиторії", "Перелік кабінетів та залів", ICON_ROOM, COLOR_CYAN, COLOR_CYAN_LIGHT, () -> mainApp.showEditorTab(7))
         );
         
         root.getChildren().addAll(header, grid);

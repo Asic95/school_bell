@@ -2,17 +2,23 @@ package com.schoolbell.ui;
 
 import com.schoolbell.model.Announcement;
 import com.schoolbell.service.AnnouncementService;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -20,10 +26,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.schoolbell.ui.ControlFactory.*;
-import static com.schoolbell.ui.UIStyles.*;
-
-import javafx.stage.StageStyle;
+import static com.schoolbell.ui.ControlFactory.createDialogHeader;
+import static com.schoolbell.ui.ControlFactory.createDialogRoot;
+import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
+import static com.schoolbell.ui.ControlFactory.createSecondaryDialogButton;
+import static com.schoolbell.ui.UIStyles.COLOR_INDIGO;
+import static com.schoolbell.ui.UIStyles.COLOR_NAVY;
+import static com.schoolbell.ui.UIStyles.COLOR_SLATE;
+import static com.schoolbell.ui.UIStyles.COLOR_SURFACE_BRAND;
+import static com.schoolbell.ui.UIStyles.HEADER_STYLE;
+import static com.schoolbell.ui.UIStyles.ICON_SAVE;
+import static com.schoolbell.ui.UIStyles.MODERN_CHECKBOX_STYLE;
+import static com.schoolbell.ui.UIStyles.MODERN_DATE_PICKER_STYLE;
+import static com.schoolbell.ui.UIStyles.PREMIUM_BTN_STYLE;
+import static com.schoolbell.ui.UIStyles.PREMIUM_FIELD_STYLE;
 
 public class AnnouncementEditorDialog {
     private final AnnouncementService announcementService;
@@ -34,124 +50,113 @@ public class AnnouncementEditorDialog {
         this.onSave = onSave;
     }
 
-    public void show(Announcement a) {
+    public void show(Announcement announcement) {
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initStyle(StageStyle.TRANSPARENT);
 
-        VBox root = new VBox(28);
-        root.setPadding(new Insets(35));
-        root.setStyle(SOFT_CARD + "-fx-background-radius: 32; -fx-border-radius: 32; -fx-border-width: 2; -fx-border-color: #e2e8f0;");
-        root.setPrefWidth(650);
+        VBox root = createDialogRoot(650);
+        VBox headerText = createDialogHeader(
+                announcement == null ? "Створення" : "Редагування",
+                "Параметри оголошення",
+                "Налаштуйте текст та розклад відображення повідомлення."
+        );
 
-        // --- SIMPLIFIED HEADER (NO ICON BOX) ---
-        VBox headerText = new VBox(2);
-        Label eb = new Label((a == null ? "СТВОРЕННЯ" : "РЕДАГУВАННЯ").toUpperCase());
-        eb.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: #64748b; -fx-letter-spacing: 1.2px;");
-        Label t = new Label("Параметри оголошення");
-        t.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 32px; -fx-font-weight: 700; -fx-text-fill: #0f172a;");
-        Label s = new Label("Налаштуйте текст та розклад відображення повідомлення.");
-        s.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-text-fill: #64748b;");
-        headerText.getChildren().addAll(eb, t, s);
-
-        TextArea textArea = new TextArea(a != null ? a.text() : "");
+        TextArea textArea = new TextArea(announcement != null ? announcement.text() : "");
         textArea.setPromptText("Введіть текст оголошення тут...");
         textArea.setPrefRowCount(4);
         textArea.setWrapText(true);
-        
-        String textAreaBaseStyle = 
-            "-fx-font-family: 'Inter'; -fx-font-size: 15px; " +
-            "-fx-control-inner-background: white; " +
-            "-fx-background-color: white; " +
-            "-fx-background-radius: 14; " +
-            "-fx-border-color: #e2e8f0; " +
-            "-fx-border-radius: 14; " +
-            "-fx-padding: 8; " +
-            "-fx-text-box-border: transparent; " +
-            "-fx-focus-color: transparent; " +
-            "-fx-faint-focus-color: transparent;";
-            
+
+        String textAreaBaseStyle = PREMIUM_FIELD_STYLE + "-fx-padding: 0;";
         textArea.setStyle(textAreaBaseStyle);
-        
-        textArea.focusedProperty().addListener((obs, old, newVal) -> {
-            if (newVal) {
-                textArea.setStyle(textAreaBaseStyle + "-fx-border-color: #4f46e5; -fx-control-inner-background: #f8faff; -fx-background-color: #f8faff;");
+        textArea.skinProperty().addListener((obs, oldSkin, newSkin) -> updateInternalStyles(textArea, false));
+        textArea.focusedProperty().addListener((obs, old, focused) -> {
+            if (focused) {
+                textArea.setStyle(textAreaBaseStyle + "-fx-border-color: " + COLOR_INDIGO + "; -fx-background-color: " + COLOR_SURFACE_BRAND + ";");
+                updateInternalStyles(textArea, true);
             } else {
                 textArea.setStyle(textAreaBaseStyle);
+                updateInternalStyles(textArea, false);
             }
         });
 
-        // Period Section
-        DatePicker startPicker = new DatePicker(a != null ? a.startDate() : LocalDate.now());
-        DatePicker endPicker = new DatePicker(a != null ? a.endDate() : LocalDate.now().plusWeeks(1));
+        DatePicker startPicker = new DatePicker(announcement != null ? announcement.startDate() : LocalDate.now());
+        DatePicker endPicker = new DatePicker(announcement != null ? announcement.endDate() : LocalDate.now().plusWeeks(1));
         startPicker.setMaxWidth(Double.MAX_VALUE);
         endPicker.setMaxWidth(Double.MAX_VALUE);
 
-        HBox dateRow = new HBox(15, 
-            createLabeledField("ДАТА ПОЧАТКУ", startPicker),
-            createLabeledField("ДАТА ЗАВЕРШЕННЯ", endPicker)
+        HBox dateRow = new HBox(15,
+                createLabeledField("ДАТА ПОЧАТКУ", startPicker),
+                createLabeledField("ДАТА ЗАВЕРШЕННЯ", endPicker)
         );
 
-        // Time Section
-        LocalTime st = a != null && a.startTime() != null ? a.startTime() : LocalTime.of(8, 0);
-        LocalTime et = a != null && a.endTime() != null ? et = a.endTime() : LocalTime.of(18, 0);
-        
-        ComboBox<String> startH = createTimeCombo(24, st.getHour());
-        ComboBox<String> startM = createTimeCombo(60, st.getMinute());
-        ComboBox<String> endH = createTimeCombo(24, et.getHour());
-        ComboBox<String> endM = createTimeCombo(60, et.getMinute());
+        LocalTime startTime = announcement != null && announcement.startTime() != null
+                ? announcement.startTime()
+                : LocalTime.of(8, 0);
+        LocalTime endTime = announcement != null && announcement.endTime() != null
+                ? announcement.endTime()
+                : LocalTime.of(18, 0);
 
-        Label startHL = new Label("год.");
-        Label startML = new Label("хв.");
-        Label endHL = new Label("год.");
-        Label endML = new Label("хв.");
-        
-        String labelStyle = "-fx-font-size: 13px; -fx-text-fill: #64748b; -fx-font-weight: normal;";
-        startHL.setStyle(labelStyle); startML.setStyle(labelStyle);
-        endHL.setStyle(labelStyle); endML.setStyle(labelStyle);
+        ComboBox<String> startHour = ControlFactory.createTimeCombo(24, startTime.getHour());
+        ComboBox<String> startMinute = ControlFactory.createTimeCombo(60, startTime.getMinute());
+        ComboBox<String> endHour = ControlFactory.createTimeCombo(24, endTime.getHour());
+        ComboBox<String> endMinute = ControlFactory.createTimeCombo(60, endTime.getMinute());
 
-        HBox startTimeBox = new HBox(8, startH, startHL, startM, startML);
+        String timeUnitStyle = "-fx-font-size: 13px; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 800;";
+        Label startHourLabel = new Label("год.");
+        Label startMinuteLabel = new Label("хв.");
+        Label endHourLabel = new Label("год.");
+        Label endMinuteLabel = new Label("хв.");
+        startHourLabel.setStyle(timeUnitStyle);
+        startMinuteLabel.setStyle(timeUnitStyle);
+        endHourLabel.setStyle(timeUnitStyle);
+        endMinuteLabel.setStyle(timeUnitStyle);
+
+        HBox startTimeBox = new HBox(8, startHour, startHourLabel, startMinute, startMinuteLabel);
         startTimeBox.setAlignment(Pos.CENTER_LEFT);
-        HBox endTimeBox = new HBox(8, endH, endHL, endM, endML);
+        HBox endTimeBox = new HBox(8, endHour, endHourLabel, endMinute, endMinuteLabel);
         endTimeBox.setAlignment(Pos.CENTER_LEFT);
 
-        HBox timeRow = new HBox(25, 
-            createLabeledField("ЧАС ПОЧАТКУ", startTimeBox),
-            createLabeledField("ЧАС ЗАВЕРШЕННЯ", endTimeBox)
+        HBox timeRow = new HBox(25,
+                createLabeledField("ЧАС ПОЧАТКУ", startTimeBox),
+                createLabeledField("ЧАС ЗАВЕРШЕННЯ", endTimeBox)
         );
 
-        // Days Section
-        HBox daysBox = new HBox(18);
+        HBox daysBox = new HBox(12);
         daysBox.setAlignment(Pos.CENTER_LEFT);
         String[] dayNames = {"ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "НД"};
-        List<CheckBox> dayCbs = new ArrayList<>();
-        List<String> activeDays = a != null && a.daysOfWeek() != null ? List.of(a.daysOfWeek().split(",")) : List.of("1","2","3","4","5");
+
+        List<CheckBox> dayCheckboxes = new ArrayList<>();
+        List<String> activeDays = announcement != null && announcement.daysOfWeek() != null
+                ? List.of(announcement.daysOfWeek().split(","))
+                : List.of("1", "2", "3", "4", "5");
+
         for (int i = 1; i <= 7; i++) {
-            CheckBox cb = new CheckBox(dayNames[i-1]);
+            CheckBox cb = new CheckBox(dayNames[i - 1]);
             cb.setSelected(activeDays.contains(String.valueOf(i)));
-            dayCbs.add(cb);
+            dayCheckboxes.add(cb);
             daysBox.getChildren().add(cb);
         }
 
         VBox daysSection = createLabeledField("ДНІ ТИЖНЯ", daysBox);
 
-        // --- FLATTENED SCHEDULE SECTION (NO INNER BLOCK) ---
         VBox scheduleSettings = new VBox(22);
         Label scheduleHeader = new Label("РОЗКЛАД ПОКАЗУ");
-        scheduleHeader.setStyle("-fx-font-size: 13px; -fx-font-weight: 800; -fx-text-fill: #64748b; -fx-letter-spacing: 0.5px;");
+        scheduleHeader.setStyle(HEADER_STYLE);
         scheduleSettings.getChildren().addAll(scheduleHeader, dateRow, timeRow, daysSection);
 
-        CheckBox activeCb = new CheckBox("Це оголошення зараз активне");
-        activeCb.setSelected(a == null || a.isActive());
+        CheckBox activeCheckbox = new CheckBox("ЦЕ ОГОЛОШЕННЯ ЗАРАЗ АКТИВНЕ");
+        activeCheckbox.setSelected(announcement == null || announcement.isActive());
+        activeCheckbox.setStyle("-fx-font-weight: 900; -fx-font-size: 14px; -fx-text-fill: " + COLOR_NAVY + ";");
 
         HBox actions = new HBox(15);
         actions.setAlignment(Pos.CENTER_RIGHT);
 
-        Button cancelBtn = new Button("СКАСУВАТИ");
-        cancelBtn.setStyle("-fx-background-color: #f1f2f6; -fx-text-fill: #636e72; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 14; -fx-cursor: hand;");
+        Button cancelBtn = createSecondaryDialogButton("СКАСУВАТИ");
         cancelBtn.setOnAction(e -> stage.close());
 
         Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ОГОЛОШЕННЯ", ICON_SAVE);
+        saveBtn.setStyle(PREMIUM_BTN_STYLE);
         saveBtn.setOnAction(ev -> {
             String text = textArea.getText().trim();
             if (text.isEmpty()) {
@@ -159,25 +164,30 @@ public class AnnouncementEditorDialog {
                 return;
             }
 
-            String days = dayCbs.stream()
+            String days = dayCheckboxes.stream()
                     .filter(CheckBox::isSelected)
-                    .map(cb -> String.valueOf(dayCbs.indexOf(cb) + 1))
+                    .map(cb -> String.valueOf(dayCheckboxes.indexOf(cb) + 1))
                     .collect(Collectors.joining(","));
 
-            LocalTime startT = LocalTime.of(Integer.parseInt(startH.getValue()), Integer.parseInt(startM.getValue()));
-            LocalTime endT = LocalTime.of(Integer.parseInt(endH.getValue()), Integer.parseInt(endM.getValue()));
+            LocalTime newStartTime = LocalTime.of(Integer.parseInt(startHour.getValue()), Integer.parseInt(startMinute.getValue()));
+            LocalTime newEndTime = LocalTime.of(Integer.parseInt(endHour.getValue()), Integer.parseInt(endMinute.getValue()));
 
-            Announcement newA = new Announcement(
-                    a != null ? a.id() : 0,
+            Announcement updated = new Announcement(
+                    announcement != null ? announcement.id() : 0,
                     text,
                     startPicker.getValue(),
                     endPicker.getValue(),
-                    startT, endT, days,
-                    activeCb.isSelected()
+                    newStartTime,
+                    newEndTime,
+                    days,
+                    activeCheckbox.isSelected()
             );
 
-            if (a == null) announcementService.addAnnouncement(newA);
-            else announcementService.updateAnnouncement(newA);
+            if (announcement == null) {
+                announcementService.addAnnouncement(updated);
+            } else {
+                announcementService.updateAnnouncement(updated);
+            }
 
             onSave.run();
             stage.close();
@@ -185,15 +195,48 @@ public class AnnouncementEditorDialog {
         });
 
         actions.getChildren().addAll(cancelBtn, saveBtn);
-        root.getChildren().addAll(headerText, createLabeledField("ТЕКСТ ПОВІДОМЛЕННЯ", textArea), scheduleSettings, activeCb, actions);
+        root.getChildren().addAll(
+                headerText,
+                createLabeledField("ТЕКСТ ПОВІДОМЛЕННЯ", textArea),
+                scheduleSettings,
+                activeCheckbox,
+                actions
+        );
 
         Scene scene = new Scene(root);
         scene.setFill(Color.TRANSPARENT);
         scene.getStylesheets().addAll(
-            "data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"),
-            "data:text/css," + MODERN_CHECKBOX_STYLE.replace(" ", "%20")
+                "data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"),
+                "data:text/css," + MODERN_CHECKBOX_STYLE.replace(" ", "%20")
         );
         stage.setScene(scene);
+        textArea.applyCss();
+        textArea.layout();
         stage.showAndWait();
+    }
+
+    private void updateInternalStyles(TextArea textArea, boolean focused) {
+        String background = focused ? COLOR_SURFACE_BRAND : "white";
+        Region content = (Region) textArea.lookup(".content");
+        if (content != null) {
+            content.setStyle("-fx-background-color: transparent; -fx-padding: 15;");
+        }
+        Region viewport = (Region) textArea.lookup(".viewport");
+        if (viewport != null) {
+            viewport.setStyle("-fx-background-color: transparent;");
+        }
+        Region scrollPane = (Region) textArea.lookup(".scroll-pane");
+        if (scrollPane != null) {
+            scrollPane.setStyle("-fx-background-color: " + background + "; -fx-background-radius: 17; -fx-background-insets: 0; -fx-padding: 0;");
+        }
+    }
+
+    private VBox createLabeledField(String labelText, Node field) {
+        VBox box = new VBox(8);
+        Label label = new Label(labelText);
+        label.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
+        box.getChildren().addAll(label, field);
+        VBox.setVgrow(field, Priority.ALWAYS);
+        return box;
     }
 }

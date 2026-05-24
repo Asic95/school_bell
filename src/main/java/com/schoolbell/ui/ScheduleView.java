@@ -32,7 +32,7 @@ public class ScheduleView {
             "Розклад занять",
             "Керування тижневими графіками, щоденними замінами та часом дзвінків.",
             ICON_CALENDAR,
-            "#27ae60",
+            COLOR_GREEN,
             null
         );
 
@@ -41,9 +41,9 @@ public class ScheduleView {
         VBox.setVgrow(grid, Priority.ALWAYS);
         
         grid.getChildren().addAll(
-            createManagementCard("Тижневий розклад", "Основний графік занять для всіх класів", ICON_CALENDAR, "#27ae60", "#b8e994", () -> mainApp.showEditorTab(4)),
-            createManagementCard("Заміни та зміни", "Оперативні зміни в розкладі на конкретні дати", ICON_CLOCK, "#e67e22", "#fff3e0", () -> mainApp.showEditorTab(5)),
-            createManagementCard("Час дзвінків", "Налаштування сітки годин (уроки та перерви)", ICON_BELL, "#0984e3", "#e3f2fd", () -> mainApp.showEditorTab(0))
+            createManagementCard("Тижневий розклад", "Основний графік занять для всіх класів", ICON_CALENDAR, COLOR_GREEN, COLOR_GREEN_SOFT, () -> mainApp.showEditorTab(4)),
+            createManagementCard("Заміни та зміни", "Оперативні зміни в розкладі на конкретні дати", ICON_CLOCK, COLOR_ORANGE, COLOR_ORANGE_SOFT, () -> mainApp.showEditorTab(5)),
+            createManagementCard("Час дзвінків", "Налаштування сітки годин (уроки та перерви)", ICON_BELL, COLOR_SKY, COLOR_BLUE_LIGHT, () -> mainApp.showEditorTab(0))
         );
         
         root.getChildren().addAll(header, grid);

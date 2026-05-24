@@ -26,13 +26,7 @@ import java.text.DecimalFormat;
 import static com.schoolbell.ui.CardFactory.createCardActionButton;
 import static com.schoolbell.ui.ControlFactory.createToggleSwitch;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
-import static com.schoolbell.ui.UIStyles.ICON_AIR_RAID;
-import static com.schoolbell.ui.UIStyles.ICON_CLOCK;
-import static com.schoolbell.ui.UIStyles.ICON_FOLDER;
-import static com.schoolbell.ui.UIStyles.ICON_LIFEBUOY;
-import static com.schoolbell.ui.UIStyles.ICON_MONITOR;
-import static com.schoolbell.ui.UIStyles.ICON_MUSIC;
-import static com.schoolbell.ui.UIStyles.ICON_VOLUME;
+import static com.schoolbell.ui.UIStyles.*;
 
 public class EmergencyAlertsPanel {
     private static final String SECTION_CARD =
@@ -43,7 +37,7 @@ public class EmergencyAlertsPanel {
             "-fx-border-radius: 32;" +
             "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 30, 0, 0, 10);";
     private static final String ALERT_CARD =
-            "-fx-background-color: linear-gradient(to bottom right, #ffffff, #fbfdff);" +
+            "-fx-background-color: linear-gradient(to bottom right, " + COLOR_WHITE + ", " + COLOR_SURFACE_CLOUD + ");" +
             "-fx-background-radius: 26;" +
             "-fx-border-color: rgba(226,232,240,0.6);" +
             "-fx-border-width: 1;" +
@@ -76,21 +70,21 @@ public class EmergencyAlertsPanel {
         section.setStyle(SECTION_CARD);
 
         Label title = new Label("Конфігурація сигналів");
-        title.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: #0f172a;");
+        title.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: " + COLOR_NAVY + ";");
         Label subtitle = new Label("Налаштуйте параметри сповіщень та оберіть звукові файли для кожного сценарію.");
-        subtitle.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        subtitle.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
 
         VBox list = new VBox(18);
         list.getChildren().addAll(
-                createAlertCard("Повітряна тривога", "Аудіо • Екран", ICON_AIR_RAID, "#F59E0B", "#FFF7ED", "AIR_RAID",
+                createAlertCard("Повітряна тривога", "Аудіо • Екран", ICON_AIR_RAID, COLOR_WARNING_AMBER, COLOR_AMBER_LIGHT, "AIR_RAID",
                         arAudioTg = createToggleSwitch(config.isAudioAirRaidEnabled()),
                         arAudioPath = hiddenField(config.getAudioAirRaidPath()),
                         arVisualTg = createToggleSwitch(config.isVisualAirRaidEnabled())),
-                createAlertCard("Екстрена ситуація", "Аудіо • Екран", ICON_LIFEBUOY, "#EF4444", "#FEF2F2", "EMERGENCY",
+                createAlertCard("Екстрена ситуація", "Аудіо • Екран", ICON_LIFEBUOY, COLOR_ALERT_RED, COLOR_ALERT_RED_LIGHT, "EMERGENCY",
                         emAudioTg = createToggleSwitch(config.isAudioEmergencyEnabled()),
                         emAudioPath = hiddenField(config.getAudioEmergencyPath()),
                         emVisualTg = createToggleSwitch(config.isVisualEmergencyEnabled())),
-                createAlertCard("Хвилина мовчання", "Аудіо • Екран", ICON_CLOCK, "#2563EB", "#EFF6FF", "SILENCE",
+                createAlertCard("Хвилина мовчання", "Аудіо • Екран", ICON_CLOCK, COLOR_ALERT_BLUE, COLOR_ALERT_BLUE_LIGHT, "SILENCE",
                         siAudioTg = createToggleSwitch(config.isAudioSilenceEnabled()),
                         siAudioPath = hiddenField(config.getAudioSilencePath()),
                         siVisualTg = createToggleSwitch(config.isVisualSilenceEnabled()))
@@ -124,7 +118,7 @@ public class EmergencyAlertsPanel {
 
         HBox row = new HBox(18);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setFillHeight(false); // CRITICAL: Prevent stretching
+        row.setFillHeight(true); // Allow stretching to match tallest sibling
 
         Node iconNode = createSVGIcon(iconPath, Color.web(accent), 24);
         iconNode.setScaleX(2.0); // Very large icon, ~85% fill
@@ -141,9 +135,9 @@ public class EmergencyAlertsPanel {
 
         Label status = createStatusBadge(audioToggle.isSelected() || visualToggle.isSelected());
         Label name = new Label(title);
-        name.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 19px; -fx-font-weight: 700; -fx-text-fill: #0f172a;");
+        name.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 19px; -fx-font-weight: 700; -fx-text-fill: " + COLOR_NAVY + ";");
         Label meta = new Label(channels);
-        meta.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 12px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        meta.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 12px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
 
         audioToggle.selectedProperty().addListener((obs, oldVal, newVal) -> applyStatusStyle(status, audioToggle, visualToggle));
         visualToggle.selectedProperty().addListener((obs, oldVal, newVal) -> applyStatusStyle(status, audioToggle, visualToggle));
@@ -156,18 +150,18 @@ public class EmergencyAlertsPanel {
         VBox audioConfigBtn = createAudioConfigButton(alertType, pathField);
         audioConfigBtn.setMinWidth(140);
         audioConfigBtn.setPrefWidth(160);
-        audioConfigBtn.setPrefHeight(68); // Explicit height
+        audioConfigBtn.setPrefHeight(78); // Slightly taller for better balance
         HBox.setHgrow(audioConfigBtn, Priority.SOMETIMES);
 
         HBox controls = new HBox(10,
-                createToggleSurface("Аудіо", ICON_VOLUME, audioToggle, 68),
-                createToggleSurface("Екран", ICON_MONITOR, visualToggle, 68)
+                createToggleSurface("Аудіо", ICON_VOLUME, audioToggle, 78),
+                createToggleSurface("Екран", ICON_MONITOR, visualToggle, 78)
         );
         controls.setAlignment(Pos.CENTER_LEFT);
 
         MenuButton more = new MenuButton();
         // ... (rest of the MenuButton code)
-        more.setGraphic(createSVGIcon("M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z", Color.web("#475569"), 18));
+        more.setGraphic(createSVGIcon("M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z", Color.web(COLOR_SLATE_DARK), 18));
         more.setStyle(
                 "-fx-background-color: rgba(248,250,252,0.96);" +
                 "-fx-background-radius: 18;" +
@@ -210,18 +204,18 @@ public class EmergencyAlertsPanel {
         );
 
         Label label = new Label("КОНФІГУРАЦІЯ ЗВУКІВ");
-        label.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #94a3b8; -fx-letter-spacing: 1px;");
+        label.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-letter-spacing: 1px;");
 
         HBox row = new HBox(10);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.getChildren().add(createSVGIcon(ICON_MUSIC, Color.web("#4f46e5"), 18));
+        row.getChildren().add(createSVGIcon(ICON_MUSIC, Color.web(COLOR_INDIGO), 18));
 
         Label fileName = new Label();
-        fileName.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: #0f172a;");
-        fileName.setText(alertType.equals("AIR_RAID") ? "3 файли налаштовано" : "Звуковий файл");
+        fileName.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + ";");
+        fileName.setText(alertType.equals("AIR_RAID") ? "Параметри звуків" : "Звуковий файл");
         
-        Label fileMeta = new Label("Натисніть для редагування");
-        fileMeta.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 12px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        Label fileMeta = new Label("Натисніть для зміни");
+        fileMeta.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 12px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
 
         VBox meta = new VBox(3, fileName, fileMeta);
         meta.setAlignment(Pos.CENTER_LEFT);
@@ -229,8 +223,8 @@ public class EmergencyAlertsPanel {
         card.getChildren().addAll(label, row);
 
         card.setOnMouseClicked(e -> new SignalAudioEditorDialog(mainApp, alertType).show());
-        card.setOnMouseEntered(e -> card.setStyle(card.getStyle() + "-fx-background-color: #f1f5f9;"));
-        card.setOnMouseExited(e -> card.setStyle(card.getStyle().replace("-fx-background-color: #f1f5f9;", "")));
+        card.setOnMouseEntered(e -> card.setStyle(card.getStyle() + "-fx-background-color: " + COLOR_SURFACE_SOFT + ";"));
+        card.setOnMouseExited(e -> card.setStyle(card.getStyle().replace("-fx-background-color: " + COLOR_SURFACE_SOFT + ";", "")));
 
         return card;
     }
@@ -249,9 +243,9 @@ public class EmergencyAlertsPanel {
                 "-fx-border-radius: 18;"
         );
         Label label = new Label(text);
-        label.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #0f172a;");
+        label.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + ";");
         label.setMinWidth(Region.USE_PREF_SIZE);
-        box.getChildren().addAll(createSVGIcon(iconPath, Color.web("#334155"), 16), label, toggle);
+        box.getChildren().addAll(createSVGIcon(iconPath, Color.web(COLOR_SLATE_STRONG), 16), label, toggle);
         return box;
     }
 
@@ -270,8 +264,8 @@ public class EmergencyAlertsPanel {
                     "-fx-font-family: 'Inter';" +
                     "-fx-font-size: 12px;" +
                     "-fx-font-weight: 700;" +
-                    "-fx-text-fill: #15803d;" +
-                    "-fx-background-color: #ecfdf3;" +
+                    "-fx-text-fill: " + COLOR_GREEN_DARK + ";" +
+                    "-fx-background-color: " + COLOR_SUCCESS_PALE + ";" +
                     "-fx-background-radius: 999;" +
                     "-fx-padding: 6 12;"
             );
@@ -280,8 +274,8 @@ public class EmergencyAlertsPanel {
                     "-fx-font-family: 'Inter';" +
                     "-fx-font-size: 12px;" +
                     "-fx-font-weight: 700;" +
-                    "-fx-text-fill: #64748b;" +
-                    "-fx-background-color: #f1f5f9;" +
+                    "-fx-text-fill: " + COLOR_SLATE + ";" +
+                    "-fx-background-color: " + COLOR_SURFACE_SOFT + ";" +
                     "-fx-background-radius: 999;" +
                     "-fx-padding: 6 12;"
             );

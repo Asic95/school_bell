@@ -85,30 +85,25 @@ public class ToastService {
     }
 
     private static HBox createToastNode(String message, ToastType type) {
-        HBox toast = new HBox(15);
+        HBox toast = new HBox(18);
         toast.setAlignment(Pos.CENTER_LEFT);
-        toast.setPadding(new Insets(15, 20, 15, 20));
-        toast.setStyle("-fx-background-color: white; " +
-                       "-fx-background-radius: 20; " +
-                       "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 20, 0, 0, 10); " +
-                       "-fx-border-color: #dfe6e9; " +
-                       "-fx-border-radius: 20; " +
-                       "-fx-border-width: 1;");
+        toast.setPadding(new Insets(18, 24, 18, 24));
+        toast.setStyle(SOFT_CARD + "-fx-background-radius: 24; -fx-border-radius: 24;");
 
-        // Icon circle
-        StackPane iconBox = new StackPane(createSVGIcon(type.icon, Color.WHITE, 18));
-        iconBox.setPrefSize(40, 40);
-        iconBox.setMinSize(40, 40);
-        iconBox.setStyle("-fx-background-color: " + type.gradient + "; -fx-background-radius: 12;");
+        // Icon Badge Style
+        StackPane iconBox = new StackPane(createSVGIcon(type.icon, Color.WHITE, 20));
+        iconBox.setPrefSize(48, 48);
+        iconBox.setMinSize(48, 48);
+        iconBox.setStyle("-fx-background-color: " + type.gradient + "; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);");
 
         Label label = new Label(message);
-        label.setStyle("-fx-text-fill: " + COLOR_TEXT + "; -fx-font-size: 14px; -fx-font-weight: bold;");
+        label.setStyle("-fx-text-fill: " + UIStyles.COLOR_NAVY + "; -fx-font-size: 15px; -fx-font-weight: 900;");
         label.setWrapText(true);
         HBox.setHgrow(label, Priority.ALWAYS);
 
         toast.getChildren().addAll(iconBox, label);
-        toast.setMinWidth(300);
-        toast.setMaxWidth(380);
+        toast.setMinWidth(320);
+        toast.setMaxWidth(450);
 
         return toast;
     }

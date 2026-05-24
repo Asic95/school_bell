@@ -33,20 +33,20 @@ public class BroadcastView {
 
         broadcastEnableCb = new CheckBox("Увімкнути трансляцію розкладу");
         broadcastEnableCb.setSelected(config.isBroadcastEnabled());
-        broadcastEnableCb.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        broadcastEnableCb.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         
         schoolNameField = new TextField(config.getSchoolName());
         schoolNameField.setPromptText("Назва школи (для табло)");
-        schoolNameField.setStyle(FIELD_STYLE);
-        schoolNameField.setPrefWidth(300);
+        schoolNameField.setStyle(PREMIUM_FIELD_STYLE);
+        schoolNameField.setPrefWidth(450);
 
         cityField = new TextField(config.getCityName());
         cityField.setPromptText("Місто");
-        cityField.setStyle(FIELD_STYLE);
-        cityField.setPrefWidth(300);
+        cityField.setStyle(PREMIUM_FIELD_STYLE);
+        cityField.setPrefWidth(450);
 
         portField = createStyledField(String.valueOf(config.getBroadcastPort()));
-        portField.setPrefWidth(100);
+        portField.setPrefWidth(120);
         portField.setAlignment(Pos.BASELINE_LEFT);
         portField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> 
             change.getControlNewText().matches("\\d*") ? change : null));
@@ -60,12 +60,12 @@ public class BroadcastView {
             boolean active = isFirewallRuleActive(config.getBroadcastPort());
             javafx.application.Platform.runLater(() -> {
                 btn.setDisable(false);
-                btn.setText(active ? "Firewall: ДОЗВОЛЕНО" : "ДОЗВОЛИТИ В Firewall");
-                btn.setStyle(active ? 
-                    "-fx-background-color: #e8f5e9; -fx-text-fill: " + COLOR_SUCCESS + "; -fx-font-weight: 800; -fx-font-size: 11px; -fx-padding: 8 15; -fx-background-radius: 10; -fx-border-color: " + COLOR_SUCCESS + "; -fx-border-radius: 10; -fx-cursor: hand;" :
-                    "-fx-background-color: white; -fx-text-fill: " + COLOR_WARNING + "; -fx-font-weight: 800; -fx-font-size: 11px; -fx-padding: 8 15; -fx-background-radius: 10; -fx-border-color: " + COLOR_WARNING + "; -fx-border-radius: 10; -fx-cursor: hand;"
-                );
-                btn.setGraphic(createSVGIcon(active ? ICON_CHECK : ICON_SETTINGS, Color.web(active ? COLOR_SUCCESS : COLOR_WARNING), 14));
+                btn.setText(active ? "FIREWALL: ДОЗВОЛЕНО" : "ДОЗВОЛИТИ В FIREWALL");
+                String activeStyle = active ? 
+                    "-fx-background-color: " + COLOR_SUCCESS_LIGHT + "; -fx-text-fill: " + COLOR_SUCCESS + "; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 14; -fx-border-color: " + COLOR_SUCCESS_BORDER + "; -fx-border-radius: 14; -fx-cursor: hand;" :
+                    "-fx-background-color: white; -fx-text-fill: " + COLOR_ORANGE_BRIGHT + "; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 14; -fx-border-color: " + COLOR_ORANGE_BORDER_LIGHT + "; -fx-border-radius: 14; -fx-cursor: hand;";
+                btn.setStyle(activeStyle);
+                btn.setGraphic(createSVGIcon(active ? ICON_CHECK : ICON_SETTINGS, Color.web(active ? COLOR_SUCCESS : COLOR_ORANGE_BRIGHT), 16));
             });
         });
         thread.setDaemon(true);
@@ -91,37 +91,38 @@ public class BroadcastView {
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
         
-        VBox headerArea = createSectionHeader(
+        HBox headerArea = ControlFactory.createPageHeader(
+                "СЕРВЕР ТА МЕРЕЖА",
                 "Керування трансляцією",
-                "Налаштування веб-табло та керування підключеними пристроями",
-                "#2980b9",
-                ICON_BROADCAST
+                "Налаштування веб-табло та керування підключеними пристроями у вашій локальній мережі.",
+                ICON_BROADCAST,
+                COLOR_SKY_DARK,
+                null
         );
 
-        HBox contentLayout = new HBox(25);
-        VBox mainContent = new VBox(25);
+        HBox contentLayout = new HBox(28);
+        VBox mainContent = new VBox(28);
         HBox.setHgrow(mainContent, Priority.ALWAYS);
 
         // --- DASHBOARD SETTINGS ---
-        VBox settingsCard = createSettingsSection("НАЛАШТУВАННЯ ТАБЛО", "#2980b9", ICON_MONITOR);
-        settingsCard.setStyle(SOFT_CARD);
-        settingsCard.setPadding(new Insets(25));
+        VBox settingsCard = createSettingsSection("НАЛАШТУВАННЯ ТАБЛО", COLOR_SKY_DARK, ICON_MONITOR);
+        settingsCard.setStyle(SOFT_CARD + "-fx-padding: 30;");
         
         // --- MASTER SWITCH ---
         HBox masterSwitch = new HBox(20);
         masterSwitch.setAlignment(Pos.CENTER_LEFT);
-        masterSwitch.setPadding(new Insets(0, 0, 20, 0));
-        masterSwitch.setStyle("-fx-border-color: #f1f2f6; -fx-border-width: 0 0 1 0;");
+        masterSwitch.setPadding(new Insets(0, 0, 25, 0));
+        masterSwitch.setStyle("-fx-border-color: " + COLOR_SURFACE_SOFT + "; -fx-border-width: 0 0 1 0;");
 
         VBox switchText = new VBox(4);
         Label switchTitle = new Label("ТРАНСЛЯЦІЯ РОЗКЛАДУ");
-        switchTitle.setStyle(SUB_HEADER_STYLE + "-fx-font-size: 14px;");
-        Label switchDesc = new Label("Активує сервер для передачі даних на табло");
-        switchDesc.setStyle("-fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        switchTitle.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: " + COLOR_NAVY + ";");
+        Label switchDesc = new Label("Активує сервер для передачі даних на віддалені табло");
+        switchDesc.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_SLATE + ";");
         switchText.getChildren().addAll(switchTitle, switchDesc);
 
-        broadcastEnableCb.setText("Увімкнено");
-        broadcastEnableCb.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_PRIMARY + ";");
+        broadcastEnableCb.setText("СЕРВЕР АКТИВНИЙ");
+        broadcastEnableCb.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_INDIGO + ";");
         
         Region switchSpacer = new Region();
         HBox.setHgrow(switchSpacer, Priority.ALWAYS);
@@ -129,22 +130,22 @@ public class BroadcastView {
 
         String localIp = getLocalIp();
         
-        VBox addrBox = new VBox(15);
-        addrBox.setPadding(new Insets(20, 0, 0, 0));
-        addrBox.setStyle("-fx-border-color: #f1f2f6; -fx-border-width: 1 0 0 0;");
+        VBox addrBox = new VBox(20);
+        addrBox.setPadding(new Insets(25, 0, 0, 0));
+        addrBox.setStyle("-fx-border-color: " + COLOR_SURFACE_SOFT + "; -fx-border-width: 1 0 0 0;");
 
         Label addrHeader = new Label("МЕРЕЖЕВИЙ ДОСТУП");
-        addrHeader.setStyle(HEADER_STYLE + "-fx-font-size: 10px;");
+        addrHeader.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
 
-        HBox infoCard = new HBox(15);
+        HBox infoCard = new HBox(20);
         infoCard.setAlignment(Pos.CENTER_LEFT);
-        infoCard.setStyle("-fx-background-color: #f8f9fa; -fx-padding: 15; -fx-background-radius: 12; -fx-border-color: #dfe6e9; -fx-border-radius: 12;");
+        infoCard.setStyle("-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-padding: 20; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 18;");
         
-        VBox urlGroup = new VBox(5);
+        VBox urlGroup = new VBox(6);
         Label urlDisplay = new Label("http://" + localIp + ":" + config.getBroadcastPort());
-        urlDisplay.setStyle("-fx-font-family: 'Monospaced'; -fx-font-size: 14px; -fx-text-fill: #2980b9; -fx-font-weight: bold;");
-        Label urlDesc = new Label("Посилання для підключення пристроїв");
-        urlDesc.setStyle("-fx-font-size: 10px; -fx-text-fill: #95a5a6;");
+        urlDisplay.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 18px; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 900;");
+        Label urlDesc = new Label("Локальне посилання для підключення моніторів");
+        urlDesc.setStyle("-fx-font-size: 12px; -fx-text-fill: " + COLOR_SLATE + ";");
         urlGroup.getChildren().addAll(urlDisplay, urlDesc);
         
         portField.textProperty().addListener((obs, oldVal, newVal) -> {
@@ -155,19 +156,17 @@ public class BroadcastView {
         HBox.setHgrow(spacer2, Priority.ALWAYS);
 
         Button openBrowserBtn = new Button("ВІДКРИТИ");
-        openBrowserBtn.setGraphic(createSVGIcon(ICON_MONITOR, Color.WHITE, 14));
-        openBrowserBtn.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: 900; -fx-font-size: 10px; -fx-padding: 8 15; -fx-background-radius: 8; -fx-cursor: hand;");
+        openBrowserBtn.setGraphic(createSVGIcon(ICON_MONITOR, Color.WHITE, 16));
+        openBrowserBtn.setGraphicTextGap(10);
+        openBrowserBtn.setStyle("-fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 14; -fx-cursor: hand;");
         openBrowserBtn.setOnAction(e -> mainApp.getHostServices().showDocument("http://localhost:" + portField.getText().trim()));
         
         infoCard.getChildren().addAll(urlGroup, spacer2, openBrowserBtn);
 
-        HBox firewallRow = new HBox(10);
+        HBox firewallRow = new HBox(15);
         firewallRow.setAlignment(Pos.CENTER_LEFT);
         Button firewallBtn = new Button();
         updateFirewallButtonStatus(firewallBtn);
-        firewallBtn.setGraphic(createSVGIcon(ICON_SETTINGS, Color.web(COLOR_WARNING), 14));
-        firewallBtn.setGraphicTextGap(8);
-        firewallBtn.setStyle("-fx-background-color: white; -fx-font-weight: 800; -fx-font-size: 11px; -fx-padding: 8 15; -fx-background-radius: 10; -fx-border-color: #dfe6e9; -fx-cursor: hand;");
         firewallBtn.setOnAction(e -> {
             setupFirewall();
             javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2));
@@ -175,35 +174,33 @@ public class BroadcastView {
             delay.play();
         });
         
-        Label fwStatus = new Label("Статус Firewall для портів");
-        fwStatus.setStyle("-fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
+        Label fwStatus = new Label("Статус брандмауера Windows для вибраного порту");
+        fwStatus.setStyle("-fx-font-size: 12px; -fx-text-fill: " + COLOR_SLATE + ";");
         firewallRow.getChildren().addAll(firewallBtn, fwStatus);
         
         addrBox.getChildren().addAll(addrHeader, infoCard, firewallRow);
 
-        VBox form = new VBox(20,
+        VBox form = new VBox(22,
             masterSwitch,
-            createModernField("Назва закладу (для табло):", schoolNameField),
-            createModernField("Місто:", cityField),
-            createModernField("Основний порт (для веб-табло):", portField),
+            createModernField("НАЗВА ЗАКЛАДУ (ДЛЯ ТАБЛО):", schoolNameField),
+            createModernField("МІСТО:", cityField),
+            createModernField("ПОРТ ТРАНСЛЯЦІЇ (РЕКОМЕНДОВАНО: 8080):", portField),
             addrBox
         );
         settingsCard.getChildren().add(form);
 
         VBox deviceMonitorNode = (VBox) deviceMonitor.build();
 
-        Button saveBtn = new Button("ЗБЕРЕГТИ НАЛАШТУВАННЯ");
-        saveBtn.setGraphic(createSVGIcon(ICON_SAVE, Color.WHITE, 18));
-        saveBtn.setGraphicTextGap(10);
-        saveBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: 900; -fx-padding: 14 50; -fx-background-radius: 12; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(39, 174, 96, 0.3), 10, 0, 0, 5);");
+        Button saveBtn = ControlFactory.createPrimaryActionButton("ЗБЕРЕГТИ ПАРАМЕТРИ", ICON_SAVE);
+        saveBtn.setStyle(PREMIUM_BTN_STYLE);
         saveBtn.setOnAction(e -> save());
 
         mainContent.getChildren().addAll(settingsCard, deviceMonitorNode, new HBox(saveBtn));
 
         VBox rightColumn = createSideHelpPanel(
-            createHelpCard(ICON_INFO, "Обмін даними", "Порт " + config.getBroadcastPort() + " використовується для синхронізації даних. Він відкривається автоматично.", "#2980b9"),
-            createHelpCard(ICON_MONITOR, "Веб-панель", "Табло доступне за вказаною HTTP-адресою. Будь-який пристрій з браузером може стати табло.", "#8e44ad"),
-            createHelpCard(ICON_CLASS, "Керування доступом", "Ви можете бачити всі пристрої, що підключалися. Блокуйте невідомі IP для безпеки.", "#6c5ce7")
+            createHelpCard(ICON_INFO, "Обмін даними", "Порт " + config.getBroadcastPort() + " використовується для синхронізації. Перевірте, чи не блокує його антивірус.", COLOR_PRIMARY),
+            createHelpCard(ICON_MONITOR, "Веб-панель", "Табло працює в будь-якому сучасному браузері. Ми рекомендуємо Chrome або Edge.", COLOR_VIOLET),
+            createHelpCard(ICON_CLASS, "Підключення", "Ви можете бачити статус підключених моніторів у списку нижче.", COLOR_TEAL_DARK)
         );
 
         contentLayout.getChildren().addAll(mainContent, rightColumn);
@@ -233,16 +230,11 @@ public class BroadcastView {
     }
 
     private Node createModernField(String label, TextField field) {
-        VBox v = new VBox(8);
-        Label l = createStyledLabel(label);
+        VBox v = new VBox(10);
+        Label l = new Label(label);
+        l.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
         v.getChildren().addAll(l, field);
         return v;
-    }
-
-    private Label createStyledLabel(String text) {
-        Label l = new Label(text);
-        l.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + ";");
-        return l;
     }
 
     private void setupFirewall() {

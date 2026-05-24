@@ -31,33 +31,9 @@ import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.ControlFactory.createStyledField;
 import static com.schoolbell.ui.ControlFactory.createToggleSwitch;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
-import static com.schoolbell.ui.UIStyles.BTN_BASE;
-import static com.schoolbell.ui.UIStyles.COLOR_BG;
-import static com.schoolbell.ui.UIStyles.COLOR_PRIMARY;
-import static com.schoolbell.ui.UIStyles.COLOR_SUCCESS;
-import static com.schoolbell.ui.UIStyles.HEADER_STYLE;
-import static com.schoolbell.ui.UIStyles.ICON_EDIT;
-import static com.schoolbell.ui.UIStyles.ICON_FOLDER;
-import static com.schoolbell.ui.UIStyles.ICON_MUSIC;
-import static com.schoolbell.ui.UIStyles.ICON_PLUS;
-import static com.schoolbell.ui.UIStyles.ICON_TRASH;
-import static com.schoolbell.ui.UIStyles.MODERN_DATE_PICKER_STYLE;
+import static com.schoolbell.ui.UIStyles.*;
 
 public class MediaSchedulerPanel {
-    private static final String SECTION_CARD =
-            "-fx-background-color: rgba(255,255,255,0.96);" +
-            "-fx-background-radius: 32;" +
-            "-fx-border-color: rgba(226,232,240,0.72);" +
-            "-fx-border-width: 1;" +
-            "-fx-border-radius: 32;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 30, 0, 0, 10);";
-    private static final String ITEM_CARD =
-            "-fx-background-color: linear-gradient(to bottom right, #ffffff, #fbfdff);" +
-            "-fx-background-radius: 22;" +
-            "-fx-border-color: rgba(226,232,240,0.65);" +
-            "-fx-border-width: 1;" +
-            "-fx-border-radius: 22;";
-
     private final MainApp mainApp;
 
     public MediaSchedulerPanel(MainApp mainApp) {
@@ -65,24 +41,25 @@ public class MediaSchedulerPanel {
     }
 
     public Node build() {
-        VBox card = new VBox(20);
-        card.setPadding(new Insets(28));
-        card.setStyle(SECTION_CARD);
+        VBox card = new VBox(25);
+        card.setPadding(new Insets(30));
+        card.setStyle(SOFT_CARD);
 
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox copy = new VBox(4);
         Label title = new Label("Автоматичні аудіо-повідомлення");
-        title.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: #0f172a;");
+        title.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 22px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         Label subtitle = new Label("Керуйте розкладом автоматичного відтворення аудіо для шкільних повідомлень та подій.");
-        subtitle.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        subtitle.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
         copy.getChildren().addAll(title, subtitle);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button addBtn = createPrimaryActionButton("Додати повідомлення", ICON_PLUS);
+        Button addBtn = createPrimaryActionButton("ДОДАТИ ПОВІДОМЛЕННЯ", ICON_PLUS);
+        addBtn.setStyle(PREMIUM_BTN_STYLE + "-fx-padding: 10 20; -fx-font-size: 13px;");
         addBtn.setOnAction(e -> {
             new MediaEventEditorDialog(mainApp, null).showAndWait();
             refreshMediaEventsList((VBox) card.getChildren().get(1));
@@ -90,7 +67,7 @@ public class MediaSchedulerPanel {
 
         header.getChildren().addAll(copy, spacer, addBtn);
 
-        VBox list = new VBox(14);
+        VBox list = new VBox(15);
         refreshMediaEventsList(list);
 
         card.getChildren().addAll(header, list);
@@ -106,60 +83,64 @@ public class MediaSchedulerPanel {
     }
 
     private HBox createMediaEventCard(MediaEvent event, VBox list) {
-        HBox row = new HBox(18);
+        HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(18, 20, 18, 20));
-        row.setStyle(ITEM_CARD);
+        row.setPadding(new Insets(20, 24, 20, 24));
+        row.setStyle("-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-background-radius: 22; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 22;");
 
-        VBox iconBox = new VBox(createSVGIcon(event.isFolder() ? ICON_FOLDER : ICON_MUSIC, Color.web("#4f46e5"), 20));
+        VBox iconBox = new VBox(createSVGIcon(event.isFolder() ? ICON_FOLDER : ICON_MUSIC, Color.web(COLOR_PRIMARY), 22));
         iconBox.setAlignment(Pos.CENTER);
         iconBox.setPrefSize(52, 52);
-        iconBox.setStyle("-fx-background-color: linear-gradient(to bottom right, #eef2ff, #eff6ff); -fx-background-radius: 18;");
+        iconBox.setStyle(ICON_BADGE_STYLE + "-fx-background-radius: 14;");
 
         Label name = new Label(event.name());
-        name.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 18px; -fx-font-weight: 700; -fx-text-fill: #0f172a;");
+        name.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_NAVY + ";");
         Label detail = new Label(describeEvent(event));
-        detail.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 13px; -fx-font-weight: 500; -fx-text-fill: #64748b;");
+        detail.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 13px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
         VBox info = new VBox(4, name, detail);
         HBox.setHgrow(info, Priority.ALWAYS);
 
-        Label status = new Label(event.isActive() ? "Активне" : "Вимкнене");
+        Label status = new Label(event.isActive() ? "АКТИВНЕ" : "ВИМКНЕНЕ");
         status.setStyle(
                 "-fx-font-family: 'Inter';" +
-                "-fx-font-size: 12px;" +
-                "-fx-font-weight: 700;" +
-                "-fx-text-fill: " + (event.isActive() ? "#15803d" : "#64748b") + ";" +
-                "-fx-background-color: " + (event.isActive() ? "#ecfdf3" : "#f1f5f9") + ";" +
+                "-fx-font-size: 10px;" +
+                "-fx-font-weight: 900;" +
+                "-fx-text-fill: " + (event.isActive() ? COLOR_SUCCESS : COLOR_SLATE) + ";" +
+                "-fx-background-color: " + (event.isActive() ? COLOR_SUCCESS_LIGHT : COLOR_SURFACE_SOFT) + ";" +
                 "-fx-background-radius: 999;" +
-                "-fx-padding: 6 12;"
+                "-fx-padding: 6 14;" +
+                "-fx-border-color: " + (event.isActive() ? COLOR_SUCCESS_BORDER : COLOR_BORDER_SOFT) + ";" +
+                "-fx-border-radius: 999;"
         );
 
         var toggle = createToggleSwitch(event.isActive());
         toggle.selectedProperty().addListener((obs, oldVal, newVal) -> {
             MediaEvent updated = new MediaEvent(event.id(), event.name(), event.path(), event.type(), event.time(), event.daysOfWeek(), event.date(), newVal, event.isFolder(), event.durationMinutes(), event.breakAnchor(), event.breakOffset());
             mainApp.getMediaSchedulerService().updateEvent(updated);
-            row.setOpacity(newVal ? 1.0 : 0.72);
-            status.setText(newVal ? "Активне" : "Вимкнене");
+            row.setOpacity(newVal ? 1.0 : 0.75);
+            status.setText(newVal ? "АКТИВНЕ" : "ВИМКНЕНЕ");
             status.setStyle(
                     "-fx-font-family: 'Inter';" +
-                    "-fx-font-size: 12px;" +
-                    "-fx-font-weight: 700;" +
-                    "-fx-text-fill: " + (newVal ? "#15803d" : "#64748b") + ";" +
-                    "-fx-background-color: " + (newVal ? "#ecfdf3" : "#f1f5f9") + ";" +
+                    "-fx-font-size: 10px;" +
+                    "-fx-font-weight: 900;" +
+                    "-fx-text-fill: " + (newVal ? COLOR_SUCCESS : COLOR_SLATE) + ";" +
+                    "-fx-background-color: " + (newVal ? COLOR_SUCCESS_LIGHT : COLOR_SURFACE_SOFT) + ";" +
                     "-fx-background-radius: 999;" +
-                    "-fx-padding: 6 12;"
+                    "-fx-padding: 6 14;" +
+                    "-fx-border-color: " + (newVal ? COLOR_SUCCESS_BORDER : COLOR_BORDER_SOFT) + ";" +
+                    "-fx-border-radius: 999;"
             );
         });
-        row.setOpacity(event.isActive() ? 1.0 : 0.72);
+        row.setOpacity(event.isActive() ? 1.0 : 0.75);
 
-        HBox actions = new HBox(10);
+        HBox actions = new HBox(12);
         actions.setAlignment(Pos.CENTER_RIGHT);
-        Button edit = createCardActionButton(ICON_EDIT, "#EEF2FF", "#C7D2FE");
+        Button edit = createCardActionButton(ICON_EDIT, COLOR_SURFACE_SUBTLE, COLOR_PRIMARY);
         edit.setOnAction(e -> {
             new MediaEventEditorDialog(mainApp, event).showAndWait();
             refreshMediaEventsList(list);
         });
-        Button delete = createCardActionButton(ICON_TRASH, "#FEF2F2", "#FECACA");
+        Button delete = createCardActionButton(ICON_TRASH, COLOR_DANGER_LIGHT, COLOR_DANGER);
         delete.setOnAction(e -> {
             mainApp.getMediaSchedulerService().deleteEvent(event.id());
             refreshMediaEventsList(list);
@@ -167,6 +148,10 @@ public class MediaSchedulerPanel {
 
         actions.getChildren().addAll(status, toggle, edit, delete);
         row.getChildren().addAll(iconBox, info, actions);
+        
+        row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: " + COLOR_SURFACE_SOFT + "; -fx-background-radius: 22; -fx-border-color: " + COLOR_SLATE_MUTED + "; -fx-border-radius: 22;"));
+        row.setOnMouseExited(e -> row.setStyle("-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-background-radius: 22; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 22;"));
+        
         return row;
     }
 

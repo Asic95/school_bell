@@ -29,7 +29,7 @@ public class SystemJournalPane extends VBox {
         );
 
         Label title = new Label("ЖУРНАЛ СИСТЕМНИХ ПОДІЙ");
-        title.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #94a3b8; -fx-letter-spacing: 1.2px;");
+        title.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-letter-spacing: 1.2px;");
 
         ListView<String> logList = new ListView<>(mainApp.getSystemLogs());
         logList.setPrefHeight(300);
@@ -50,13 +50,13 @@ public class SystemJournalPane extends VBox {
                     
                     String baseStyle = "-fx-background-radius: 8; -fx-margin: 2 0; ";
                     if (item.contains("[ERROR]")) {
-                        setStyle(baseStyle + "-fx-background-color: #fff5f5; -fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                        setStyle(baseStyle + "-fx-background-color: " + COLOR_DANGER_LIGHT + "; -fx-text-fill: " + COLOR_RED_SOFT + "; -fx-font-weight: bold;");
                     } else if (item.contains("[SUCCESS]")) {
-                        setStyle(baseStyle + "-fx-background-color: #f0fff4; -fx-text-fill: #27ae60; -fx-font-weight: bold;");
+                        setStyle(baseStyle + "-fx-background-color: " + COLOR_SUCCESS_LIGHT + "; -fx-text-fill: " + COLOR_GREEN + "; -fx-font-weight: bold;");
                     } else if (item.contains("[WARNING]")) {
-                        setStyle(baseStyle + "-fx-background-color: #fffaf0; -fx-text-fill: #f39c12; -fx-font-weight: bold;");
+                        setStyle(baseStyle + "-fx-background-color: " + COLOR_DANGER_PALE + "; -fx-text-fill: " + COLOR_ORANGE_DARK + "; -fx-font-weight: bold;");
                     } else {
-                        setStyle(baseStyle + "-fx-background-color: transparent; -fx-text-fill: #334155;");
+                        setStyle(baseStyle + "-fx-background-color: transparent; -fx-text-fill: " + COLOR_SLATE_STRONG + ";");
                     }
                 }
             }

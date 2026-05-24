@@ -24,62 +24,240 @@ public class UIStyles {
     public static final String COLOR_BLUE_LIGHT = "#e3f2fd";
     public static final String COLOR_GREEN_LIGHT = "#e8f8f5";
     public static final String COLOR_PURPLE_LIGHT = "#f3efff";
+    public static final String COLOR_NAVY = "#0f172a";
+    public static final String COLOR_SLATE = "#64748b";
+    public static final String COLOR_SLATE_LIGHT = "#94a3b8";
+    public static final String COLOR_SLATE_MUTED = "#cbd5e1";
+    public static final String COLOR_BORDER_SOFT = "#e2e8f0";
+    public static final String COLOR_BORDER_FIELD = "#dbe4f0";
+    public static final String COLOR_SURFACE_SUBTLE = "#f1f2f6";
+    public static final String COLOR_SURFACE_SOFT = "#f1f5f9";
+    public static final String COLOR_SURFACE_SKY = "#f8fafc";
+    public static final String COLOR_SURFACE_BRAND = "#f8faff";
+    public static final String COLOR_SURFACE_GLASS_START = "#f8fbff";
+    public static final String COLOR_SURFACE_GLASS_END = "#edf4ff";
+    public static final String COLOR_INDIGO = "#4f46e5";
+    public static final String COLOR_INDIGO_DARK = "#4338ca";
+    public static final String COLOR_PRIMARY_DARK = "#1d4ed8";
+    public static final String COLOR_SUCCESS_LIGHT = "#f0fdf4";
+    public static final String COLOR_DANGER_LIGHT = "#fff5f5";
+    public static final String COLOR_DANGER_SOFT = "#fef2f2";
+    public static final String COLOR_DANGER_BORDER = "#fee2e2";
+    public static final String COLOR_DANGER_PALE = "#fffafa";
+    public static final String COLOR_SURFACE_CANVAS = "#f8f9fa";
+    public static final String COLOR_SURFACE_ELEVATED = "#fcfdfe";
+    public static final String COLOR_WHITE_MUTED_BORDER = "#dfe6e9";
+    public static final String COLOR_INDIGO_SOFT = "#6c5ce7";
+    public static final String COLOR_ORANGE = "#e67e22";
+    public static final String COLOR_TEAL = "#00b894";
+    public static final String COLOR_TEAL_DARK = "#059669";
+    public static final String COLOR_SKY = "#0984e3";
+    public static final String COLOR_SKY_DARK = "#2980b9";
+    public static final String COLOR_CORAL = "#e17055";
+    public static final String COLOR_VIOLET = "#7c3aed";
+    public static final String COLOR_RED_SOFT = "#e74c3c";
+    public static final String COLOR_GREEN = "#27ae60";
+    public static final String COLOR_CYAN = "#00cec9";
+    public static final String COLOR_ORANGE_DARK = "#f39c12";
+    public static final String COLOR_GRAY_BLUE = "#334155";
+    public static final String COLOR_ICON_MUTED = "#b2bec3";
+    public static final String COLOR_PURPLE_DARK = "#8e44ad";
+    public static final String COLOR_BLUE = "#3498db";
+    public static final String COLOR_BLUE_SIGNAL = "#4a76ff";
+    public static final String COLOR_ORANGE_SIGNAL = "#ff9d3f";
+    public static final String COLOR_RED_SIGNAL = "#ff5f5f";
+    public static final String COLOR_WAVE_MUTED = "#8b97a8";
+    public static final String COLOR_WARNING_AMBER = "#f59e0b";
+    public static final String COLOR_ORANGE_BRIGHT = "#ea580c";
+    public static final String COLOR_PURPLE_SOFT = "#f5f3ff";
+    public static final String COLOR_TEXT_STRONG = "#1e293b";
+    public static final String COLOR_TANGERINE = "#e17055";
+    public static final String COLOR_AMBER_LIGHT = "#fff7ed";
+    public static final String COLOR_ALERT_RED = "#ef4444";
+    public static final String COLOR_ALERT_RED_LIGHT = "#fef2f2";
+    public static final String COLOR_ALERT_BLUE = "#2563eb";
+    public static final String COLOR_ALERT_BLUE_LIGHT = "#eff6ff";
+    public static final String COLOR_ZINC_LIGHT = "#a1a1aa";
+    public static final String COLOR_GREEN_DARK = "#15803d";
+    public static final String COLOR_SUCCESS_PALE = "#ecfdf3";
+    public static final String COLOR_SUCCESS_BORDER = "#dcfce7";
+    public static final String COLOR_SLATE_DARK = "#475569";
+    public static final String COLOR_SLATE_STRONG = "#334155";
+    public static final String COLOR_SURFACE_CLOUD = "#fbfdff";
+    public static final String COLOR_GREEN_SOFT = "#b8e994";
+    public static final String COLOR_ORANGE_SOFT = "#fff3e0";
+    public static final String COLOR_SALMON = "#ff7675";
+    public static final String COLOR_CYAN_LIGHT = "#e0fcfb";
+    public static final String COLOR_ORANGE_BORDER_LIGHT = "#ffedd5";
+    public static final String COLOR_SURFACE_FAINT = "#fafafa";
+    public static final String COLOR_GREEN_BRIGHT = "#22c55e";
+    public static final String COLOR_LAVENDER = "#8a6cf6";
+    public static final String COLOR_BLUE_BRIGHT = "#4f9bff";
+    public static final String COLOR_TURQUOISE = "#00b3c4";
+    public static final String COLOR_GOLDEN_ORANGE = "#f08a1b";
+    public static final String COLOR_MAGENTA_SOFT = "#cb6bd1";
+    public static final String COLOR_BLUE_VIVID = "#4f7cff";
+    public static final String COLOR_YELLOW_SOFT = "#fdcb6e";
+    public static final String COLOR_PINK = "#e84393";
+    public static final String COLOR_SKY_BRIGHT = "#17c0eb";
+    public static final String COLOR_LIME = "#3ae374";
+    public static final String COLOR_PINK_LIGHT = "#ffb8b8";
+    public static final String COLOR_SKY_PASTEL = "#74b9ff";
+    public static final String COLOR_MINT = "#55efc4";
+    public static final String COLOR_PEACH = "#fab1a0";
+    public static final String COLOR_BUTTER = "#ffeaa7";
+    public static final String COLOR_AQUA = "#81ecec";
+    public static final String COLOR_SLATE_PALE = "#c4cfde";
 
-    public static final String DEPTH_1 = "-fx-background-color: #f1f2f6;";
+    public static final String DEPTH_1 = "-fx-background-color: " + COLOR_SURFACE_SUBTLE + ";";
     public static final String DEPTH_2 = "-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 8, 0, 0, 3);";
-    public static final String SOFT_CARD = "-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e4e4e7; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 8, 0, 0, 2);";
-    public static final String HEADER_STYLE = "-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #64748b; -fx-text-transform: uppercase; -fx-letter-spacing: 1.5px;";
-    public static final String SUB_HEADER_STYLE = "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + "; -fx-letter-spacing: 0.5px;";
+    
+    public static final String SOFT_CARD = 
+            "-fx-background-color: rgba(255,255,255,0.96); " +
+            "-fx-background-radius: 28; " +
+            "-fx-border-color: rgba(226,232,240,0.7); " +
+            "-fx-border-width: 1; " +
+            "-fx-border-radius: 28; " +
+            "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 30, 0, 0, 10);";
 
-    public static final String VALUE_STYLE = "-fx-font-size: 26px; -fx-font-family: 'Monospaced'; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + ";";
-    public static final String BTN_BASE = "-fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 12; -fx-cursor: hand;";
-    public static final String COMBO_STYLE = "-fx-font-size: 14px; -fx-background-color: white; -fx-background-insets: 0; -fx-background-radius: 8; -fx-border-color: #dfe6e9; -fx-border-radius: 8; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;";
-    public static final String FIELD_STYLE = "-fx-font-size: 14px; -fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #dfe6e9; -fx-border-radius: 8; -fx-padding: 8;";
+    public static final String PREMIUM_FIELD_STYLE =
+            "-fx-font-family: 'Inter';" +
+            "-fx-font-size: 17px;" +
+            "-fx-font-weight: 600;" +
+            "-fx-background-color: white;" +
+            "-fx-background-radius: 18;" +
+            "-fx-border-color: " + COLOR_BORDER_FIELD + ";" +
+            "-fx-border-radius: 18;" +
+            "-fx-border-width: 1;" +
+            "-fx-padding: 11 16;" +
+            "-fx-text-fill: " + COLOR_NAVY + ";" +
+            "-fx-prompt-text-fill: " + COLOR_SLATE + ";";
+
+    public static final String PREMIUM_FIELD_FOCUSED_STYLE =
+            PREMIUM_FIELD_STYLE +
+            "-fx-border-color: " + COLOR_INDIGO + ";" +
+            "-fx-background-color: " + COLOR_SURFACE_BRAND + ";";
+
+    public static final String PREMIUM_BTN_STYLE =
+            "-fx-background-color: linear-gradient(to right, " + COLOR_INDIGO + ", " + COLOR_PRIMARY + ");" +
+            "-fx-text-fill: white;" +
+            "-fx-background-radius: 18;" +
+            "-fx-font-weight: 900;" +
+            "-fx-padding: 14 24;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.28), 24, 0, 0, 8);";
+
+    public static final String ICON_BADGE_STYLE =
+            "-fx-min-width: 54; -fx-min-height: 54; -fx-max-width: 54; -fx-max-height: 54;" +
+            "-fx-background-radius: 18;" +
+            "-fx-alignment: CENTER;" +
+            "-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + ");";
+
+    public static final String PREMIUM_TOGGLE_CONTAINER =
+            "-fx-background-color: rgba(241,245,249,0.92);" +
+            "-fx-background-radius: 22;" +
+            "-fx-padding: 4;";
+
+    public static final String PREMIUM_TOGGLE_ACTIVE =
+            "-fx-background-color: linear-gradient(to right, " + COLOR_INDIGO + ", " + COLOR_PRIMARY + ");" +
+            "-fx-text-fill: white;" +
+            "-fx-background-radius: 16;" +
+            "-fx-font-weight: bold;" +
+            "-fx-padding: 8 16;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.28), 12, 0, 0, 4);" +
+            "-fx-cursor: hand;";
+
+    public static final String PREMIUM_TOGGLE_INACTIVE =
+            "-fx-background-color: transparent;" +
+            "-fx-text-fill: " + COLOR_SLATE + ";" +
+            "-fx-background-radius: 16;" +
+            "-fx-font-weight: bold;" +
+            "-fx-padding: 8 16;" +
+            "-fx-cursor: hand;";
+
+    public static final String HEADER_STYLE = "-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE + "; -fx-text-transform: uppercase; -fx-letter-spacing: 1.5px;";
+    public static final String SUB_HEADER_STYLE = "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + "; -fx-letter-spacing: 0.5px;";
+    public static final String DIALOG_TITLE_STYLE = "-fx-font-family: 'Inter'; -fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";";
+    public static final String DIALOG_TITLE_MEDIUM_STYLE = "-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";";
+    public static final String DIALOG_TITLE_SMALL_STYLE = "-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";";
+    public static final String DIALOG_SUBTITLE_STYLE = "-fx-font-family: 'Inter'; -fx-font-size: 15px; -fx-text-fill: " + COLOR_SLATE + ";";
+    public static final String DIALOG_SECONDARY_BUTTON_STYLE =
+            "-fx-background-color: white;" +
+            "-fx-text-fill: " + COLOR_SLATE + ";" +
+            "-fx-font-weight: 800;" +
+            "-fx-padding: 12 24;" +
+            "-fx-background-radius: 18;" +
+            "-fx-border-color: " + COLOR_BORDER_SOFT + ";" +
+            "-fx-border-radius: 18;" +
+            "-fx-cursor: hand;";
+    public static final String DIALOG_SECONDARY_BUTTON_HOVER_STYLE =
+            DIALOG_SECONDARY_BUTTON_STYLE +
+            "-fx-background-color: " + COLOR_SURFACE_SUBTLE + ";";
+    public static final String DIALOG_DANGER_BUTTON_STYLE =
+            "-fx-background-color: white;" +
+            "-fx-text-fill: " + COLOR_DANGER + ";" +
+            "-fx-font-weight: 800;" +
+            "-fx-padding: 12 24;" +
+            "-fx-background-radius: 18;" +
+            "-fx-cursor: hand;" +
+            "-fx-border-color: " + COLOR_DANGER_BORDER + ";" +
+            "-fx-border-radius: 18;";
+    public static final String DIALOG_DANGER_BUTTON_HOVER_STYLE =
+            DIALOG_DANGER_BUTTON_STYLE +
+            "-fx-background-color: " + COLOR_DANGER_SOFT + ";" +
+            "-fx-border-color: " + COLOR_DANGER + ";";
+
+    public static final String PREMIUM_SELECT_STYLE =
+            "-fx-font-family: 'Inter';" +
+            "-fx-font-size: 17px;" +
+            "-fx-font-weight: 600;" +
+            "-fx-background-color: white;" +
+            "-fx-background-radius: 18;" +
+            "-fx-border-color: " + COLOR_BORDER_FIELD + ";" +
+            "-fx-border-radius: 18;" +
+            "-fx-border-width: 1;" +
+            "-fx-padding: 11 16;" +
+            "-fx-focus-color: transparent;" +
+            "-fx-faint-focus-color: transparent;";
 
     public static final String MODERN_SPINNER_STYLE = 
-        ".spinner { -fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #dfe6e9; -fx-border-radius: 8; } " +
-        ".spinner > .text-field { -fx-font-size: 14px; -fx-background-color: white; -fx-background-radius: 8 0 0 8; -fx-background-insets: 0; -fx-padding: 8; } " +
-        ".spinner > .increment-arrow-button, .spinner > .decrement-arrow-button { -fx-background-color: #f1f2f6; -fx-background-insets: 0; -fx-cursor: hand; } " +
-        ".spinner > .increment-arrow-button { -fx-background-radius: 0 8 0 0; } " +
-        ".spinner > .decrement-arrow-button { -fx-background-radius: 0 0 8 0; } " +
-        ".spinner > .increment-arrow-button:hover, .spinner > .decrement-arrow-button:hover { -fx-background-color: " + COLOR_PRIMARY + "22; } " +
-        ".spinner > .increment-arrow-button > .increment-arrow { -fx-shape: \"M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z\"; -fx-background-color: " + COLOR_PRIMARY + "; -fx-scale-x: 0.8; -fx-scale-y: 0.8; } " +
-        ".spinner > .decrement-arrow-button > .decrement-arrow { -fx-shape: \"M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z\"; -fx-background-color: " + COLOR_PRIMARY + "; -fx-scale-x: 0.8; -fx-scale-y: 0.8; } ";
+        ".spinner { -fx-background-color: white; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_FIELD + "; -fx-border-radius: 18; } " +
+        ".spinner > .text-field { -fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 600; -fx-background-color: white; -fx-background-radius: 18 0 0 18; -fx-background-insets: 0; -fx-padding: 11 16; } " +
+        ".spinner > .increment-arrow-button, .spinner > .decrement-arrow-button { -fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-background-insets: 0; -fx-cursor: hand; } " +
+        ".spinner > .increment-arrow-button { -fx-background-radius: 0 18 0 0; } " +
+        ".spinner > .decrement-arrow-button { -fx-background-radius: 0 0 18 0; } " +
+        ".spinner > .increment-arrow-button:hover, .spinner > .decrement-arrow-button:hover { -fx-background-color: " + COLOR_PRIMARY + "15; } " +
+        ".spinner > .increment-arrow-button > .increment-arrow { -fx-shape: \"M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z\"; -fx-background-color: " + COLOR_PRIMARY + "; } " +
+        ".spinner > .decrement-arrow-button > .decrement-arrow { -fx-shape: \"M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z\"; -fx-background-color: " + COLOR_PRIMARY + "; } ";
 
     public static final String TAB_STYLE = ".tab-pane .tab-header-area .tab-header-background { -fx-background-color: transparent; } " +
-            ".tab-pane .tab { -fx-background-color: #e1e4e8; -fx-background-radius: 10 10 0 0; -fx-padding: 8 20; -fx-background-insets: 0 1 0 1; } " +
-            ".tab-pane .tab:selected { -fx-background-color: white; -fx-background-radius: 10 10 0 0; } " +
-            ".tab-pane .tab .tab-label { -fx-text-fill: #57606f; -fx-font-weight: bold; } " +
+            ".tab-pane .tab { -fx-background-color: " + COLOR_SURFACE_SOFT + "; -fx-background-radius: 14 14 0 0; -fx-padding: 12 24; -fx-background-insets: 0 2 0 2; -fx-cursor: hand; } " +
+            ".tab-pane .tab:selected { -fx-background-color: white; -fx-background-radius: 14 14 0 0; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0); } " +
+            ".tab-pane .tab .tab-label { -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 800; -fx-font-size: 13px; } " +
             ".tab-pane .tab:selected .tab-label { -fx-text-fill: " + COLOR_PRIMARY + "; }";
-
-    public static final String SUBJECT_CHIP_STYLE = ".subject-chip { -fx-background-color: white; -fx-background-radius: 15; -fx-padding: 4 10; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT + "; -fx-border-color: #dfe6e9; -fx-border-radius: 15; } .subject-chip:hover { -fx-background-color: #ff7675; -fx-text-fill: white; -fx-cursor: hand; -fx-border-color: #ff7675; }";
-
-    public static final String SIDEBAR_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20 0 20 0;";
-    public static final String NAV_BTN_BASE = "-fx-background-color: transparent; -fx-padding: 12 20; -fx-cursor: hand; -fx-background-radius: 12; -fx-text-fill: #b2bec3; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; -fx-font-size: 14px;";
-    public static final String NAV_BTN_ACTIVE = "-fx-background-color: #0984e3; -fx-text-fill: white;";
-    public static final String NAV_BTN_HOVER = "-fx-background-color: rgba(255,255,255,0.05);";
-
-    public static final double ICON_SCALE = 1.0;
-
-    public static final String SIDEBAR_STATUS_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20; -fx-border-color: rgba(255,255,255,0.05); -fx-border-width: 1 0 0 0;";
 
     public static final String MODERN_DATE_PICKER_STYLE = 
         ".date-picker { -fx-background-color: transparent; } " +
-        ".date-picker > .text-field { -fx-font-size: 14px; -fx-background-color: white; -fx-background-radius: 12 0 0 12; -fx-border-color: #dfe6e9; -fx-border-radius: 12 0 0 12; -fx-border-width: 1 0 1 1; -fx-padding: 8; } " +
-        ".date-picker > .arrow-button { -fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 0 12 12 0; -fx-padding: 8; -fx-cursor: hand; } " +
+        ".date-picker > .text-field { -fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 600; -fx-background-color: white; -fx-background-radius: 18 0 0 18; -fx-border-color: " + COLOR_BORDER_FIELD + "; -fx-border-radius: 18 0 0 18; -fx-border-width: 1 0 1 1; -fx-padding: 11 16; } " +
+        ".date-picker > .arrow-button { -fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 0 18 18 0; -fx-padding: 11 16; -fx-cursor: hand; } " +
         ".date-picker > .arrow-button > .arrow { -fx-shape: \"M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z\"; -fx-background-color: white; -fx-padding: 8; } " +
-        ".date-picker-popup { -fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 12, 0, 0, 8); -fx-border-color: #dfe6e9; -fx-border-width: 1; -fx-border-radius: 16; } " +
-        ".date-picker-popup > .month-year-pane { -fx-background-color: white; -fx-background-radius: 16 16 0 0; -fx-padding: 10; } " +
-        ".date-picker-popup > .calendar-grid { -fx-background-color: white; -fx-padding: 10; } " +
-        ".date-picker-popup > * > .spinner > .button { -fx-background-color: transparent; } " +
-        ".date-picker-popup > * > .spinner > .button:hover { -fx-background-color: #f1f2f6; } " +
-        ".date-picker-popup > * > .day-name-cell, .date-picker-popup > * > .week-number-cell { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #95a5a6; -fx-padding: 8; } " +
-        ".date-picker-popup > * > .day-cell { -fx-background-color: white; -fx-background-radius: 8; -fx-padding: 8; -fx-cursor: hand; -fx-text-fill: " + COLOR_TEXT + "; } " +
-        ".date-picker-popup > * > .day-cell:hover { -fx-background-color: #e3f2fd; -fx-text-fill: " + COLOR_PRIMARY + "; } " +
-        ".date-picker-popup > * > .today { -fx-background-color: #f8f9fa; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: bold; -fx-border-color: " + COLOR_PRIMARY + "44; -fx-border-radius: 8; } " +
-        ".date-picker-popup > * > .selected { -fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white; -fx-font-weight: bold; } " +
-        ".date-picker-popup > * > .selected:hover { -fx-text-fill: white; } " +
-        ".date-picker-popup > * > .previous-month, .date-picker-popup > * > .next-month { -fx-text-fill: #bdc3c7; }";
+        ".date-picker-popup { -fx-background-color: white; -fx-background-radius: 24; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.15), 30, 0, 0, 10); -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-width: 1; -fx-border-radius: 24; -fx-padding: 15; } " +
+        ".date-picker-popup > .month-year-pane { -fx-background-color: white; -fx-padding: 10; } " +
+        ".date-picker-popup > .calendar-grid { -fx-background-color: white; -fx-padding: 5; } " +
+        ".date-picker-popup > * > .day-name-cell, .date-picker-popup > * > .week-number-cell { -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-padding: 10; } " +
+        ".date-picker-popup > * > .day-cell { -fx-background-color: white; -fx-background-radius: 10; -fx-padding: 10; -fx-cursor: hand; -fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + "; } " +
+        ".date-picker-popup > * > .day-cell:hover { -fx-background-color: " + COLOR_SURFACE_SOFT + "; } " +
+        ".date-picker-popup > * > .today { -fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 900; -fx-border-color: " + COLOR_PRIMARY + "30; -fx-border-radius: 10; } " +
+        ".date-picker-popup > * > .selected { -fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white; -fx-font-weight: 900; } ";
+
+    public static final String SIDEBAR_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20 0 20 0;";
+    public static final String NAV_BTN_BASE = "-fx-background-color: transparent; -fx-padding: 12 24; -fx-cursor: hand; -fx-background-radius: 12; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-font-weight: 800; -fx-alignment: CENTER_LEFT; -fx-font-size: 14px;";
+    public static final String NAV_BTN_ACTIVE = "-fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white;";
+    public static final String NAV_BTN_HOVER = "-fx-background-color: rgba(255,255,255,0.08);";
+    public static final String SIDEBAR_STATUS_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20; -fx-border-color: rgba(255,255,255,0.05); -fx-border-width: 1 0 0 0;";
+    public static final String SUBJECT_CHIP_STYLE = ".subject-chip { -fx-background-color: white; -fx-background-radius: 15; -fx-padding: 4 10; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT + "; -fx-border-color: " + COLOR_WHITE_MUTED_BORDER + "; -fx-border-radius: 15; } .subject-chip:hover { -fx-background-color: #ff7675; -fx-text-fill: white; -fx-cursor: hand; -fx-border-color: #ff7675; }";
+    public static final double ICON_SCALE = 1.0;
+
 
     // SVG Icons
     public static final String ICON_DASHBOARD = "M13,3V9H21V3H13M13,21H21V15H13V21M3,21H11V11H3V21M3,9H11V3H3V9Z";
@@ -107,6 +285,8 @@ public class UIStyles {
     public static final String ICON_PHONE = "M17,1H7A2,2 0 0,0 5,3V21A2,2 0 0,0 7,23H17A2,2 0 0,0 19,21V3A2,2 0 0,0 17,1M17,19H7V5H17V19Z";
     public static final String ICON_TABLET = "M19,18H5V6H19M21,4H3C1.89,4 1,4.89 1,6V18A2,2 0 0,0 3,20H21A2,2 0 0,0 23,18V6C23,4.89 22.1,4 21,4Z";
     public static final String ICON_PLUS = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
+    public static final String ICON_STEP_MINUS = "M19,13H5V11H19V13Z";
+    public static final String ICON_STEP_PLUS = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
     public static final String ICON_REFRESH = "M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z";
     public static final String ICON_EDIT = "M20.71,7.04C21.1,6.65 21.1,6.01 20.71,5.63L18.37,3.29C17.99,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z";
     public static final String ICON_TRASH = "M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19V4M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z";
@@ -135,29 +315,29 @@ public class UIStyles {
     public static final String ICON_PALETTE = "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A1,1 0 0,0 13,21V20C13,18.89 13.9,18 15,18H17A5,5 0 0,0 22,13C22,6.92 17.5,2 12,2M6.5,10A1.5,1.5 0 1,1 5,11.5A1.5,1.5 0 0,1 6.5,10M9.5,6A1.5,1.5 0 1,1 8,7.5A1.5,1.5 0 0,1 9.5,6M14.5,6A1.5,1.5 0 1,1 13,7.5A1.5,1.5 0 0,1 14.5,6M17.5,10A1.5,1.5 0 1,1 16,11.5A1.5,1.5 0 0,1 17.5,10Z";
     
     // Premium Gradients
-    public static final String GRADIENT_PRIMARY = "linear-gradient(to bottom right, #0984e3, #2980b9)";
-    public static final String GRADIENT_WARNING = "linear-gradient(to bottom right, #ff9f43, #f39c12)";
-    public static final String GRADIENT_DANGER = "linear-gradient(to bottom right, #e74c3c, #c0392b)";
-    public static final String GRADIENT_SUCCESS = "linear-gradient(to bottom right, #2ecc71, #27ae60)";
-    public static final String GRADIENT_INFO = "linear-gradient(to bottom right, #3498db, #2980b9)";
-    public static final String GRADIENT_PURPLE = "linear-gradient(to bottom right, #9b59b6, #8e44ad)";
-    public static final String GRADIENT_NEUTRAL = "linear-gradient(to bottom right, #636e72, #2d3436)";
+    public static final String GRADIENT_PRIMARY = "linear-gradient(to bottom right, " + COLOR_SKY + ", " + COLOR_SKY_DARK + ")";
+    public static final String GRADIENT_WARNING = "linear-gradient(to bottom right, #ff9f43, " + COLOR_ORANGE_DARK + ")";
+    public static final String GRADIENT_DANGER = "linear-gradient(to bottom right, " + COLOR_RED_SOFT + ", #c0392b)";
+    public static final String GRADIENT_SUCCESS = "linear-gradient(to bottom right, #2ecc71, " + COLOR_GREEN + ")";
+    public static final String GRADIENT_INFO = "linear-gradient(to bottom right, " + COLOR_BLUE + ", " + COLOR_SKY_DARK + ")";
+    public static final String GRADIENT_PURPLE = "linear-gradient(to bottom right, #9b59b6, " + COLOR_PURPLE_DARK + ")";
+    public static final String GRADIENT_NEUTRAL = "linear-gradient(to bottom right, " + COLOR_NEUTRAL + ", " + COLOR_TEXT + ")";
 
     public static final String MODERN_CHECKBOX_STYLE = 
         ".check-box .box {" +
         "    -fx-background-color: white;" +
-        "    -fx-border-color: #e2e8f0;" +
+        "    -fx-border-color: " + COLOR_BORDER_SOFT + ";" +
         "    -fx-border-width: 1.5;" +
         "    -fx-border-radius: 6;" +
         "    -fx-background-radius: 6;" +
         "    -fx-padding: 3;" +
         "}" +
         ".check-box:hover .box {" +
-        "    -fx-border-color: #cbd5e1;" +
+        "    -fx-border-color: " + COLOR_SLATE_MUTED + ";" +
         "}" +
         ".check-box:selected .box {" +
-        "    -fx-background-color: #4f46e5;" +
-        "    -fx-border-color: #4f46e5;" +
+        "    -fx-background-color: " + COLOR_INDIGO + ";" +
+        "    -fx-border-color: " + COLOR_INDIGO + ";" +
         "}" +
         ".check-box:selected .mark {" +
         "    -fx-background-color: white;" +
@@ -166,7 +346,7 @@ public class UIStyles {
         "    -fx-scale-y: 0.7;" +
         "}" +
         ".check-box .label {" +
-        "    -fx-text-fill: #1e293b;" +
+        "    -fx-text-fill: " + COLOR_TEXT_STRONG + ";" +
         "    -fx-font-size: 13px;" +
         "    -fx-font-weight: 600;" +
         "    -fx-padding: 0 0 0 8;" +

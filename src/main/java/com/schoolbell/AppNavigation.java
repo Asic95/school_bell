@@ -39,7 +39,7 @@ public class AppNavigation {
 
     public void createNavButton(String id, String text, String iconPath, Runnable action) {
         Button btn = new Button(text);
-        btn.setGraphic(createSVGIcon(iconPath, Color.web("#b2bec3"), 20));
+        btn.setGraphic(createSVGIcon(iconPath, Color.web(COLOR_ICON_MUTED), 20));
         btn.setGraphicTextGap(15);
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setStyle(NAV_BTN_BASE);
@@ -57,7 +57,7 @@ public class AppNavigation {
     public void setActiveNav(String id) {
         navButtons.forEach((k, v) -> {
             v.setStyle(NAV_BTN_BASE);
-            if (v.getGraphic() instanceof javafx.scene.shape.SVGPath icon) icon.setFill(Color.web("#b2bec3"));
+            if (v.getGraphic() instanceof javafx.scene.shape.SVGPath icon) icon.setFill(Color.web(COLOR_ICON_MUTED));
         });
         Button active = navButtons.get(id);
         if (active != null) {

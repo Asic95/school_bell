@@ -27,24 +27,24 @@ public class ClassroomsEditorTab {
     public Node createContent() {
         VBox content = new VBox(25);
         content.setPadding(new Insets(30));
-        content.setStyle("-fx-background-color: #f8f9fa;");
+        content.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
 
         HBox header = createPageHeader(
             "ІНФРАСТРУКТУРА",
             "Навчальні аудиторії",
             "Керуйте переліком кабінетів, лабораторій та залів вашої школи.",
             ICON_ROOM,
-            "#00cec9",
+            COLOR_CYAN,
             null
         );
 
         TextField addField = new TextField();
         addField.setPromptText("Введіть назву або номер кабінету (наприклад, Каб. 301)...");
-        addField.setStyle(COMBO_STYLE);
         addField.setPrefWidth(550);
+        addField.setStyle(PREMIUM_FIELD_STYLE);
 
         Button addBtn = createPrimaryActionButton("ДОДАТИ КАБІНЕТ", ICON_PLUS);
-        addBtn.setStyle(addBtn.getStyle().replace(COLOR_PRIMARY, "#00cec9"));
+        addBtn.setStyle(PREMIUM_BTN_STYLE);
 
         FlowPane classroomsContainer = new FlowPane(20, 20);
         classroomsContainer.setPadding(new Insets(10));
@@ -55,25 +55,25 @@ public class ClassroomsEditorTab {
         refreshClassrooms = () -> {
             classroomsContainer.getChildren().clear();
             for (Classroom c : mainApp.getAcademicService().getAllClassrooms()) {
-                VBox card = new VBox(15);
-                card.setStyle(SOFT_CARD + "-fx-padding: 20; -fx-border-color: #f1f2f6; -fx-border-radius: 20;");
-                card.setPrefWidth(300);
+                VBox card = new VBox(20);
+                card.setStyle(SOFT_CARD + "-fx-padding: 24;");
+                card.setPrefWidth(320);
                 
                 HBox topRow = new HBox(12);
                 topRow.setAlignment(Pos.CENTER_LEFT);
                 
-                VBox iconBox = new VBox(createSVGIcon(ICON_ROOM, Color.web("#00cec9"), 18));
+                VBox iconBox = new VBox(createSVGIcon(ICON_ROOM, Color.web(COLOR_PRIMARY), 22));
                 iconBox.setAlignment(Pos.CENTER);
-                iconBox.setPrefSize(40, 40);
-                iconBox.setMinSize(40, 40);
-                iconBox.setMaxSize(40, 40);
-                iconBox.setStyle("-fx-background-color: #00cec915; -fx-background-radius: 12;");
+                iconBox.setPrefSize(52, 52);
+                iconBox.setMinSize(52, 52);
+                iconBox.setMaxSize(52, 52);
+                iconBox.setStyle(ICON_BADGE_STYLE);
 
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
 
-                Button editBtn = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
-                Button delBtn = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
+                Button editBtn = createCardActionButton(ICON_EDIT, COLOR_SURFACE_SUBTLE, COLOR_PRIMARY);
+                Button delBtn = createCardActionButton(ICON_TRASH, COLOR_DANGER_LIGHT, COLOR_DANGER);
                 delBtn.setOnAction(e -> { 
                     mainApp.getAcademicService().deleteClassroom(c.id()); 
                     refreshClassrooms.run(); 
@@ -83,12 +83,12 @@ public class ClassroomsEditorTab {
 
                 VBox nameArea = new VBox(5);
                 Label nameLabel = new Label(c.name());
-                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: #2d3436;");
+                nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: " + COLOR_NAVY + ";");
                 nameLabel.setWrapText(true);
                 nameLabel.setMaxWidth(260);
                 
                 TextField nameEdit = new TextField(c.name());
-                nameEdit.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-background-color: #f1f2f6; -fx-background-radius: 8; -fx-padding: 8 12;");
+                nameEdit.setStyle(PREMIUM_FIELD_STYLE + "-fx-font-size: 15px; -fx-padding: 8 12;");
                 nameEdit.setMaxWidth(Double.MAX_VALUE);
                 nameEdit.setManaged(false);
                 nameEdit.setVisible(false);
@@ -129,7 +129,7 @@ public class ClassroomsEditorTab {
 
         VBox contentLayout = new VBox(25, header, new HBox(15, addField, addBtn), scroll);
         contentLayout.setPadding(new Insets(30));
-        contentLayout.setStyle("-fx-background-color: #f8f9fa;");
+        contentLayout.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
 
         refreshClassrooms.run();
 

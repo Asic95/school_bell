@@ -25,52 +25,9 @@ import static com.schoolbell.ui.CardFactory.createHelpCard;
 import static com.schoolbell.ui.CardFactory.createSideHelpPanel;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
-import static com.schoolbell.ui.UIStyles.COLOR_BG;
-import static com.schoolbell.ui.UIStyles.COLOR_PURPLE;
-import static com.schoolbell.ui.UIStyles.COLOR_SUCCESS;
-import static com.schoolbell.ui.UIStyles.ICON_INFO;
-import static com.schoolbell.ui.UIStyles.ICON_MONITOR;
-import static com.schoolbell.ui.UIStyles.ICON_NOTIFICATIONS;
-import static com.schoolbell.ui.UIStyles.ICON_VOLUME;
+import static com.schoolbell.ui.UIStyles.*;
 
 public class NotificationsView {
-    private static final String PAGE_BACKGROUND =
-            "-fx-background-color: linear-gradient(to bottom right, #f8fbff 0%, #f5f7fb 45%, #edf4ff 100%);";
-    private static final String FLOATING_CARD =
-            "-fx-background-color: rgba(255,255,255,0.96);" +
-            "-fx-background-radius: 28;" +
-            "-fx-border-color: rgba(226,232,240,0.7);" +
-            "-fx-border-width: 1;" +
-            "-fx-border-radius: 28;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 30, 0, 0, 10);";
-    private static final String MICRO_LABEL =
-            "-fx-font-family: 'Inter';" +
-            "-fx-font-size: 12px;" +
-            "-fx-font-weight: 600;" +
-            "-fx-text-fill: #64748b;";
-    private static final String TITLE_STYLE =
-            "-fx-font-family: 'Inter';" +
-            "-fx-font-size: 32px;" +
-            "-fx-font-weight: 700;" +
-            "-fx-text-fill: #0f172a;";
-    private static final String BODY_STYLE =
-            "-fx-font-family: 'Inter';" +
-            "-fx-font-size: 14px;" +
-            "-fx-font-weight: 500;" +
-            "-fx-text-fill: #64748b;";
-    private static final String SELECT_STYLE =
-            "-fx-font-family: 'Inter';" +
-            "-fx-font-size: 17px;" +
-            "-fx-font-weight: 600;" +
-            "-fx-background-color: white;" +
-            "-fx-background-radius: 18;" +
-            "-fx-border-color: #dbe4f0;" +
-            "-fx-border-radius: 18;" +
-            "-fx-border-width: 1;" +
-            "-fx-padding: 11 16;" +
-            "-fx-focus-color: transparent;" +
-            "-fx-faint-focus-color: transparent;";
-
     private final MainApp mainApp;
     private final ConfigService config;
 
@@ -91,11 +48,11 @@ public class NotificationsView {
     public Node build() {
         VBox page = new VBox(28);
         page.setPadding(new Insets(30, 20, 40, 20));
-        page.setStyle(PAGE_BACKGROUND);
+        page.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
         page.getChildren().add(buildHeader());
 
-        HBox topCards = new HBox(20);
+        HBox topCards = new HBox(25);
         VBox deviceCard = createDeviceCard();
         VBox volumeCard = createVolumeCard();
         HBox.setHgrow(deviceCard, Priority.ALWAYS);
@@ -108,72 +65,47 @@ public class NotificationsView {
         VBox helpPanel = createSideHelpPanel(
                 createHelpCard(ICON_VOLUME, "Аудіо", "Швидко змінюйте пристрій відтворення і гучність без зайвих технічних налаштувань.", COLOR_SUCCESS),
                 createHelpCard(ICON_MONITOR, "Екран", "Показ розкладу буде тимчасово призупинений, а замість нього буде відображатися текст відповідного сповіщення.", COLOR_PURPLE),
-                createHelpCard(ICON_INFO, "Порада", "Для кращого сканування тримайте активними лише сценарії з уже підключеним аудіофайлом.", "#f59e0b")
+                createHelpCard(ICON_INFO, "Порада", "Для кращого сканування тримайте активними лише сценарії з уже підключеним аудіофайлом.", COLOR_WARNING_AMBER)
         );
 
-        HBox content = new HBox(18, mainCol, helpPanel);
+        HBox content = new HBox(28, mainCol, helpPanel);
         content.setAlignment(Pos.TOP_LEFT);
 
         page.getChildren().add(content);
 
         ScrollPane scroll = new ScrollPane(page);
         scroll.setFitToWidth(true);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: " + COLOR_BG + ";");
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         return scroll;
     }
 
     private HBox buildHeader() {
-        HBox header = new HBox(18);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        VBox badge = new VBox(createSVGIcon(ICON_NOTIFICATIONS, Color.web("#4f46e5"), 24));
-        badge.setAlignment(Pos.CENTER);
-        badge.setPrefSize(54, 54);
-        badge.setStyle(
-                "-fx-background-color: linear-gradient(to bottom right, #eef2ff, #dbeafe);" +
-                "-fx-background-radius: 18;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.18), 18, 0, 0, 6);"
-        );
-
-        Label eyebrow = new Label("Центр керування сповіщеннями");
-        eyebrow.setStyle(MICRO_LABEL);
-        Label title = new Label("Сигнали та сповіщення");
-        title.setStyle(TITLE_STYLE);
-        Label subtitle = new Label("Панель для керування екстреними сигналами та автоматичними повідомленнями.");
-        subtitle.setStyle(BODY_STYLE);
-        subtitle.setWrapText(true);
-
-        VBox text = new VBox(4, eyebrow, title, subtitle);
-        text.setAlignment(Pos.CENTER_LEFT);
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Button saveBtn = createPrimaryActionButton("Зберегти зміни", ICON_NOTIFICATIONS);
+        Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ЗМІНИ", ICON_NOTIFICATIONS);
+        saveBtn.setStyle(PREMIUM_BTN_STYLE);
         saveBtn.setOnAction(e -> save());
 
-        header.getChildren().addAll(badge, text, spacer, saveBtn);
-        return header;
+        return ControlFactory.createPageHeader(
+            "ПОВІДОМЛЕННЯ ТА ЗВУК",
+            "Сигнали та сповіщення",
+            "Керування екстреними сигналами, фоновою музикою та вибором аудіопристроїв.",
+            ICON_NOTIFICATIONS,
+            COLOR_INDIGO,
+            saveBtn
+        );
     }
 
     private VBox createDeviceCard() {
-        VBox card = new VBox(18);
-        card.setPadding(new Insets(24));
+        VBox card = new VBox(20);
+        card.setPadding(new Insets(30));
         card.setMinWidth(380);
-        card.setPrefWidth(600);
-        card.setStyle(FLOATING_CARD);
+        card.setStyle(SOFT_CARD);
 
-        Label label = new Label("Пристрій відтворення");
-        label.setStyle(
-                "-fx-font-family: 'Inter';" +
-                "-fx-font-size: 15px;" +
-                "-fx-font-weight: 700;" +
-                "-fx-text-fill: #1e3a8a;"
-        );
+        Label label = new Label("ПРИСТРІЙ ВІДТВОРЕННЯ");
+        label.setStyle(HEADER_STYLE);
 
         deviceCombo = new ComboBox<>();
         deviceCombo.setMaxWidth(Double.MAX_VALUE);
-        deviceCombo.setStyle(SELECT_STYLE);
+        deviceCombo.setStyle(PREMIUM_SELECT_STYLE);
         deviceCombo.setValue(config.getSelectedAudioDeviceName());
         try {
             deviceCombo.getItems().add("Системний за замовчуванням");
@@ -184,59 +116,44 @@ public class NotificationsView {
                     deviceCombo.getItems().add(info.getName());
                 }
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
 
-        VBox iconWrap = new VBox(createSVGIcon(ICON_VOLUME, Color.web("#4f46e5"), 24));
+        VBox iconWrap = new VBox(createSVGIcon(ICON_VOLUME, Color.web(COLOR_PRIMARY), 24));
         iconWrap.setAlignment(Pos.CENTER);
         iconWrap.setPrefSize(54, 54);
-        iconWrap.setStyle(
-                "-fx-background-color: linear-gradient(to bottom right, #eef2ff, #ffffff);" +
-                "-fx-background-radius: 18;" +
-                "-fx-border-color: #dbeafe;" +
-                "-fx-border-radius: 18;"
-        );
+        iconWrap.setStyle(ICON_BADGE_STYLE);
 
-        HBox row = new HBox(16, iconWrap, deviceCombo);
+        HBox row = new HBox(20, iconWrap, deviceCombo);
         row.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(deviceCombo, Priority.ALWAYS);
 
-        Label note = new Label("Оберіть джерело відтворення для всіх сигналів.");
-        note.setStyle(BODY_STYLE);
+        Label note = new Label("Оберіть джерело аудіосигналу для всіх типів дзвінків та трансляцій.");
+        note.setStyle("-fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
 
         card.getChildren().addAll(label, row, note);
         return card;
     }
 
     private VBox createVolumeCard() {
-        VBox card = new VBox(18);
-        card.setPadding(new Insets(24));
-        card.setMinWidth(395);
-        card.setPrefWidth(395);
-        card.setStyle(FLOATING_CARD);
+        VBox card = new VBox(20);
+        card.setPadding(new Insets(30));
+        card.setMinWidth(420);
+        card.setPrefWidth(420);
+        card.setStyle(SOFT_CARD);
 
-        Label label = new Label("Загальна гучність сповіщень");
-        label.setStyle(
-                "-fx-font-family: 'Inter';" +
-                "-fx-font-size: 15px;" +
-                "-fx-font-weight: 700;" +
-                "-fx-text-fill: #1e3a8a;"
-        );
+        Label label = new Label("ЗАГАЛЬНА ГУЧНІСТЬ");
+        label.setStyle(HEADER_STYLE);
 
         currentVolumeValue = normalizeVolume(config.getSystemVolume());
         volumePresetBox = new HBox(8);
         volumePresetBox.setAlignment(Pos.CENTER_LEFT);
-        volumePresetBox.setStyle(
-                "-fx-background-color: rgba(241,245,249,0.92);" +
-                "-fx-background-radius: 22;" +
-                "-fx-padding: 6;"
-        );
+        volumePresetBox.setStyle(PREMIUM_TOGGLE_CONTAINER);
 
         int[] presets = {0, 25, 50, 75, 100};
         for (int preset : presets) {
-            Button button = new Button(preset == 0 ? "Вимк" : preset + "%");
+            Button button = new Button(preset == 0 ? "ВИМК" : preset + "%");
             button.setUserData(preset);
-            button.setPrefWidth(61);
+            button.setPrefWidth(85);
             button.setPrefHeight(46);
             button.setOnAction(e -> {
                 currentVolumeValue = preset;
@@ -248,8 +165,8 @@ public class NotificationsView {
         }
 
         updateVolumeStyle();
-        Label note = new Label("Швидкі пресети гучності.");
-        note.setStyle(BODY_STYLE);
+        Label note = new Label("Використовуйте пресети для швидкого налаштування.");
+        note.setStyle("-fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
         card.getChildren().addAll(label, volumePresetBox, note);
         return card;
     }
@@ -264,32 +181,13 @@ public class NotificationsView {
 
     private void updateVolumeStyle() {
         for (Node node : volumePresetBox.getChildren()) {
-            if (!(node instanceof Button button)) {
-                continue;
-            }
+            if (!(node instanceof Button button)) continue;
 
             int value = (int) button.getUserData();
             if (value == currentVolumeValue) {
-                button.setStyle(
-                        "-fx-font-family: 'Inter';" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-font-weight: 700;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-background-color: linear-gradient(to right, #4f46e5, #2563eb);" +
-                        "-fx-background-radius: 16;" +
-                        "-fx-cursor: hand;" +
-                        "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.32), 18, 0, 0, 4);"
-                );
+                button.setStyle(PREMIUM_TOGGLE_ACTIVE);
             } else {
-                button.setStyle(
-                        "-fx-font-family: 'Inter';" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-font-weight: 600;" +
-                        "-fx-text-fill: #334155;" +
-                        "-fx-background-color: rgba(255,255,255,0.88);" +
-                        "-fx-background-radius: 16;" +
-                        "-fx-cursor: hand;"
-                );
+                button.setStyle(PREMIUM_TOGGLE_INACTIVE);
             }
         }
     }

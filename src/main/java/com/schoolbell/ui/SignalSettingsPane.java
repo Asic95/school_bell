@@ -32,52 +32,21 @@ public class SignalSettingsPane extends StackPane {
     private final IntegerProperty emergencyDuration = new SimpleIntegerProperty();
 
     public SignalSettingsPane() {
-        this(false);
-    }
-
-    public SignalSettingsPane(boolean embedded) {
         getStyleClass().add("bell-settings-root");
-        if (embedded) {
-            getStyleClass().add("bell-settings-embedded");
-        }
         applyStylesheet();
 
         VBox container = new VBox(28);
         container.setMaxWidth(Double.MAX_VALUE);
         container.setFillWidth(true);
-
-        if (!embedded) {
-            container.getStyleClass().add("bell-settings-container");
-            container.getChildren().add(ControlFactory.createPageHeader(
-                "НАЛАШТУВАННЯ",
-                "Сигнали та сповіщення",
-                "Налаштування тривалості та візуалізація сигналів дзвінків та тривоги.",
-                ICON_AIR_RAID,
-                "#f39c12",
-                null
-            ));
-        } else {
-            container.getStyleClass().add("bell-settings-content-only");
-        }
-
+        container.getStyleClass().add("bell-settings-content-only");
+        
         container.getChildren().addAll(buildRegularCard(), buildAirRaidCard(), buildEmergencyCard());
 
-        if (!embedded) {
-            VBox centered = new VBox(container);
-            centered.setAlignment(Pos.TOP_CENTER);
-            centered.setPadding(new Insets(26, 32, 26, 32));
-            getChildren().add(centered);
-        } else {
-            getChildren().add(container);
-        }
+        getChildren().add(container);
     }
 
     public SignalSettingsPane(int regular, int airRing, int airPause, int emergency) {
-        this(regular, airRing, airPause, emergency, false);
-    }
-
-    public SignalSettingsPane(int regular, int airRing, int airPause, int emergency, boolean embedded) {
-        this(embedded);
+        this();
         regularDuration.set(regular);
         airRaidRingDuration.set(airRing);
         airRaidPauseDuration.set(airPause);
@@ -107,39 +76,12 @@ public class SignalSettingsPane extends StackPane {
         }
     }
 
-    private HBox buildHeader() {
-        HBox header = new HBox(16);
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setPadding(new Insets(0, 0, 16, 0));
-
-        // Device Selection
-        HBox deviceBox = new HBox(8, icon("M2,14H4V16H2V14M6,10H8V20H6V10M10,4H12V22H10V4M14,12H16V18H14V12M18,8H20V20H18V8M22,14H24V16H22V14Z", "icon-muted"), new Label("Пристрій:")); // Placeholder for dropdown
-        deviceBox.setAlignment(Pos.CENTER_LEFT);
-
-        // Volume Segmented Control
-        HBox volumeBox = new HBox();
-        volumeBox.getStyleClass().add("segmented-control");
-        // Simplified representation of Segmented Control
-        String[] levels = {"ВИМК", "25%", "50%", "75%", "100%"};
-        for (String level : levels) {
-            Button btn = new Button(level);
-            if (level.equals("25%")) btn.getStyleClass().add("active");
-            volumeBox.getChildren().add(btn);
-        }
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        header.getChildren().addAll(deviceBox, spacer, volumeBox);
-        return header;
-    }
-
     private HBox buildRegularCard() {
         DurationStepper duration = new DurationStepper(5, 1, 30);
         duration.getStyleClass().add("stepper-regular");
         duration.valueProperty().bindBidirectional(regularDuration);
 
-        WaveformCanvas waveform = new WaveformCanvas(WaveType.REGULAR, Color.web("#4A76FF"), duration.valueProperty(), null);
+        WaveformCanvas waveform = new WaveformCanvas(WaveType.REGULAR, Color.web(COLOR_BLUE_SIGNAL), duration.valueProperty(), null);
         HBox card = createCard(
                 "Звичайний дзвінок",
                 "Один безперервний сигнал",
@@ -167,7 +109,7 @@ public class SignalSettingsPane extends StackPane {
         );
         controlsRow.getStyleClass().add("multi-control-row");
 
-        WaveformCanvas waveform = new WaveformCanvas(WaveType.AIR_RAID, Color.web("#FF9D3F"), ring.valueProperty(), pause.valueProperty());
+        WaveformCanvas waveform = new WaveformCanvas(WaveType.AIR_RAID, Color.web(COLOR_ORANGE_SIGNAL), ring.valueProperty(), pause.valueProperty());
         HBox card = createCard(
                 "Повітряна тривога",
                 "Три коротких сигнали з паузами",
@@ -186,7 +128,7 @@ public class SignalSettingsPane extends StackPane {
         duration.getStyleClass().add("stepper-emergency");
         duration.valueProperty().bindBidirectional(emergencyDuration);
 
-        WaveformCanvas waveform = new WaveformCanvas(WaveType.EMERGENCY, Color.web("#FF5F5F"), duration.valueProperty(), null);
+        WaveformCanvas waveform = new WaveformCanvas(WaveType.EMERGENCY, Color.web(COLOR_RED_SIGNAL), duration.valueProperty(), null);
         HBox card = createCard(
                 "Екстрена ситуація",
                 "Один тривалий безперервний сигнал",
@@ -225,7 +167,7 @@ public class SignalSettingsPane extends StackPane {
         
         VBox titleBlock = new VBox(2);
         Label labelTag = new Label("СИГНАЛ");
-        labelTag.setStyle("-fx-font-size: 10px; -fx-text-fill: #a1a1aa; -fx-font-weight: 600;");
+        labelTag.setStyle("-fx-font-size: 10px; -fx-text-fill: " + COLOR_ZINC_LIGHT + "; -fx-font-weight: 600;");
         Label title = new Label(titleText);
         title.getStyleClass().add("card-title");
         titleBlock.getChildren().addAll(labelTag, title);
@@ -272,11 +214,11 @@ public class SignalSettingsPane extends StackPane {
 
             Button minus = new Button();
             minus.getStyleClass().add("step-button");
-            setPlusMinusIcon(minus, "M19,13H5V11H19V13Z");
+            setPlusMinusIcon(minus, ICON_STEP_MINUS);
 
             Button plus = new Button();
             plus.getStyleClass().add("step-button");
-            setPlusMinusIcon(plus, "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z");
+            setPlusMinusIcon(plus, ICON_STEP_PLUS);
 
             Label valueLabel = new Label();
             valueLabel.getStyleClass().add("step-value");
@@ -424,7 +366,7 @@ public class SignalSettingsPane extends StackPane {
         }
 
         private void drawTimeline(GraphicsContext gc, double w, double y, String[] labels) {
-            gc.setFill(Color.web("#8B97A8"));
+            gc.setFill(Color.web(COLOR_WAVE_MUTED));
             gc.setFont(javafx.scene.text.Font.font("Inter", 11));
             double leftPad = 6;
             double rightPad = 6;

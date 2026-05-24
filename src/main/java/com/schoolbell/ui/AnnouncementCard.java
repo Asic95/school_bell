@@ -35,11 +35,11 @@ public class AnnouncementCard extends VBox {
         HBox top = new HBox(20);
         top.setAlignment(Pos.TOP_LEFT);
 
-        VBox iconBox = new VBox(createSVGIcon(ICON_BROADCAST, Color.web("#6c5ce7"), 28));
+        VBox iconBox = new VBox(createSVGIcon(ICON_BROADCAST, Color.web(COLOR_INDIGO_SOFT), 28));
         iconBox.setAlignment(Pos.CENTER);
         iconBox.setPrefSize(64, 64);
         iconBox.setMinSize(64, 64);
-        iconBox.setStyle("-fx-background-color: #6c5ce715; -fx-background-radius: 20;");
+        iconBox.setStyle("-fx-background-color: " + COLOR_INDIGO_SOFT + "15; -fx-background-radius: 20;");
 
         VBox info = new VBox(12);
         info.setMinWidth(0); // Allow text wrapping to shrink the block
@@ -54,7 +54,7 @@ public class AnnouncementCard extends VBox {
         meta.getChildren().addAll(
             createChip(a.startDate().format(DateTimeFormatter.ofPattern("dd.MM")) + " - " + a.endDate().format(DateTimeFormatter.ofPattern("dd.MM")), COLOR_PRIMARY, ICON_CALENDAR),
             createChip(a.startTime() + " - " + a.endTime(), COLOR_SUCCESS, ICON_CLOCK),
-            createChip(getDaysShortText(a.daysOfWeek()), "#e67e22", ICON_CALENDAR)
+            createChip(getDaysShortText(a.daysOfWeek()), COLOR_ORANGE, ICON_CALENDAR)
         );
 
         info.getChildren().addAll(text, meta);
@@ -64,10 +64,10 @@ public class AnnouncementCard extends VBox {
         HBox actions = new HBox(8);
         actions.setAlignment(Pos.TOP_RIGHT);
 
-        Button editBtn = createCardActionButton(ICON_EDIT, "#f1f2f6", COLOR_PRIMARY);
+        Button editBtn = createCardActionButton(ICON_EDIT, COLOR_SURFACE_SUBTLE, COLOR_PRIMARY);
         editBtn.setOnAction(e -> onEdit.run());
 
-        Button delBtn = createCardActionButton(ICON_TRASH, "#fff5f5", COLOR_DANGER);
+        Button delBtn = createCardActionButton(ICON_TRASH, COLOR_DANGER_LIGHT, COLOR_DANGER);
         delBtn.setOnAction(e -> onDelete.run());
 
         actions.getChildren().addAll(editBtn, delBtn);
