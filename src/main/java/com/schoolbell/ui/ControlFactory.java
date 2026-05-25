@@ -62,7 +62,7 @@ public class ControlFactory {
         
         btn.setOnMouseEntered(e -> btn.setStyle(PREMIUM_BTN_STYLE + 
             "-fx-background-color: linear-gradient(to right, " + COLOR_INDIGO_DARK + ", " + COLOR_PRIMARY_DARK + ");" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.4), 28, 0, 0, 10);"));
+            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_40 + ", 28, 0, 0, 10);"));
         btn.setOnMouseExited(e -> btn.setStyle(PREMIUM_BTN_STYLE));
         
         return btn;
@@ -112,7 +112,9 @@ public class ControlFactory {
         btn.setMinSize(48, 28);
         
         Circle thumb = new Circle(10, Color.WHITE);
-        thumb.setEffect(new javafx.scene.effect.DropShadow(javafx.scene.effect.BlurType.THREE_PASS_BOX, Color.rgb(15, 23, 42, 0.12), 6, 0, 0, 2));
+        thumb.setEffect(new javafx.scene.effect.DropShadow(javafx.scene.effect.BlurType.THREE_PASS_BOX, Color.web(SHADOW_NAVY_12), 6, 0, 0, 2));
+        // Set initial position instantly
+        thumb.setTranslateX(initialState ? 20 : 0);
         
         StackPane container = new StackPane(thumb);
         container.setPrefSize(48, 28);
@@ -122,20 +124,24 @@ public class ControlFactory {
         btn.setGraphic(container);
         
         Runnable updateStyle = () -> {
-            if (btn.isSelected()) {
+            boolean selected = btn.isSelected();
+            if (selected) {
                 container.setStyle(
                     "-fx-background-color: linear-gradient(to right, " + COLOR_GREEN_BRIGHT + ", " + COLOR_SUCCESS + ");" +
                     "-fx-background-radius: 999;" +
-                    "-fx-effect: dropshadow(three-pass-box, rgba(34,197,94,0.2), 12, 0, 0, 2);"
+                    "-fx-effect: dropshadow(three-pass-box, " + SHADOW_GREEN_20 + ", 12, 0, 0, 2);"
                 );
-                TranslateTransition tt = new TranslateTransition(Duration.millis(150), thumb);
-                tt.setToX(20);
-                tt.play();
             } else {
                 container.setStyle("-fx-background-color: " + COLOR_SLATE_MUTED + "; -fx-background-radius: 999;");
+            }
+
+            // Only animate if the switch is already showing on screen
+            if (btn.getScene() != null && btn.getScene().getWindow() != null && btn.getScene().getWindow().isShowing()) {
                 TranslateTransition tt = new TranslateTransition(Duration.millis(150), thumb);
-                tt.setToX(0);
+                tt.setToX(selected ? 20 : 0);
                 tt.play();
+            } else {
+                thumb.setTranslateX(selected ? 20 : 0);
             }
         };
         
@@ -154,9 +160,22 @@ public class ControlFactory {
             if (newVal) {
                 f.setStyle(PREMIUM_FIELD_FOCUSED_STYLE);
             } else {
-                f.setStyle(PREMIUM_FIELD_STYLE);
+                if (f.getText().trim().isEmpty()) {
+                    f.setStyle(PREMIUM_FIELD_ERROR_STYLE);
+                } else {
+                    f.setStyle(PREMIUM_FIELD_STYLE);
+                }
             }
         });
+
+        // Validation on text change as well
+        f.textProperty().addListener((obs, old, newVal) -> {
+            if (!f.isFocused()) {
+                if (newVal.trim().isEmpty()) f.setStyle(PREMIUM_FIELD_ERROR_STYLE);
+                else f.setStyle(PREMIUM_FIELD_STYLE);
+            }
+        });
+
         return f;
     }
 
@@ -164,9 +183,28 @@ public class ControlFactory {
         ComboBox<String> cb = new ComboBox<>();
         for (int i = 0; i < max; i++) cb.getItems().add(String.format("%02d", i));
         cb.setValue(String.format("%02d", current));
-        cb.setPrefWidth(95);
+        cb.setPrefWidth(95); 
         cb.setPrefHeight(45);
-        cb.setStyle(PREMIUM_SELECT_STYLE);
+        cb.setMinHeight(45);
+        
+        // Remove padding from ComboBox to prevent clipping
+        cb.setStyle(PREMIUM_SELECT_STYLE + "-fx-font-size: 16px; -fx-padding: 0;"); 
+        
+        cb.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setAlignment(Pos.CENTER);
+                    // Use internal cell padding to position text without triggering ellipsis
+                    setStyle("-fx-text-fill: " + COLOR_NAVY + "; -fx-font-weight: 800; -fx-background-color: transparent; -fx-padding: 0 0 0 10;");
+                }
+            }
+        });
+        
         return cb;
     }
 
@@ -225,6 +263,7 @@ public class ControlFactory {
 
     public static VBox createModernSettingsGroup(String title, String icon, String color, Node content) {
         VBox section = new VBox(25);
+        section.setPadding(new Insets(30)); // Add padding!
         section.setStyle(SOFT_CARD);
         HBox.setHgrow(section, Priority.ALWAYS);
 
@@ -232,6 +271,7 @@ public class ControlFactory {
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox iconBox = new VBox(createSVGIcon(icon, Color.web(color), 22));
+        iconBox.setAlignment(Pos.CENTER); // Explicit center alignment
         iconBox.setPrefSize(54, 54);
         iconBox.setMinSize(54, 54);
         iconBox.setStyle(ICON_BADGE_STYLE);
@@ -290,9 +330,9 @@ public class ControlFactory {
         VBox iconBox = new VBox(createSVGIcon(iconPath, Color.WHITE, 44));
         iconBox.setAlignment(Pos.CENTER);
         iconBox.setPrefSize(74, 74);
-        iconBox.setStyle("-fx-background-color: rgba(255,255,255,0.15); " +
+        iconBox.setStyle("-fx-background-color: " + TR_WHITE_15 + "; " +
                           "-fx-background-radius: 22; " +
-                          "-fx-border-color: rgba(255,255,255,0.3); " +
+                          "-fx-border-color: " + TR_WHITE_30 + "; " +
                           "-fx-border-width: 1.5; " +
                           "-fx-border-radius: 22;");
         
@@ -302,7 +342,7 @@ public class ControlFactory {
         t.setStyle("-fx-font-size: 22px; -fx-font-weight: 900; -fx-text-fill: white; -fx-letter-spacing: 1px;");
         
         Label s = new Label(subtext); 
-        s.setStyle("-fx-font-size: 13px; -fx-text-fill: rgba(255,255,255,0.8); -fx-font-weight: 700;");
+        s.setStyle("-fx-font-size: 13px; -fx-text-fill: " + TR_WHITE_80 + "; -fx-font-weight: 700;");
         text.getChildren().addAll(t, s);
         
         HBox leftSide = new HBox(25, iconBox, text);
@@ -321,7 +361,7 @@ public class ControlFactory {
         btn.setOnMouseEntered(e -> {
             applyActionButtonStyle(btn, true);
             btn.setTranslateY(-6);
-            iconBox.setStyle(iconBox.getStyle().replace("0.15", "0.28"));
+            iconBox.setStyle(iconBox.getStyle().replace(TR_WHITE_15, TR_WHITE_28));
             arrowIcon.setTranslateX(10);
             arrowIcon.setScaleX(1.15);
             arrowIcon.setScaleY(1.15);
@@ -330,7 +370,7 @@ public class ControlFactory {
         btn.setOnMouseExited(e -> {
             applyActionButtonStyle(btn, false);
             btn.setTranslateY(0);
-            iconBox.setStyle(iconBox.getStyle().replace("0.28", "0.15"));
+            iconBox.setStyle(iconBox.getStyle().replace(TR_WHITE_28, TR_WHITE_15));
             arrowIcon.setTranslateX(0);
             arrowIcon.setScaleX(1.0);
             arrowIcon.setScaleY(1.0);
@@ -346,13 +386,13 @@ public class ControlFactory {
         String style = "-fx-background-color: " + gradient + "; " +
                           "-fx-background-radius: 28; " +
                           "-fx-cursor: hand; " +
-                          "-fx-border-color: rgba(255,255,255,0.25); " +
+                          "-fx-border-color: " + TR_WHITE_25 + "; " +
                           "-fx-border-width: 1.5; " +
                           "-fx-border-radius: 28;";
         if (hover) {
-            style += "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 40, 0, 0, 20);";
+            style += "-fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_30 + ", 40, 0, 0, 20);";
         } else {
-            style += "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.18), 25, 0, 0, 12);";
+            style += "-fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_18 + ", 25, 0, 0, 12);";
         }
         btn.setStyle(style);
     }

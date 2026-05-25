@@ -22,8 +22,8 @@ public class SystemJournalPane extends VBox {
         setStyle(
             "-fx-background-color: white;" +
             "-fx-background-radius: 28;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.06), 25, 0, 0, 8);" +
-            "-fx-border-color: rgba(226, 232, 240, 0.5);" +
+            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_06 + ", 25, 0, 0, 8);" +
+            "-fx-border-color: " + BORDER_SLATE_50 + ";" +
             "-fx-border-width: 1;" +
             "-fx-border-radius: 28;"
         );

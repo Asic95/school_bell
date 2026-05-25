@@ -85,12 +85,12 @@ public class ImportView {
         settingsCard.setPadding(new Insets(28));
         settingsCard.setPrefWidth(750);
         settingsCard.setStyle(
-            "-fx-background-color: rgba(255,255,255,0.96);" +
+            "-fx-background-color: " + GLASS_WHITE + ";" +
             "-fx-background-radius: 28;" +
-            "-fx-border-color: rgba(226,232,240,0.7);" +
+            "-fx-border-color: " + BORDER_SLATE_70 + ";" +
             "-fx-border-width: 1;" +
             "-fx-border-radius: 28;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 30, 0, 0, 10);"
+            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_08 + ", 30, 0, 0, 10);"
         );
 
         Label settingsTitle = new Label("Налаштування імпорту");

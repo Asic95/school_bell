@@ -30,7 +30,7 @@ public class AnnouncementCard extends VBox {
         this.onDelete = onDelete;
 
         setPadding(new Insets(25));
-        setStyle("-fx-background-color: white; -fx-background-radius: 28; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.04), 15, 0, 0, 5);");
+        setStyle("-fx-background-color: white; -fx-background-radius: 28; -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_04 + ", 15, 0, 0, 5);");
 
         HBox top = new HBox(20);
         top.setAlignment(Pos.TOP_LEFT);

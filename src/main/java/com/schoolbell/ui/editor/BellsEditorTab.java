@@ -117,7 +117,7 @@ public class BellsEditorTab {
         renameBtn.setGraphicTextGap(10);
         String renameBaseStyle = "-fx-background-color: white; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 800; -fx-font-size: 13px; -fx-padding: 12 20; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 18; -fx-cursor: hand;";
         renameBtn.setStyle(renameBaseStyle);
-        renameBtn.setOnMouseEntered(e -> renameBtn.setStyle(renameBaseStyle + "-fx-background-color: " + COLOR_SURFACE_GLASS_START + "; -fx-border-color: " + COLOR_SLATE_MUTED + "; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.05), 10, 0, 0, 2);"));
+        renameBtn.setOnMouseEntered(e -> renameBtn.setStyle(renameBaseStyle + "-fx-background-color: " + COLOR_SURFACE_GLASS_START + "; -fx-border-color: " + COLOR_SLATE_MUTED + "; -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_05 + ", 10, 0, 0, 2);"));
         renameBtn.setOnMouseExited(e -> renameBtn.setStyle(renameBaseStyle));
 
         Button deleteBtn = new Button("ВИДАЛИТИ");
@@ -125,7 +125,7 @@ public class BellsEditorTab {
         deleteBtn.setGraphicTextGap(10);
         String deleteBaseStyle = "-fx-background-color: white; -fx-text-fill: " + COLOR_DANGER + "; -fx-font-weight: 800; -fx-font-size: 13px; -fx-padding: 12 20; -fx-background-radius: 18; -fx-border-color: " + COLOR_DANGER_BORDER + "; -fx-border-radius: 18; -fx-cursor: hand;";
         deleteBtn.setStyle(deleteBaseStyle);
-        deleteBtn.setOnMouseEntered(e -> deleteBtn.setStyle(deleteBaseStyle + "-fx-background-color: " + COLOR_DANGER_SOFT + "; -fx-border-color: " + COLOR_DANGER + "; -fx-effect: dropshadow(three-pass-box, rgba(220,38,38,0.05), 10, 0, 0, 2);"));
+        deleteBtn.setOnMouseEntered(e -> deleteBtn.setStyle(deleteBaseStyle + "-fx-background-color: " + COLOR_DANGER_SOFT + "; -fx-border-color: " + COLOR_DANGER + "; -fx-effect: dropshadow(three-pass-box, " + TR_DANGER_05 + ", 10, 0, 0, 2);"));
         deleteBtn.setOnMouseExited(e -> deleteBtn.setStyle(deleteBaseStyle));
 
         HBox actions = new HBox(10, addBtn, renameBtn, deleteBtn);
@@ -298,8 +298,8 @@ public class BellsEditorTab {
         ComboBox<String> em = createTimeCombo(60, info.end != null ? info.end.getMinute() : 0);
         TextField breakF = new TextField(String.valueOf(info.breakAfterMinutes));
 
-        breakF.setPrefSize(84, 45);
-        breakF.setStyle(PREMIUM_FIELD_STYLE + "-fx-font-size: 14px; -fx-padding: 0 12;");
+        breakF.setPrefSize(90, 45);
+        breakF.setStyle(PREMIUM_FIELD_STYLE + "-fx-font-size: 15px; -fx-padding: 0 12; -fx-alignment: CENTER;");
 
         HBox lessonBox = lessonBox(index, tone);
         VBox startBox = labeledTimeBox("ПОЧАТОК", sh, sm);
@@ -325,7 +325,7 @@ public class BellsEditorTab {
                 "-fx-border-color: " + COLOR_BORDER_SOFT + ";" +
                 "-fx-border-width: 1;" +
                 "-fx-border-radius: 18;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.03), 8, 0, 0, 2);"
+                "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_03 + ", 8, 0, 0, 2);"
         );
 
         row.setOnMouseEntered(e -> row.setStyle(row.getStyle() + "-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-border-color: " + tone + "40;"));
@@ -408,7 +408,7 @@ public class BellsEditorTab {
                 bgColor, textColor, borderColor
         );
         b.setStyle(baseStyle);
-        b.setOnMouseEntered(e -> b.setStyle(baseStyle + "-fx-background-color: derive(" + bgColor + ", -4%); -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 8, 0.2, 0, 2);"));
+        b.setOnMouseEntered(e -> b.setStyle(baseStyle + "-fx-background-color: derive(" + bgColor + ", -4%); -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_08 + ", 8, 0.2, 0, 2);"));
         b.setOnMouseExited(e -> b.setStyle(baseStyle));
         return b;
     }

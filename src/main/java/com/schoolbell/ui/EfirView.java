@@ -75,7 +75,7 @@ public class EfirView {
         this.portField = ControlFactory.createStyledField(String.valueOf(config.getBroadcastPort()));
         
         this.themeCombo = new ComboBox<>();
-        this.themeCombo.getItems().addAll("classic", "modern", "cyber");
+        this.themeCombo.getItems().addAll("classic", "modern", "cyber", "soft");
         this.themeCombo.setValue(config.getDashboardTheme());
         this.themeCombo.setStyle(PREMIUM_SELECT_STYLE);
         this.themeCombo.setPrefWidth(200);
@@ -249,7 +249,7 @@ public class EfirView {
             createModernSettingsGroup("FIREWALL", ICON_SHIELD, COLOR_TEAL_DARK, new VBox(15, firewallStatusLabel, createPrimaryActionButton("ОПТИМІЗУВАТИ", ICON_SHIELD)))
         );
         
-        mainRow.getChildren().forEach(n -> ((VBox)n).setPrefWidth(300));
+        mainRow.getChildren().forEach(n -> ((VBox)n).setMinWidth(320));
 
         section.getChildren().addAll(title, mainRow);
         return section;
@@ -304,7 +304,7 @@ public class EfirView {
         
         if (liveStatusBadge != null) {
             String bgGradient = active ? "linear-gradient(to bottom right, " + COLOR_SUCCESS_LIGHT + ", " + COLOR_SUCCESS_BORDER + ")" : "linear-gradient(to bottom right, " + COLOR_DANGER_SOFT + ", " + COLOR_DANGER_BORDER + ")";
-            String borderColor = active ? "rgba(22, 163, 74, 0.15)" : "rgba(220, 38, 38, 0.15)";
+            String borderColor = active ? TR_SUCCESS_15 : TR_DANGER_15;
             liveStatusBadge.setStyle(
                 "-fx-background-color: " + bgGradient + "; " +
                 "-fx-border-color: " + borderColor + "; " +

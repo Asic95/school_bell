@@ -116,11 +116,14 @@ public class AnnouncementsEditorTab {
             if (filtered.isEmpty()) {
                 VBox empty = new VBox(20);
                 empty.setAlignment(Pos.CENTER);
-                empty.setPadding(new Insets(80, 0, 80, 0));
+                empty.setPadding(new Insets(100, 0, 100, 0));
+                empty.setMinWidth(900);
                 Node emptyIcon = createSVGIcon(ICON_INFO, Color.web(COLOR_WHITE_MUTED_BORDER), 64);
                 Label emptyLabel = new Label(showArchived ? "Архів оголошень порожній" : "Немає активних оголошень");
                 emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_ICON_MUTED + ";");
-                empty.getChildren().addAll(emptyIcon, emptyLabel);
+                Label subLabel = new Label(showArchived ? "Тут з'являтимуться оголошення, термін дії яких минув" : "Натисніть 'СТВОРИТИ ОГОЛОШЕННЯ', щоб додати перше повідомлення");
+                subLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE + ";");
+                empty.getChildren().addAll(emptyIcon, emptyLabel, subLabel);
                 cardsContainer.getChildren().add(empty);
             } else {
                 for (Announcement a : filtered) {

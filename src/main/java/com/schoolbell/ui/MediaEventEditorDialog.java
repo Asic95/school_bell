@@ -83,27 +83,92 @@ public class MediaEventEditorDialog extends Stage {
         grid.add(createLabel("ТИП ТРИГЕРА"), 0, 1);
         grid.add(typeC, 1, 1);
 
-        pathF = createStyledField(event != null ? event.path() : "");
-        pathF.setEditable(false);
-        pathF.setMaxWidth(Double.MAX_VALUE);
+        // --- MODERN SOURCE WIDGET ---
+        VBox sourceCard = new VBox(15);
+        sourceCard.setPadding(new Insets(20));
+        sourceCard.setStyle("-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_FIELD + "; -fx-border-width: 1.5; -fx-border-dash-array: 6 6;");
 
-        Button browseFile = createPrimaryActionButton("Файл", ICON_MUSIC);
-        Button browseFolder = createPrimaryActionButton("Папка", ICON_FOLDER);
+        HBox sourceInfo = new HBox(15);
+        sourceInfo.setAlignment(Pos.CENTER_LEFT);
+        
+        VBox pathIconBox = new VBox();
+        pathIconBox.setAlignment(Pos.CENTER);
+        pathIconBox.setPrefSize(50, 50);
+        pathIconBox.setStyle(ICON_BADGE_STYLE + "-fx-background-radius: 14;");
+        
+        VBox pathTextStack = new VBox(2);
+        Label pathMainLabel = new Label("Джерело не обрано");
+        pathMainLabel.setStyle("-fx-font-weight: 800; -fx-font-size: 15px; -fx-text-fill: " + COLOR_NAVY + ";");
+        pathMainLabel.setWrapText(true);
+        pathMainLabel.setMaxWidth(420);
+        
+        Label pathSubLabel = new Label("Оберіть аудіофайл або папку для програвання");
+        pathSubLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + COLOR_SLATE + ";");
+        pathSubLabel.setEllipsisString("...");
+        pathSubLabel.setTextOverrun(OverrunStyle.CENTER_ELLIPSIS);
+        pathSubLabel.setMaxWidth(420);
+        
+        pathTextStack.getChildren().addAll(pathMainLabel, pathSubLabel);
+        
+        sourceInfo.getChildren().addAll(pathIconBox, pathTextStack);
+
+        pathF = new TextField(event != null ? event.path() : ""); // Hidden but used for logic
+        pathF.setManaged(false);
+        pathF.setVisible(false);
+
+        Runnable updateSourceDisplay = () -> {
+            String currentPath = pathF.getText();
+            if (currentPath == null || currentPath.isEmpty()) {
+                pathIconBox.getChildren().setAll(createSVGIcon(ICON_MUSIC, Color.web(COLOR_SLATE_LIGHT), 24));
+                pathMainLabel.setText("Джерело не обрано");
+                pathSubLabel.setText("Оберіть аудіофайл або папку");
+                sourceCard.setStyle(sourceCard.getStyle() + "-fx-border-color: " + COLOR_BORDER_FIELD + ";");
+            } else {
+                File file = new File(currentPath);
+                boolean exists = file.exists();
+                boolean isDir = file.isDirectory();
+                
+                pathIconBox.getChildren().setAll(createSVGIcon(isDir ? ICON_FOLDER : ICON_MUSIC, Color.web(COLOR_PRIMARY), 24));
+                pathMainLabel.setText(file.getName().isEmpty() ? currentPath : file.getName());
+                pathSubLabel.setText(currentPath);
+                pathSubLabel.setTooltip(new Tooltip(currentPath));
+                sourceCard.setStyle(sourceCard.getStyle().replace(COLOR_BORDER_FIELD, COLOR_INDIGO) + "-fx-border-style: solid;");
+            }
+        };
+
+        Button browseFile = new Button("ОБРАТИ ФАЙЛ");
+        browseFile.setGraphic(createSVGIcon(ICON_MUSIC, Color.web(COLOR_PRIMARY), 14));
+        browseFile.setStyle("-fx-background-color: white; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 8 16; -fx-background-radius: 10; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 10; -fx-cursor: hand;");
+        
+        Button browseFolder = new Button("ОБРАТИ ПАПКУ");
+        browseFolder.setGraphic(createSVGIcon(ICON_FOLDER, Color.web(COLOR_VIOLET), 14));
+        browseFolder.setStyle("-fx-background-color: white; -fx-text-fill: " + COLOR_VIOLET + "; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 8 16; -fx-background-radius: 10; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 10; -fx-cursor: hand;");
+
         browseFile.setOnAction(e -> {
             FileChooser fc = new FileChooser();
             fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Аудіо файли (MP3, WAV)", "*.mp3", "*.wav"));
             File f = fc.showOpenDialog(this);
-            if (f != null) pathF.setText(f.getAbsolutePath());
+            if (f != null) {
+                pathF.setText(f.getAbsolutePath());
+                updateSourceDisplay.run();
+            }
         });
         browseFolder.setOnAction(e -> {
             javafx.stage.DirectoryChooser dc = new javafx.stage.DirectoryChooser();
             File f = dc.showDialog(this);
-            if (f != null) pathF.setText(f.getAbsolutePath());
+            if (f != null) {
+                pathF.setText(f.getAbsolutePath());
+                updateSourceDisplay.run();
+            }
         });
 
-        VBox pathWrapper = new VBox(10, pathF, new HBox(10, browseFile, browseFolder));
+        HBox btnRow = new HBox(12, browseFile, browseFolder);
+        sourceCard.getChildren().addAll(sourceInfo, btnRow);
+        
         grid.add(createLabel("ДЖЕРЕЛО ЗВУКУ"), 0, 2);
-        grid.add(pathWrapper, 1, 2);
+        grid.add(sourceCard, 1, 2);
+
+        updateSourceDisplay.run();
 
         timeF = createStyledField(event != null ? event.time() : "12:00");
         timeF.setPrefWidth(120);
@@ -139,7 +204,7 @@ public class MediaEventEditorDialog extends Stage {
             dynamicGrid.setAlignment(Pos.CENTER_LEFT);
             
             javafx.scene.layout.ColumnConstraints dLabelCol = new javafx.scene.layout.ColumnConstraints();
-            dLabelCol.setPrefWidth(130);
+            dLabelCol.setPrefWidth(170);
             dynamicGrid.getColumnConstraints().add(dLabelCol);
 
             if (typeC.getValue().equals("На перервах")) {
@@ -258,7 +323,6 @@ public class MediaEventEditorDialog extends Stage {
             mainApp.getMediaSchedulerService().updateEvent(newEvent);
         }
 
-        mainApp.showNotifications();
         return true;
     }
 }

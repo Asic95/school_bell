@@ -24,7 +24,7 @@ import static com.schoolbell.ui.UIStyles.*;
 
 public class SubstitutionReportDialog extends Stage {
     private final SubstitutionReportService reportService;
-    private final Locale ukLocale = new Locale("uk", "UA");
+    private final Locale ukLocale = Locale.of("uk", "UA");
 
     public SubstitutionReportDialog(MainApp mainApp, SubstitutionReportService reportService) {
         this.reportService = reportService;

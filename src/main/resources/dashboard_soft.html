@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Bell Dashboard - Soft UI v2</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(to bottom right, #f8fbff 0%, #f5f7fb 45%, #edf4ff 100%);
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --card-border: rgba(226, 232, 240, 0.7);
+            --card-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.08), 0 18px 36px -18px rgba(15, 23, 42, 0.1);
+            
+            --primary: #2563eb;
+            --indigo: #4f46e5;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            
+            --text-navy: #0f172a;
+            --text-slate: #64748b;
+            --text-slate-light: #94a3b8;
+            
+            --radius-lg: 28px;
+            --radius-md: 18px;
+            --radius-sm: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-navy);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            height: 120px;
+            padding: 0 50px;
+            display: grid;
+            grid-template-columns: 1.5fr auto 1.5fr;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--card-border);
+            position: relative;
+            z-index: 100;
+        }
+
+        .school-brand {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .badge-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(to bottom right, #f8fbff, #edf4ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 16px rgba(15, 23, 42, 0.04);
+        }
+
+        .badge-icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: var(--indigo);
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        .brand-text h1 {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            color: var(--text-navy);
+        }
+        
+        .brand-text span {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-slate);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .header-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-time {
+            font-size: 64px;
+            font-weight: 900;
+            color: var(--text-navy);
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .header-date {
+            font-size: 15px;
+            color: var(--indigo);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 8px;
+        }
+
+        .header-right {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .system-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--card-bg);
+            padding: 10px 20px;
+            border-radius: 100px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+        }
+
+        .system-badge span {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-slate);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #conn-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 450px;
+            gap: 30px;
+            padding: 30px 50px;
+            overflow: hidden;
+        }
+
+        /* LEFT SIDE: TABLE */
+        .table-section {
+            display: flex;
+            flex-direction: column;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(20px);
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 25px 30px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-slate);
+            border-bottom: 1px solid var(--card-border);
+            background: rgba(248, 250, 252, 0.5);
+        }
+
+        th .th-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        th svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--text-slate-light);
+            stroke-width: 2.5;
+            fill: none;
+        }
+
+        td {
+            padding: 24px 30px;
+            font-size: 24px;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+            color: var(--text-navy);
+        }
+
+        td b {
+            font-weight: 900;
+            color: var(--indigo);
+        }
+
+        tr.row-fade-in {
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ROW SPECIAL STYLES */
+        tr.status-replacement {
+            background: rgba(239, 68, 68, 0.02);
+        }
+
+        tr.status-current {
+            background: rgba(79, 70, 229, 0.03);
+            position: relative;
+        }
+        
+        tr.status-current::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 15%;
+            height: 70%;
+            width: 6px;
+            background: var(--indigo);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .teacher-replacement {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .teacher-replacement .original {
+            text-decoration: line-through;
+            color: var(--text-slate-light);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .teacher-replacement .new {
+            color: var(--danger);
+            font-weight: 800;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge.current { 
+            background: linear-gradient(to right, var(--indigo), var(--primary)); 
+            color: white; 
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+        }
+        
+        .status-badge.upcoming { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2); }
+        .status-badge.replacement { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .status-badge.normal { background: rgba(22, 163, 74, 0.1); color: var(--success); border: 1px solid rgba(22, 163, 74, 0.2); }
+
+        /* RIGHT SIDE: STATUS */
+        .status-section {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .status-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--card-shadow);
+        }
+
+        .countdown-card {
+            background: linear-gradient(135deg, var(--indigo) 0%, var(--primary) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .countdown-card::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+        }
+
+        .countdown-card.urgent {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            animation: soft-pulse 2s infinite;
+        }
+
+        @keyframes soft-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 30px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .countdown-label {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 12px;
+        }
+
+        .countdown-value {
+            font-size: 84px;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -2px;
+        }
+
+        .current-lesson-info h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: var(--text-slate);
+            margin-bottom: 25px;
+            letter-spacing: 1.5px;
+            font-weight: 800;
+        }
+
+        .global-status-value {
+            font-size: 38px;
+            font-weight: 900;
+            color: var(--text-navy);
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .global-status-time {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--indigo);
+            margin-bottom: 30px;
+        }
+
+        .global-progress-container {
+            width: 100%;
+            height: 14px;
+            background: #f1f5f9;
+            border-radius: 100px;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+        }
+
+        .global-progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--indigo), var(--primary));
+            width: 0%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 100px;
+        }
+
+        /* BOTTOM: ANNOUNCEMENTS */
+        footer {
+            height: 100px;
+            margin: 0 50px 30px 50px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+
+        .announcement-tag {
+            background: linear-gradient(to right, var(--indigo), var(--primary));
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 900;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-right: 40px;
+            white-space: nowrap;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+            z-index: 10;
+        }
+
+        .announcement-content {
+            flex: 1;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-navy);
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .announcement-scroller {
+            display: inline-block;
+            animation: scrollText 25s linear infinite;
+        }
+
+        @keyframes scrollText {
+            from { transform: translateX(100vw); }
+            to { transform: translateX(-100%); }
+        }
+
+        /* EMERGENCY OVERLAY */
+        #emergency-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--danger);
+            text-align: center;
+        }
+
+        #emergency-overlay.silence { background: var(--text-navy); }
+        #emergency-overlay.emergency { background: var(--warning); }
+
+        .em-title { font-size: 120px; font-weight: 900; color: white; margin-bottom: 20px; text-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .em-desc { font-size: 48px; font-weight: 700; color: white; opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="school-brand">
+            <div class="badge-icon">
+                <svg viewBox="0 0 24 24"><path d="M14 22v-4a2 2 0 1 0-4 0v4"/><path d="m18 10 4 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8l4-2"/><path d="m4 12 8-4 8 4"/><path d="M16 22V2h-8v20"/></svg>
+            </div>
+            <div class="brand-text">
+                <span id="brand-eyebrow">Інформаційне табло</span>
+                <h1 id="school-name">Школа</h1>
+            </div>
+        </div>
+        
+        <div class="header-center">
+            <div class="header-time" id="clock">00:00</div>
+            <div class="header-date" id="header-date">-- --- ----</div>
+        </div>
+
+        <div class="header-right">
+            <div class="system-badge">
+                <div id="conn-status" style="background: #ef4444; color: #ef4444;"></div>
+                <span>Система активна</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="table-section">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 15%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Клас</div></th>
+                        <th style="width: 30%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg> Предмет</div></th>
+                        <th style="width: 30%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Вчитель</div></th>
+                        <th style="width: 10%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Каб.</div></th>
+                        <th style="width: 15%"><div class="th-content"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Статус</div></th>
+                    </tr>
+                </thead>
+                <tbody id="schedule-body"></tbody>
+            </table>
+        </div>
+
+        <div class="status-section">
+            <div class="status-card countdown-card" id="countdown-card">
+                <div class="countdown-label" id="countdown-label">До дзвінка</div>
+                <div class="countdown-value" id="countdown-text">--:--</div>
+            </div>
+
+            <div class="status-card current-lesson-info">
+                <h3>Статус закладу</h3>
+                <div id="school-status-content">
+                    <div class="global-status-value" id="global-status-title">Завантаження...</div>
+                    <div class="global-status-time" id="global-status-time">--:-- – --:--</div>
+                    <div class="global-progress-container">
+                        <div class="global-progress-bar" id="global-progress-bar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="announcement-tag">Оголошення</div>
+        <div class="announcement-content">
+            <div class="announcement-scroller" id="announcement-text">Вітаємо у системі School Bell! Програма оновлена до версії Soft UI 2.0.</div>
+        </div>
+    </footer>
+
+    <div id="emergency-overlay">
+        <h1 class="em-title" id="em-title">УВАГА</h1>
+        <p class="em-desc" id="em-desc">Дотримуйтесь інструкцій</p>
+    </div>
+
+    <script>
+        let socket;
+        let currentPage = 0;
+        const rowsPerPage = 10;
+        let allRows = [];
+        let paginationTimeout = null;
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', hour12: false });
+            document.getElementById('header-date').textContent = now.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function connectWS() {
+            const currentPort = parseInt(window.location.port) || 80;
+            const wsPort = currentPort + 2;
+            const wsUrl = `ws://${window.location.hostname}:${wsPort}`;
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                const status = document.getElementById('conn-status');
+                status.style.background = '#16a34a';
+                status.style.color = '#16a34a';
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleUpdate(data);
+            };
+
+            socket.onclose = () => {
+                const status = document.getElementById('conn-status');
+                status.style.background = '#ef4444';
+                status.style.color = '#ef4444';
+                setTimeout(connectWS, 5000);
+            };
+        }
+
+        function handleUpdate(data) {
+            if (data.schoolName) document.getElementById('school-name').textContent = data.schoolName;
+            if (data.announcement) document.getElementById('announcement-text').textContent = data.announcement;
+            
+            const overlay = document.getElementById('emergency-overlay');
+            const alert = data.alertType;
+            if (alert && alert !== 'NONE') {
+                overlay.style.display = 'flex';
+                overlay.className = alert.toLowerCase();
+                document.getElementById('em-title').textContent = alert === 'AIR_RAID' ? 'ПОВІТРЯНА ТРИВОГА' : 
+                                                                alert === 'SILENCE' ? 'ХВИЛИНА МОВЧАННЯ' : 'УВАГА';
+                document.getElementById('em-desc').textContent = alert === 'SILENCE' ? 'ВШАНУЙМО ПАМ’ЯТЬ ЗАГИБЛИХ ГЕРОЇВ' : 'ДОТРИМУЙТЕСЬ ІНСТРУКЦІЙ';
+            } else {
+                overlay.style.display = 'none';
+            }
+
+            if (data.schoolStatus) {
+                const s = data.schoolStatus;
+                document.getElementById('global-status-title').textContent = s.title;
+                document.getElementById('global-status-time').textContent = `${s.start} – ${s.end}`;
+                document.getElementById('global-progress-bar').style.width = (s.progress || 0) + '%';
+                
+                const label = document.getElementById('countdown-label');
+                label.textContent = s.type === 'BREAK' ? 'До уроку' : 'До дзвінка';
+            }
+
+            if (data.rows) {
+                const newData = JSON.stringify(data.rows);
+                if (window.lastRowsData !== newData) {
+                    window.lastRowsData = newData;
+                    allRows = data.rows;
+                    renderTable();
+                }
+            }
+
+            if (data.countdown) {
+                document.getElementById('countdown-text').textContent = data.countdown;
+                const parts = data.countdown.split(':');
+                const isUrgent = (parts.length === 2 && parseInt(parts[0]) === 0) || 
+                                 (parts.length === 3 && parseInt(parts[0]) === 0 && parseInt(parts[1]) === 0);
+                document.getElementById('countdown-card').classList.toggle('urgent', isUrgent);
+            }
+        }
+
+        function renderTable() {
+            if (paginationTimeout) clearTimeout(paginationTimeout);
+            const body = document.getElementById('schedule-body');
+            body.innerHTML = '';
+            const start = currentPage * rowsPerPage;
+            const pageRows = allRows.slice(start, start + rowsPerPage);
+
+            const statusIcons = {
+                current: '<svg style="width:18px;height:18px" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor"/></svg>',
+                upcoming: '<svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+                replacement: '<svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',
+                normal: '<svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+            };
+
+            pageRows.forEach((row, i) => {
+                const tr = document.createElement('tr');
+                tr.classList.add('row-fade-in');
+                tr.style.animationDelay = `${i * 0.05}s`;
+                
+                if (row.isReplacement) tr.classList.add('status-replacement');
+                if (row.statusClass === 'current') tr.classList.add('status-current');
+                
+                let sClass = row.statusClass || 'normal';
+                let sText = sClass === 'current' ? 'Зараз' : sClass === 'upcoming' ? 'Скоро' : row.isReplacement ? 'Заміна' : 'Ок';
+                
+                let iconKey = sClass;
+                if (row.isReplacement && sClass !== 'current') iconKey = 'replacement';
+                let sIcon = statusIcons[iconKey] || statusIcons.normal;
+
+                let teacherHtml = `<span>${row.teacher}</span>`;
+                if (row.isReplacement) {
+                    teacherHtml = `<div class="teacher-replacement"><span class="original">${row.originalTeacher}</span><span class="new">${row.teacher}</span></div>`;
+                }
+
+                tr.innerHTML = `
+                    <td><b>${row.className}</b></td>
+                    <td>${row.subject}</td>
+                    <td>${teacherHtml}</td>
+                    <td>${row.room}</td>
+                    <td><span class="status-badge ${sClass}">${sIcon} ${sText}</span></td>
+                `;
+                body.appendChild(tr);
+            });
+
+            if (allRows.length > rowsPerPage) {
+                paginationTimeout = setTimeout(() => {
+                    currentPage = (currentPage + 1) % Math.ceil(allRows.length / rowsPerPage);
+                    renderTable();
+                }, 10000);
+            }
+        }
+
+        connectWS();
+    </script>
+</body>
+</html>

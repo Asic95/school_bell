@@ -94,7 +94,7 @@ public class ToastService {
         StackPane iconBox = new StackPane(createSVGIcon(type.icon, Color.WHITE, 20));
         iconBox.setPrefSize(48, 48);
         iconBox.setMinSize(48, 48);
-        iconBox.setStyle("-fx-background-color: " + type.gradient + "; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);");
+        iconBox.setStyle("-fx-background-color: " + type.gradient + "; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_10 + ", 10, 0, 0, 2);");
 
         Label label = new Label(message);
         label.setStyle("-fx-text-fill: " + UIStyles.COLOR_NAVY + "; -fx-font-size: 15px; -fx-font-weight: 900;");

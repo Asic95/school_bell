@@ -44,7 +44,7 @@ public class SubstitutionCard {
         VBox lessonBox = new VBox();
         lessonBox.setAlignment(Pos.CENTER);
         lessonBox.setPrefSize(54, 54);
-        lessonBox.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + "); -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.08), 12, 0, 0, 4);");
+        lessonBox.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + "); -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_08 + ", 12, 0, 0, 4);");
         Label lessonNum = new Label(String.valueOf(sub.lessonNumber()));
         lessonNum.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_PRIMARY + ";");
         Label lessonText = new Label("УРОК");

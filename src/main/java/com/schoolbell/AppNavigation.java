@@ -66,44 +66,70 @@ public class AppNavigation {
         }
     }
 
+    private void switchView(Node newNode) {
+        if (contentArea.getChildren().isEmpty()) {
+            contentArea.getChildren().setAll(newNode);
+            return;
+        }
+
+        Node oldNode = contentArea.getChildren().get(0);
+        
+        // Skip transition if it's the same node type/instance (optional improvement)
+        if (oldNode == newNode) return;
+
+        javafx.animation.FadeTransition fadeOut = new javafx.animation.FadeTransition(javafx.util.Duration.millis(120), oldNode);
+        fadeOut.setFromValue(1.0);
+        fadeOut.setToValue(0.0);
+        fadeOut.setOnFinished(e -> {
+            newNode.setOpacity(0.0); // Crucial fix: set opacity to 0 before adding to scene
+            contentArea.getChildren().setAll(newNode);
+            
+            javafx.animation.FadeTransition fadeIn = new javafx.animation.FadeTransition(javafx.util.Duration.millis(180), newNode);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            fadeIn.play();
+        });
+        fadeOut.play();
+    }
+
     public void showDashboard() {
         setActiveNav("DASHBOARD");
-        contentArea.getChildren().setAll(mainApp.getDashboardView().build());
+        switchView(mainApp.getDashboardView().build());
     }
 
     public void showSchool() {
         setActiveNav("SCHOOL");
-        contentArea.getChildren().setAll(mainApp.getSchoolView().build());
+        switchView(mainApp.getSchoolView().build());
     }
 
     public void showSchedule() {
         setActiveNav("SCHEDULE");
-        contentArea.getChildren().setAll(mainApp.getScheduleView().build());
+        switchView(mainApp.getScheduleView().build());
     }
 
     public void showEditorTab(int tabIndex) {
         ScheduleEditorDialog editor = new ScheduleEditorDialog(mainApp);
         Node content = editor.createTabContent(tabIndex);
-        contentArea.getChildren().setAll(content);
+        switchView(content);
     }
 
     public void showEfir() { 
         setActiveNav("EFIR"); 
-        contentArea.getChildren().setAll(mainApp.getEfirView().build()); 
+        switchView(mainApp.getEfirView().build()); 
     }
 
     public void showNotifications() {
         setActiveNav("NOTIFICATIONS");
-        contentArea.getChildren().setAll(mainApp.getNotificationsView().build());
+        switchView(mainApp.getNotificationsView().build());
     }
 
     public void showSystem() {
         setActiveNav("SYSTEM");
-        contentArea.getChildren().setAll(mainApp.getSystemView().build());
+        switchView(mainApp.getSystemView().build());
     }
 
     public void showImport() {
         setActiveNav("IMPORT");
-        contentArea.getChildren().setAll(mainApp.getImportView().build());
+        switchView(mainApp.getImportView().build());
     }
 }
