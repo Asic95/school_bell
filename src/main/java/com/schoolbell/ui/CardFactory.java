@@ -39,7 +39,7 @@ public class CardFactory {
 
         card.getChildren().addAll(iconBox, titleLabel, descLabel);
         card.setOnMouseClicked(e -> action.run());
-        card.setOnMouseEntered(e -> card.setStyle(SOFT_CARD + "-fx-cursor: hand; -fx-background-color: " + COLOR_SURFACE_ELEVATED + "; -fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.12), 40, 0, 0, 15);"));
+        card.setOnMouseEntered(e -> card.setStyle(SOFT_CARD + "-fx-cursor: hand; -fx-background-color: " + COLOR_SURFACE_ELEVATED + "; -fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_12 + ", 40, 0, 0, 15);"));
         card.setOnMouseExited(e -> card.setStyle(SOFT_CARD + "-fx-cursor: hand;"));
         
         return card;
@@ -89,7 +89,7 @@ public class CardFactory {
         layout.getChildren().addAll(iconCircle, textStack);
         card.getChildren().add(layout);
         
-        card.setOnMouseEntered(e -> card.setStyle(SOFT_CARD + "-fx-background-color: " + COLOR_SURFACE_ELEVATED + "; -fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.12), 40, 0, 0, 15);"));
+        card.setOnMouseEntered(e -> card.setStyle(SOFT_CARD + "-fx-background-color: " + COLOR_SURFACE_ELEVATED + "; -fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_12 + ", 40, 0, 0, 15);"));
         card.setOnMouseExited(e -> card.setStyle(SOFT_CARD));
         
         return card;
@@ -190,7 +190,7 @@ public class CardFactory {
         
         card.getChildren().addAll(header, descLabel);
         
-        card.setOnMouseEntered(e -> card.setStyle(SOFT_CARD + "-fx-background-color: " + COLOR_SURFACE_ELEVATED + "; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 20, 0, 0, 8);"));
+        card.setOnMouseEntered(e -> card.setStyle(SOFT_CARD + "-fx-background-color: " + COLOR_SURFACE_ELEVATED + "; -fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_06 + ", 20, 0, 0, 8);"));
         card.setOnMouseExited(e -> card.setStyle(SOFT_CARD));
         
         return card;
@@ -221,13 +221,13 @@ public class CardFactory {
         btn.setPrefSize(40, 40);
         btn.setMinSize(40, 40);
         
-        String baseStyle = "-fx-background-color: rgba(248,250,252,0.96); " +
+        String baseStyle = "-fx-background-color: " + GLASS_SKY + "; " +
                            "-fx-background-radius: 999; " +
-                           "-fx-border-color: rgba(226,232,240,0.85); " +
+                           "-fx-border-color: " + BORDER_SLATE_85 + "; " +
                            "-fx-border-width: 1; " +
                            "-fx-border-radius: 999; " +
                            "-fx-cursor: hand; " +
-                           "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.06), 10, 0, 0, 3);";
+                           "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_06 + ", 10, 0, 0, 3);";
         
         btn.setStyle(baseStyle);
         
@@ -235,7 +235,7 @@ public class CardFactory {
             btn.setStyle(baseStyle +
                 "-fx-background-color: " + hoverBg + "; " +
                 "-fx-border-color: " + hoverBorder + "; " +
-                "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.16), 14, 0, 0, 4);");
+                "-fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_16 + ", 14, 0, 0, 4);");
 
             // Визначаємо, чи це кнопка видалення (містить "danger" або відповідні стилі)
             boolean isDanger = hoverBorder.contains(COLOR_DANGER) || hoverBorder.contains(COLOR_DANGER_LIGHT) || iconPath.contains("trash");

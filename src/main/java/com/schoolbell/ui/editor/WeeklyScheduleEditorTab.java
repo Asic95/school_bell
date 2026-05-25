@@ -272,7 +272,7 @@ public class WeeklyScheduleEditorTab {
         
         StackPane card = new StackPane(content);
         card.setStyle("-fx-background-color: white; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 18; -fx-border-width: 1 1 1 6; -fx-border-color: " + COLOR_BORDER_SOFT + " " + COLOR_BORDER_SOFT + " " + COLOR_BORDER_SOFT + " " + accentColor + ";");
-        card.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(15,23,42,0.08), 15, 0, 0, 5));
+        card.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.web(SHADOW_NAVY_08), 15, 0, 0, 5));
         
         Button clearBtn = new Button("✕"); 
         clearBtn.setStyle("-fx-background-color: " + COLOR_ALERT_RED + "; -fx-text-fill: white; -fx-font-size: 11px; -fx-font-weight: 900; -fx-background-radius: 99; -fx-padding: 4 8; -fx-cursor: hand;");

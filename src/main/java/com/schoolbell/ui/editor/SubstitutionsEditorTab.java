@@ -142,13 +142,14 @@ public class SubstitutionsEditorTab {
             if (filtered.isEmpty()) {
                 VBox empty = new VBox(20);
                 empty.setAlignment(Pos.CENTER);
-                empty.setPadding(new Insets(100, 0, 0, 0));
+                empty.setPadding(new Insets(100, 0, 100, 0));
+                empty.setMinWidth(900);
                 
-                Node icon = createSVGIcon(ICON_INFO, Color.web(COLOR_SLATE_MUTED), 64);
+                Node icon = createSVGIcon(ICON_INFO, Color.web(COLOR_WHITE_MUTED_BORDER), 64);
                 Label emptyLabel = new Label(showArchived ? "Архів замін порожній" : "Немає активних замін");
-                emptyLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + ";");
-                Label subLabel = new Label("Всі зміни в розкладі відображатимуться тут");
-                subLabel.setStyle("-fx-text-fill: " + COLOR_SLATE_MUTED + "; -fx-font-size: 14px;");
+                emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_ICON_MUTED + ";");
+                Label subLabel = new Label(showArchived ? "Тут з'являтимуться заміни, термін дії яких минув" : "Натисніть 'НОВА ЗАМІНА', щоб внести оперативні зміни");
+                subLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE + ";");
                 
                 empty.getChildren().addAll(icon, emptyLabel, subLabel);
                 contentList.getChildren().add(empty);

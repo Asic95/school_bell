@@ -23,18 +23,8 @@ import static com.schoolbell.ui.ControlFactory.createDialogRoot;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.ControlFactory.createSecondaryDialogButton;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
-import static com.schoolbell.ui.UIStyles.COLOR_BORDER_SOFT;
-import static com.schoolbell.ui.UIStyles.COLOR_DANGER;
-import static com.schoolbell.ui.UIStyles.COLOR_DANGER_BORDER;
-import static com.schoolbell.ui.UIStyles.COLOR_DANGER_PALE;
-import static com.schoolbell.ui.UIStyles.COLOR_NAVY;
-import static com.schoolbell.ui.UIStyles.COLOR_PRIMARY;
-import static com.schoolbell.ui.UIStyles.COLOR_SURFACE_GLASS_START;
-import static com.schoolbell.ui.UIStyles.HEADER_STYLE;
-import static com.schoolbell.ui.UIStyles.ICON_FOLDER;
-import static com.schoolbell.ui.UIStyles.ICON_SAVE;
-import static com.schoolbell.ui.UIStyles.ICON_TRASH;
-import static com.schoolbell.ui.UIStyles.PREMIUM_BTN_STYLE;
+import static com.schoolbell.ui.UIStyles.*;
+
 import static com.schoolbell.ui.UIStyles.PREMIUM_FIELD_STYLE;
 
 public class SignalAudioEditorDialog extends Stage {
@@ -107,7 +97,7 @@ public class SignalAudioEditorDialog extends Stage {
 
         Button pickBtn = new Button();
         pickBtn.setGraphic(createSVGIcon(ICON_FOLDER, Color.web(COLOR_PRIMARY), 18));
-        String pickStyle = "-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 14; -fx-padding: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 5, 0, 0, 1);";
+        String pickStyle = "-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 14; -fx-padding: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_03 + ", 5, 0, 0, 1);";
         pickBtn.setStyle(pickStyle);
         pickBtn.setOnMouseEntered(e -> pickBtn.setStyle(pickStyle + "-fx-background-color: " + COLOR_SURFACE_GLASS_START + "; -fx-border-color: " + COLOR_PRIMARY + ";"));
         pickBtn.setOnMouseExited(e -> pickBtn.setStyle(pickStyle));
@@ -123,7 +113,7 @@ public class SignalAudioEditorDialog extends Stage {
 
         Button clearBtn = new Button();
         clearBtn.setGraphic(createSVGIcon(ICON_TRASH, Color.web(COLOR_DANGER), 18));
-        String clearStyle = "-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: " + COLOR_DANGER_BORDER + "; -fx-border-radius: 14; -fx-padding: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 5, 0, 0, 1);";
+        String clearStyle = "-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: " + COLOR_DANGER_BORDER + "; -fx-border-radius: 14; -fx-padding: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_03 + ", 5, 0, 0, 1);";
         clearBtn.setStyle(clearStyle);
         clearBtn.setOnMouseEntered(e -> clearBtn.setStyle(clearStyle + "-fx-background-color: " + COLOR_DANGER_PALE + "; -fx-border-color: " + COLOR_DANGER + ";"));
         clearBtn.setOnMouseExited(e -> clearBtn.setStyle(clearStyle));

@@ -30,19 +30,19 @@ import static com.schoolbell.ui.UIStyles.*;
 
 public class EmergencyAlertsPanel {
     private static final String SECTION_CARD =
-            "-fx-background-color: rgba(255,255,255,0.96);" +
+            "-fx-background-color: " + GLASS_WHITE + ";" +
             "-fx-background-radius: 32;" +
-            "-fx-border-color: rgba(226,232,240,0.72);" +
+            "-fx-border-color: " + BORDER_SLATE_72 + ";" +
             "-fx-border-width: 1;" +
             "-fx-border-radius: 32;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 30, 0, 0, 10);";
+            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_08 + ", 30, 0, 0, 10);";
     private static final String ALERT_CARD =
             "-fx-background-color: linear-gradient(to bottom right, " + COLOR_WHITE + ", " + COLOR_SURFACE_CLOUD + ");" +
             "-fx-background-radius: 26;" +
-            "-fx-border-color: rgba(226,232,240,0.6);" +
+            "-fx-border-color: " + BORDER_SLATE_60 + ";" +
             "-fx-border-width: 1;" +
             "-fx-border-radius: 26;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.06), 22, 0, 0, 6);";
+            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_06 + ", 22, 0, 0, 6);";
 
     private final MainApp mainApp;
     private final ConfigService config;
@@ -163,9 +163,9 @@ public class EmergencyAlertsPanel {
         // ... (rest of the MenuButton code)
         more.setGraphic(createSVGIcon("M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z", Color.web(COLOR_SLATE_DARK), 18));
         more.setStyle(
-                "-fx-background-color: rgba(248,250,252,0.96);" +
+                "-fx-background-color: " + GLASS_SKY + ";" +
                 "-fx-background-radius: 18;" +
-                "-fx-border-color: rgba(226,232,240,0.85);" +
+                "-fx-border-color: " + BORDER_SLATE_85 + ";" +
                 "-fx-border-radius: 18;" +
                 "-fx-padding: 6;" +
                 "-fx-cursor: hand;"
@@ -195,9 +195,9 @@ public class EmergencyAlertsPanel {
         VBox card = new VBox(6);
         card.setPadding(new Insets(14, 16, 14, 16));
         card.setStyle(
-                "-fx-background-color: rgba(248,250,252,0.95);" +
+                "-fx-background-color: " + GLASS_SKY_95 + ";" +
                 "-fx-background-radius: 18;" +
-                "-fx-border-color: rgba(219,228,240,0.75);" +
+                "-fx-border-color: " + BORDER_FIELD_75 + ";" +
                 "-fx-border-width: 1;" +
                 "-fx-border-radius: 18;" +
                 "-fx-cursor: hand;"
@@ -236,9 +236,9 @@ public class EmergencyAlertsPanel {
         box.setPrefHeight(height);
         box.setMinHeight(height);
         box.setStyle(
-                "-fx-background-color: rgba(255,255,255,0.96);" +
+                "-fx-background-color: " + GLASS_WHITE + ";" +
                 "-fx-background-radius: 18;" +
-                "-fx-border-color: rgba(226,232,240,0.9);" +
+                "-fx-border-color: " + BORDER_SLATE_90 + ";" +
                 "-fx-border-width: 1;" +
                 "-fx-border-radius: 18;"
         );

@@ -24,7 +24,7 @@ public class SystemService {
         if (!System.getProperty("os.name").toLowerCase().contains("win")) return;
 
         try {
-            String runningPath = getRunningJarPath();
+            String runningPath = getRunningExecutablePath();
             if (runningPath == null) {
                 logger.warn("Could not determine running path, skipping autostart update.");
                 return;
@@ -112,12 +112,33 @@ public class SystemService {
         }
     }
 
-    private String getRunningJarPath() {
+    private String getRunningExecutablePath() {
         try {
+            // 1. Try to get the actual EXE path (Java 9+)
+            String command = ProcessHandle.current().info().command().orElse(null);
+            if (command != null && command.endsWith(".exe") && !command.toLowerCase().contains("java")) {
+                return new File(command).getAbsolutePath();
+            }
+
+            // 2. Fallback to JAR path detection
             String path = SystemService.class.getProtectionDomain().getCodeSource().getLocation().getPath();
             String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
             if (decodedPath.startsWith("/")) decodedPath = decodedPath.substring(1);
-            return new File(decodedPath).getAbsolutePath();
+            File file = new File(decodedPath);
+            
+            // 3. If we are running a JAR, check if there's an EXE with the same name in the parent folder (jpackage style)
+            if (file.getName().endsWith(".jar")) {
+                File parent = file.getParentFile();
+                if (parent != null && parent.getName().equals("app")) {
+                    File grandParent = parent.getParentFile();
+                    if (grandParent != null) {
+                        File exe = new File(grandParent, "SchoolBell.exe");
+                        if (exe.exists()) return exe.getAbsolutePath();
+                    }
+                }
+            }
+            
+            return file.getAbsolutePath();
         } catch (Exception e) {
             return null;
         }

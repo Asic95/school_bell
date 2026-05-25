@@ -137,8 +137,8 @@ public class NotificationsView {
     private VBox createVolumeCard() {
         VBox card = new VBox(20);
         card.setPadding(new Insets(30));
-        card.setMinWidth(420);
-        card.setPrefWidth(420);
+        card.setMinWidth(560);
+        card.setPrefWidth(560);
         card.setStyle(SOFT_CARD);
 
         Label label = new Label("ЗАГАЛЬНА ГУЧНІСТЬ");
@@ -153,7 +153,8 @@ public class NotificationsView {
         for (int preset : presets) {
             Button button = new Button(preset == 0 ? "ВИМК" : preset + "%");
             button.setUserData(preset);
-            button.setPrefWidth(85);
+            button.setPrefWidth(95);
+            button.setMinWidth(95);
             button.setPrefHeight(46);
             button.setOnAction(e -> {
                 currentVolumeValue = preset;

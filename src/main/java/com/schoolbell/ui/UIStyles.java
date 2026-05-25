@@ -109,16 +109,66 @@ public class UIStyles {
     public static final String COLOR_AQUA = "#81ecec";
     public static final String COLOR_SLATE_PALE = "#c4cfde";
 
+    // Glass & Transparency (RGBA)
+    public static final String GLASS_WHITE = "rgba(255, 255, 255, 0.96)";
+    public static final String GLASS_SKY = "rgba(248, 250, 252, 0.96)";
+    public static final String GLASS_SKY_95 = "rgba(248, 250, 252, 0.95)";
+    public static final String TR_WHITE_08 = "rgba(255, 255, 255, 0.08)";
+    public static final String TR_WHITE_15 = "rgba(255, 255, 255, 0.15)";
+    public static final String TR_WHITE_25 = "rgba(255, 255, 255, 0.25)";
+    public static final String TR_WHITE_28 = "rgba(255, 255, 255, 0.28)";
+    public static final String TR_WHITE_30 = "rgba(255, 255, 255, 0.3)";
+    public static final String TR_WHITE_80 = "rgba(255, 255, 255, 0.8)";
+    public static final String TR_INDIGO_10 = "rgba(79, 70, 229, 0.1)";
+    public static final String TR_SUCCESS_15 = "rgba(22, 163, 74, 0.15)";
+    public static final String TR_DANGER_15 = "rgba(220, 38, 38, 0.15)";
+    public static final String TR_DANGER_05 = "rgba(220, 38, 38, 0.05)";
+    public static final String TR_SLATE_92 = "rgba(241, 245, 249, 0.92)";
+
+    // Shadows (RGBA)
+    public static final String SHADOW_NAVY_03 = "rgba(15, 23, 42, 0.03)";
+    public static final String SHADOW_NAVY_04 = "rgba(15, 23, 42, 0.04)";
+    public static final String SHADOW_NAVY_05 = "rgba(15, 23, 42, 0.05)";
+    public static final String SHADOW_NAVY_06 = "rgba(15, 23, 42, 0.06)";
+    public static final String SHADOW_NAVY_08 = "rgba(15, 23, 42, 0.08)";
+    public static final String SHADOW_NAVY_12 = "rgba(15, 23, 42, 0.12)";
+    public static final String SHADOW_NAVY_15 = "rgba(15, 23, 42, 0.15)";
+    public static final String SHADOW_INDIGO_08 = "rgba(79, 70, 229, 0.08)";
+    public static final String SHADOW_INDIGO_12 = "rgba(79, 70, 229, 0.12)";
+    public static final String SHADOW_INDIGO_16 = "rgba(79, 70, 229, 0.16)";
+    public static final String SHADOW_INDIGO_28 = "rgba(79, 70, 229, 0.28)";
+    public static final String SHADOW_INDIGO_40 = "rgba(79, 70, 229, 0.4)";
+    public static final String SHADOW_BLACK_03 = "rgba(0, 0, 0, 0.03)";
+    public static final String SHADOW_BLACK_05 = "rgba(0, 0, 0, 0.05)";
+    public static final String SHADOW_BLACK_06 = "rgba(0, 0, 0, 0.06)";
+    public static final String SHADOW_BLACK_08 = "rgba(0, 0, 0, 0.08)";
+    public static final String SHADOW_BLACK_10 = "rgba(0, 0, 0, 0.1)";
+    public static final String SHADOW_BLACK_18 = "rgba(0, 0, 0, 0.18)";
+    public static final String SHADOW_BLACK_30 = "rgba(0, 0, 0, 0.3)";
+    public static final String SHADOW_BLUE_40 = "rgba(9, 132, 227, 0.4)";
+    public static final String SHADOW_AMBER_30 = "rgba(253, 203, 110, 0.3)";
+    public static final String SHADOW_GREEN_20 = "rgba(34, 197, 94, 0.2)";
+
+    // Borders (RGBA)
+    public static final String BORDER_SLATE_50 = "rgba(226, 232, 240, 0.5)";
+    public static final String BORDER_SLATE_60 = "rgba(226, 232, 240, 0.6)";
+    public static final String BORDER_SLATE_70 = "rgba(226, 232, 240, 0.7)";
+    public static final String BORDER_SLATE_72 = "rgba(226, 232, 240, 0.72)";
+    public static final String BORDER_SLATE_85 = "rgba(226, 232, 240, 0.85)";
+    public static final String BORDER_SLATE_90 = "rgba(226, 232, 240, 0.9)";
+    public static final String BORDER_FIELD_75 = "rgba(219, 228, 240, 0.75)";
+    public static final String BORDER_WHITE_05 = "rgba(255, 255, 255, 0.05)";
+
     public static final String DEPTH_1 = "-fx-background-color: " + COLOR_SURFACE_SUBTLE + ";";
-    public static final String DEPTH_2 = "-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 8, 0, 0, 3);";
+    public static final String DEPTH_2 = "-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_08 + ", 8, 0, 0, 3);";
     
     public static final String SOFT_CARD = 
-            "-fx-background-color: rgba(255,255,255,0.96); " +
+            "-fx-background-color: " + GLASS_WHITE + "; " +
             "-fx-background-radius: 28; " +
-            "-fx-border-color: rgba(226,232,240,0.7); " +
+            "-fx-border-color: " + BORDER_SLATE_70 + "; " +
             "-fx-border-width: 1; " +
             "-fx-border-radius: 28; " +
-            "-fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 30, 0, 0, 10);";
+            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_08 + ", 30, 0, 0, 10);";
 
     public static final String PREMIUM_FIELD_STYLE =
             "-fx-font-family: 'Inter';" +
@@ -138,6 +188,11 @@ public class UIStyles {
             "-fx-border-color: " + COLOR_INDIGO + ";" +
             "-fx-background-color: " + COLOR_SURFACE_BRAND + ";";
 
+    public static final String PREMIUM_FIELD_ERROR_STYLE =
+            PREMIUM_FIELD_STYLE +
+            "-fx-border-color: " + COLOR_DANGER + ";" +
+            "-fx-background-color: " + COLOR_DANGER_PALE + ";";
+
     public static final String PREMIUM_BTN_STYLE =
             "-fx-background-color: linear-gradient(to right, " + COLOR_INDIGO + ", " + COLOR_PRIMARY + ");" +
             "-fx-text-fill: white;" +
@@ -145,7 +200,7 @@ public class UIStyles {
             "-fx-font-weight: 900;" +
             "-fx-padding: 14 24;" +
             "-fx-cursor: hand;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.28), 24, 0, 0, 8);";
+            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_28 + ", 24, 0, 0, 8);";
 
     public static final String ICON_BADGE_STYLE =
             "-fx-min-width: 54; -fx-min-height: 54; -fx-max-width: 54; -fx-max-height: 54;" +
@@ -154,7 +209,7 @@ public class UIStyles {
             "-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + ");";
 
     public static final String PREMIUM_TOGGLE_CONTAINER =
-            "-fx-background-color: rgba(241,245,249,0.92);" +
+            "-fx-background-color: " + TR_SLATE_92 + ";" +
             "-fx-background-radius: 22;" +
             "-fx-padding: 4;";
 
@@ -164,7 +219,7 @@ public class UIStyles {
             "-fx-background-radius: 16;" +
             "-fx-font-weight: bold;" +
             "-fx-padding: 8 16;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(79,70,229,0.28), 12, 0, 0, 4);" +
+            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_28 + ", 12, 0, 0, 4);" +
             "-fx-cursor: hand;";
 
     public static final String PREMIUM_TOGGLE_INACTIVE =
@@ -232,7 +287,7 @@ public class UIStyles {
 
     public static final String TAB_STYLE = ".tab-pane .tab-header-area .tab-header-background { -fx-background-color: transparent; } " +
             ".tab-pane .tab { -fx-background-color: " + COLOR_SURFACE_SOFT + "; -fx-background-radius: 14 14 0 0; -fx-padding: 12 24; -fx-background-insets: 0 2 0 2; -fx-cursor: hand; } " +
-            ".tab-pane .tab:selected { -fx-background-color: white; -fx-background-radius: 14 14 0 0; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0); } " +
+            ".tab-pane .tab:selected { -fx-background-color: white; -fx-background-radius: 14 14 0 0; -fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_05 + ", 10, 0, 0, 0); } " +
             ".tab-pane .tab .tab-label { -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 800; -fx-font-size: 13px; } " +
             ".tab-pane .tab:selected .tab-label { -fx-text-fill: " + COLOR_PRIMARY + "; }";
 
@@ -241,7 +296,7 @@ public class UIStyles {
         ".date-picker > .text-field { -fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 600; -fx-background-color: white; -fx-background-radius: 18 0 0 18; -fx-border-color: " + COLOR_BORDER_FIELD + "; -fx-border-radius: 18 0 0 18; -fx-border-width: 1 0 1 1; -fx-padding: 11 16; } " +
         ".date-picker > .arrow-button { -fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 0 18 18 0; -fx-padding: 11 16; -fx-cursor: hand; } " +
         ".date-picker > .arrow-button > .arrow { -fx-shape: \"M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z\"; -fx-background-color: white; -fx-padding: 8; } " +
-        ".date-picker-popup { -fx-background-color: white; -fx-background-radius: 24; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.15), 30, 0, 0, 10); -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-width: 1; -fx-border-radius: 24; -fx-padding: 15; } " +
+        ".date-picker-popup { -fx-background-color: white; -fx-background-radius: 24; -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_15 + ", 30, 0, 0, 10); -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-width: 1; -fx-border-radius: 24; -fx-padding: 15; } " +
         ".date-picker-popup > .month-year-pane { -fx-background-color: white; -fx-padding: 10; } " +
         ".date-picker-popup > .calendar-grid { -fx-background-color: white; -fx-padding: 5; } " +
         ".date-picker-popup > * > .day-name-cell, .date-picker-popup > * > .week-number-cell { -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-padding: 10; } " +
@@ -253,8 +308,8 @@ public class UIStyles {
     public static final String SIDEBAR_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20 0 20 0;";
     public static final String NAV_BTN_BASE = "-fx-background-color: transparent; -fx-padding: 12 24; -fx-cursor: hand; -fx-background-radius: 12; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-font-weight: 800; -fx-alignment: CENTER_LEFT; -fx-font-size: 14px;";
     public static final String NAV_BTN_ACTIVE = "-fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white;";
-    public static final String NAV_BTN_HOVER = "-fx-background-color: rgba(255,255,255,0.08);";
-    public static final String SIDEBAR_STATUS_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20; -fx-border-color: rgba(255,255,255,0.05); -fx-border-width: 1 0 0 0;";
+    public static final String NAV_BTN_HOVER = "-fx-background-color: " + TR_WHITE_08 + ";";
+    public static final String SIDEBAR_STATUS_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20; -fx-border-color: " + BORDER_WHITE_05 + "; -fx-border-width: 1 0 0 0;";
     public static final String SUBJECT_CHIP_STYLE = ".subject-chip { -fx-background-color: white; -fx-background-radius: 15; -fx-padding: 4 10; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT + "; -fx-border-color: " + COLOR_WHITE_MUTED_BORDER + "; -fx-border-radius: 15; } .subject-chip:hover { -fx-background-color: #ff7675; -fx-text-fill: white; -fx-cursor: hand; -fx-border-color: #ff7675; }";
     public static final double ICON_SCALE = 1.0;
 

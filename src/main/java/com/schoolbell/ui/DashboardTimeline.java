@@ -70,7 +70,7 @@ public class DashboardTimeline {
         num.setStyle("-fx-font-weight: 900; -fx-font-size: 15px;");
         
         if ("active".equals(status)) {
-            box.setStyle("-fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(9, 132, 227, 0.4), 12, 0, 0, 0);");
+            box.setStyle("-fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, " + SHADOW_BLUE_40 + ", 12, 0, 0, 0);");
             num.setTextFill(Color.WHITE);
             
             ScaleTransition st = new ScaleTransition(Duration.millis(1000), box);
@@ -113,7 +113,7 @@ public class DashboardTimeline {
         box.setPrefSize(44, 44);
         box.setCache(true);
         box.setCacheHint(CacheHint.SCALE);
-        box.setStyle("-fx-background-color: " + COLOR_WARNING + "; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(253, 203, 110, 0.3), 10, 0, 0, 0);");
+        box.setStyle("-fx-background-color: " + COLOR_WARNING + "; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, " + SHADOW_AMBER_30 + ", 10, 0, 0, 0);");
         
         Node icon = createSVGIcon(ICON_CLOCK, Color.WHITE, 20);
         box.getChildren().add(icon);

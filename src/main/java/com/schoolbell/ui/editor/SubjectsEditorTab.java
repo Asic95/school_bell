@@ -10,8 +10,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
 import static com.schoolbell.ui.CardFactory.createCardActionButton;
-import static com.schoolbell.ui.ControlFactory.createPageHeader;
-import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
+import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
@@ -38,9 +37,8 @@ public class SubjectsEditorTab {
             null
         );
 
-        TextField addField = new TextField();
+        TextField addField = createStyledField("");
         addField.setPromptText("Введіть назву предмета...");
-        addField.setStyle(PREMIUM_FIELD_STYLE);
         addField.setPrefWidth(550);
 
         Button addBtn = createPrimaryActionButton("ДОДАТИ ПРЕДМЕТ", ICON_PLUS);
@@ -54,20 +52,35 @@ public class SubjectsEditorTab {
 
         refreshSubjects = () -> {
             subjectsContainer.getChildren().clear();
-            for (Subject s : mainApp.getStaffService().getAllSubjects()) {
-                VBox card = new VBox(20);
-                card.setStyle(SOFT_CARD + "-fx-padding: 24;");
-                card.setPrefWidth(320);
-                
-                HBox topRow = new HBox(12);
-                topRow.setAlignment(Pos.CENTER_LEFT);
-                
-                VBox iconBox = new VBox(createSVGIcon(ICON_BOOK, Color.web(COLOR_PRIMARY), 22));
-                iconBox.setAlignment(Pos.CENTER);
-                iconBox.setPrefSize(52, 52);
-                iconBox.setMinSize(52, 52);
-                iconBox.setMaxSize(52, 52);
-                iconBox.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + "); -fx-background-radius: 16;");
+            java.util.List<Subject> subjects = mainApp.getStaffService().getAllSubjects();
+            
+            if (subjects.isEmpty()) {
+                VBox empty = new VBox(20);
+                empty.setAlignment(Pos.CENTER);
+                empty.setPadding(new Insets(100, 0, 100, 0));
+                empty.setMinWidth(900);
+                Node emptyIcon = createSVGIcon(ICON_INFO, Color.web(COLOR_WHITE_MUTED_BORDER), 64);
+                Label emptyLabel = new Label("Список предметів порожній");
+                emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_ICON_MUTED + ";");
+                Label subLabel = new Label("Введіть назву та натисніть кнопку, щоб додати перший предмет");
+                subLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE + ";");
+                empty.getChildren().addAll(emptyIcon, emptyLabel, subLabel);
+                subjectsContainer.getChildren().add(empty);
+            } else {
+                for (Subject s : subjects) {
+                    VBox card = new VBox(20);
+                    card.setStyle(SOFT_CARD + "-fx-padding: 24;");
+                    card.setPrefWidth(320);
+                    
+                    HBox topRow = new HBox(12);
+                    topRow.setAlignment(Pos.CENTER_LEFT);
+                    
+                    VBox iconBox = new VBox(createSVGIcon(ICON_BOOK, Color.web(COLOR_PRIMARY), 22));
+                    iconBox.setAlignment(Pos.CENTER);
+                    iconBox.setPrefSize(52, 52);
+                    iconBox.setMinSize(52, 52);
+                    iconBox.setMaxSize(52, 52);
+                    iconBox.setStyle(ICON_BADGE_STYLE);
 
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -114,7 +127,8 @@ public class SubjectsEditorTab {
                 card.getChildren().addAll(topRow, nameArea);
                 subjectsContainer.getChildren().add(card);
             }
-        };
+        }
+    };
 
         addBtn.setOnAction(e -> {
             if (!addField.getText().isEmpty()) {
