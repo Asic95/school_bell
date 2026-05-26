@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import static com.schoolbell.ui.ControlFactory.createDialogHeader;
 import static com.schoolbell.ui.ControlFactory.createDialogRoot;
+import static com.schoolbell.ui.ControlFactory.createLabeledField;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.ControlFactory.createSecondaryDialogButton;
 import static com.schoolbell.ui.UIStyles.COLOR_INDIGO;
@@ -41,28 +42,33 @@ import static com.schoolbell.ui.UIStyles.MODERN_DATE_PICKER_STYLE;
 import static com.schoolbell.ui.UIStyles.PREMIUM_BTN_STYLE;
 import static com.schoolbell.ui.UIStyles.PREMIUM_FIELD_STYLE;
 
-public class AnnouncementEditorDialog {
+public class AnnouncementEditorDialog extends BasePremiumDialog {
     private final AnnouncementService announcementService;
     private final Runnable onSave;
+    private final Announcement announcement;
 
-    public AnnouncementEditorDialog(AnnouncementService announcementService, Runnable onSave) {
-        this.announcementService = announcementService;
-        this.onSave = onSave;
-    }
+    private TextArea textArea;
+    private DatePicker startPicker;
+    private DatePicker endPicker;
+    private ComboBox<String> startHour;
+    private ComboBox<String> startMinute;
+    private ComboBox<String> endHour;
+    private ComboBox<String> endMinute;
+    private List<CheckBox> dayCheckboxes;
+    private CheckBox activeCheckbox;
 
-    public void show(Announcement announcement) {
-        Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initStyle(StageStyle.TRANSPARENT);
-
-        VBox root = createDialogRoot(650);
-        VBox headerText = createDialogHeader(
+    public AnnouncementEditorDialog(Stage owner, AnnouncementService announcementService, Announcement announcement, Runnable onSave) {
+        super(owner,
                 announcement == null ? "Створення" : "Редагування",
                 "Параметри оголошення",
-                "Налаштуйте текст та розклад відображення повідомлення."
-        );
+                "Налаштуйте текст та розклад відображення повідомлення.",
+                "ЗБЕРЕГТИ ОГОЛОШЕННЯ");
 
-        TextArea textArea = new TextArea(announcement != null ? announcement.text() : "");
+        this.announcementService = announcementService;
+        this.announcement = announcement;
+        this.onSave = onSave;
+
+        textArea = new TextArea(announcement != null ? announcement.text() : "");
         textArea.setPromptText("Введіть текст оголошення тут...");
         textArea.setPrefRowCount(4);
         textArea.setWrapText(true);
@@ -80,8 +86,8 @@ public class AnnouncementEditorDialog {
             }
         });
 
-        DatePicker startPicker = new DatePicker(announcement != null ? announcement.startDate() : LocalDate.now());
-        DatePicker endPicker = new DatePicker(announcement != null ? announcement.endDate() : LocalDate.now().plusWeeks(1));
+        startPicker = new DatePicker(announcement != null ? announcement.startDate() : LocalDate.now());
+        endPicker = new DatePicker(announcement != null ? announcement.endDate() : LocalDate.now().plusWeeks(1));
         startPicker.setMaxWidth(Double.MAX_VALUE);
         endPicker.setMaxWidth(Double.MAX_VALUE);
 
@@ -97,10 +103,10 @@ public class AnnouncementEditorDialog {
                 ? announcement.endTime()
                 : LocalTime.of(18, 0);
 
-        ComboBox<String> startHour = ControlFactory.createTimeCombo(24, startTime.getHour());
-        ComboBox<String> startMinute = ControlFactory.createTimeCombo(60, startTime.getMinute());
-        ComboBox<String> endHour = ControlFactory.createTimeCombo(24, endTime.getHour());
-        ComboBox<String> endMinute = ControlFactory.createTimeCombo(60, endTime.getMinute());
+        startHour = ControlFactory.createTimeCombo(24, startTime.getHour());
+        startMinute = ControlFactory.createTimeCombo(60, startTime.getMinute());
+        endHour = ControlFactory.createTimeCombo(24, endTime.getHour());
+        endMinute = ControlFactory.createTimeCombo(60, endTime.getMinute());
 
         String timeUnitStyle = "-fx-font-size: 13px; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 800;";
         Label startHourLabel = new Label("год.");
@@ -126,7 +132,7 @@ public class AnnouncementEditorDialog {
         daysBox.setAlignment(Pos.CENTER_LEFT);
         String[] dayNames = {"ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "НД"};
 
-        List<CheckBox> dayCheckboxes = new ArrayList<>();
+        dayCheckboxes = new ArrayList<>();
         List<String> activeDays = announcement != null && announcement.daysOfWeek() != null
                 ? List.of(announcement.daysOfWeek().split(","))
                 : List.of("1", "2", "3", "4", "5");
@@ -145,74 +151,56 @@ public class AnnouncementEditorDialog {
         scheduleHeader.setStyle(HEADER_STYLE);
         scheduleSettings.getChildren().addAll(scheduleHeader, dateRow, timeRow, daysSection);
 
-        CheckBox activeCheckbox = new CheckBox("ЦЕ ОГОЛОШЕННЯ ЗАРАЗ АКТИВНЕ");
+        activeCheckbox = new CheckBox("ЦЕ ОГОЛОШЕННЯ ЗАРАЗ АКТИВНЕ");
         activeCheckbox.setSelected(announcement == null || announcement.isActive());
         activeCheckbox.setStyle("-fx-font-weight: 900; -fx-font-size: 14px; -fx-text-fill: " + COLOR_NAVY + ";");
 
-        HBox actions = new HBox(15);
-        actions.setAlignment(Pos.CENTER_RIGHT);
-
-        Button cancelBtn = createSecondaryDialogButton("СКАСУВАТИ");
-        cancelBtn.setOnAction(e -> stage.close());
-
-        Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ОГОЛОШЕННЯ", ICON_SAVE);
-        saveBtn.setStyle(PREMIUM_BTN_STYLE);
-        saveBtn.setOnAction(ev -> {
-            String text = textArea.getText().trim();
-            if (text.isEmpty()) {
-                ToastService.showError("Текст оголошення не може бути порожнім");
-                return;
-            }
-
-            String days = dayCheckboxes.stream()
-                    .filter(CheckBox::isSelected)
-                    .map(cb -> String.valueOf(dayCheckboxes.indexOf(cb) + 1))
-                    .collect(Collectors.joining(","));
-
-            LocalTime newStartTime = LocalTime.of(Integer.parseInt(startHour.getValue()), Integer.parseInt(startMinute.getValue()));
-            LocalTime newEndTime = LocalTime.of(Integer.parseInt(endHour.getValue()), Integer.parseInt(endMinute.getValue()));
-
-            Announcement updated = new Announcement(
-                    announcement != null ? announcement.id() : 0,
-                    text,
-                    startPicker.getValue(),
-                    endPicker.getValue(),
-                    newStartTime,
-                    newEndTime,
-                    days,
-                    activeCheckbox.isSelected()
-            );
-
-            if (announcement == null) {
-                announcementService.addAnnouncement(updated);
-            } else {
-                announcementService.updateAnnouncement(updated);
-            }
-
-            onSave.run();
-            stage.close();
-            ToastService.showSuccess("Оголошення збережено успішно");
-        });
-
-        actions.getChildren().addAll(cancelBtn, saveBtn);
-        root.getChildren().addAll(
-                headerText,
+        content.getChildren().addAll(
                 createLabeledField("ТЕКСТ ПОВІДОМЛЕННЯ", textArea),
                 scheduleSettings,
-                activeCheckbox,
-                actions
+                activeCheckbox
         );
 
-        Scene scene = new Scene(root);
-        scene.setFill(Color.TRANSPARENT);
-        scene.getStylesheets().addAll(
-                "data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"),
-                "data:text/css," + MODERN_CHECKBOX_STYLE.replace(" ", "%20")
-        );
-        stage.setScene(scene);
         textArea.applyCss();
         textArea.layout();
-        stage.showAndWait();
+    }
+
+    @Override
+    protected boolean onSave() {
+        String text = textArea.getText().trim();
+        if (text.isEmpty()) {
+            ToastService.showError("Текст оголошення не може бути порожнім");
+            return false;
+        }
+
+        String days = dayCheckboxes.stream()
+                .filter(CheckBox::isSelected)
+                .map(cb -> String.valueOf(dayCheckboxes.indexOf(cb) + 1))
+                .collect(Collectors.joining(","));
+
+        LocalTime newStartTime = LocalTime.of(Integer.parseInt(startHour.getValue()), Integer.parseInt(startMinute.getValue()));
+        LocalTime newEndTime = LocalTime.of(Integer.parseInt(endHour.getValue()), Integer.parseInt(endMinute.getValue()));
+
+        Announcement updated = new Announcement(
+                announcement != null ? announcement.id() : 0,
+                text,
+                startPicker.getValue(),
+                endPicker.getValue(),
+                newStartTime,
+                newEndTime,
+                days,
+                activeCheckbox.isSelected()
+        );
+
+        if (announcement == null) {
+            announcementService.addAnnouncement(updated);
+        } else {
+            announcementService.updateAnnouncement(updated);
+        }
+
+        if (onSave != null) onSave.run();
+        ToastService.showSuccess("Оголошення збережено успішно");
+        return true;
     }
 
     private void updateInternalStyles(TextArea textArea, boolean focused) {
@@ -229,14 +217,5 @@ public class AnnouncementEditorDialog {
         if (scrollPane != null) {
             scrollPane.setStyle("-fx-background-color: " + background + "; -fx-background-radius: 17; -fx-background-insets: 0; -fx-padding: 0;");
         }
-    }
-
-    private VBox createLabeledField(String labelText, Node field) {
-        VBox box = new VBox(8);
-        Label label = new Label(labelText);
-        label.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
-        box.getChildren().addAll(label, field);
-        VBox.setVgrow(field, Priority.ALWAYS);
-        return box;
     }
 }

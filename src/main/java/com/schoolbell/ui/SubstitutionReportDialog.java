@@ -22,41 +22,34 @@ import java.util.Locale;
 import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.UIStyles.*;
 
-public class SubstitutionReportDialog extends Stage {
+public class SubstitutionReportDialog extends BasePremiumDialog {
     private final SubstitutionReportService reportService;
     private final Locale ukLocale = Locale.of("uk", "UA");
+    private final ComboBox<Month> monthPicker;
+    private final Spinner<Integer> yearPicker;
 
     public SubstitutionReportDialog(MainApp mainApp, SubstitutionReportService reportService) {
+        super(mainApp.getStage(),
+                "ЗВІТНІСТЬ",
+                "Генерація звіту замін",
+                "Оберіть період для створення TXT-звіту про проведені заміни.",
+                "ЗГЕНЕРУВАТИ TXT",
+                500);
+
         this.reportService = reportService;
-
-        initModality(Modality.APPLICATION_MODAL);
-        initStyle(StageStyle.TRANSPARENT);
-        initOwner(mainApp.getStage());
-
-        VBox root = new VBox(25);
-        root.setPadding(new Insets(35));
-        root.setStyle(SOFT_CARD);
-        root.setPrefWidth(500);
-
-        Label title = new Label("Генерація звіту замін");
-        title.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
-        Label subtitle = new Label("Оберіть період для створення TXT-звіту про проведені заміни.");
-        subtitle.setStyle("-fx-font-size: 15px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
-
-        VBox headerBox = new VBox(8, title, subtitle);
 
         GridPane grid = new GridPane();
         grid.setHgap(25);
         grid.setVgap(20);
         grid.setAlignment(Pos.CENTER_LEFT);
-        
+
         javafx.scene.layout.ColumnConstraints labelCol = new javafx.scene.layout.ColumnConstraints();
         labelCol.setPrefWidth(100);
         javafx.scene.layout.ColumnConstraints fieldCol = new javafx.scene.layout.ColumnConstraints();
         fieldCol.setHgrow(Priority.ALWAYS);
         grid.getColumnConstraints().addAll(labelCol, fieldCol);
 
-        ComboBox<Month> monthPicker = new ComboBox<>();
+        monthPicker = new ComboBox<>();
         monthPicker.getItems().addAll(Month.values());
         monthPicker.setValue(LocalDate.now().getMonth());
         monthPicker.setMaxWidth(Double.MAX_VALUE);
@@ -75,39 +68,19 @@ public class SubstitutionReportDialog extends Stage {
         grid.add(createLabel("МІСЯЦЬ"), 0, 0);
         grid.add(monthPicker, 1, 0);
 
-        Spinner<Integer> yearPicker = new Spinner<>(2024, 2030, LocalDate.now().getYear());
+        yearPicker = new Spinner<>(2024, 2030, LocalDate.now().getYear());
         yearPicker.setEditable(true);
         yearPicker.setMaxWidth(150);
         grid.add(createLabel("РІК"), 0, 1);
         grid.add(yearPicker, 1, 1);
 
-        HBox actions = new HBox(15);
-        actions.setAlignment(Pos.CENTER_RIGHT);
-        actions.setPadding(new Insets(10, 0, 0, 0));
+        content.getChildren().add(grid);
+    }
 
-        Button cancelBtn = new Button("СКАСУВАТИ");
-        String cancelStyle = "-fx-background-color: white; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 18; -fx-cursor: hand;";
-        cancelBtn.setStyle(cancelStyle);
-        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(cancelStyle + "-fx-background-color: " + COLOR_SURFACE_SUBTLE + ";"));
-        cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(cancelStyle));
-        cancelBtn.setOnAction(e -> close());
-
-        Button generateBtn = createPrimaryActionButton("ЗГЕНЕРУВАТИ TXT", ICON_SAVE);
-        generateBtn.setStyle(PREMIUM_BTN_STYLE);
-        generateBtn.setOnAction(e -> {
-            reportService.generateReport(monthPicker.getValue(), yearPicker.getValue());
-            close();
-        });
-
-        actions.getChildren().addAll(cancelBtn, generateBtn);
-        root.getChildren().addAll(headerBox, grid, actions);
-
-        Scene scene = new Scene(root);
-        scene.setFill(Color.TRANSPARENT);
-        scene.getStylesheets().addAll(
-            "data:text/css," + MODERN_SPINNER_STYLE.replace(" ", "%20")
-        );
-        setScene(scene);
+    @Override
+    protected boolean onSave() {
+        reportService.generateReport(monthPicker.getValue(), yearPicker.getValue());
+        return true;
     }
 
     private Label createLabel(String text) {

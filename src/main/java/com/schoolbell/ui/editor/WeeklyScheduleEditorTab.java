@@ -2,6 +2,7 @@ package com.schoolbell.ui.editor;
 
 import com.schoolbell.MainApp;
 import com.schoolbell.model.*;
+import com.schoolbell.ui.LessonEditorDialog;
 import com.schoolbell.ui.ScheduleEditorDialog;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,6 +17,7 @@ import javafx.scene.paint.Color;
 import java.util.List;
 
 import static com.schoolbell.ui.CardFactory.createHelpCard;
+import static com.schoolbell.ui.ControlFactory.createEmptyState;
 import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
@@ -102,7 +104,10 @@ public class WeeklyScheduleEditorTab {
         refreshGrid[0] = () -> {
             SchoolClass selectedClass = classPicker.getValue();
             grid.getChildren().clear();
-            if (selectedClass == null) return;
+            if (selectedClass == null) {
+                grid.add(createEmptyState(ICON_CLASS, "Оберіть клас", "Оберіть конкретний клас зі списку вище, щоб розпочати редагування його розкладу."), 0, 1, 7, 1);
+                return;
+            }
 
             List<ScheduleEntry> entries = mainApp.getAcademicService().getScheduleForClass(selectedClass.id());
             
@@ -158,7 +163,7 @@ public class WeeklyScheduleEditorTab {
                 Button addLessonBtn = new Button("+ ДОДАТИ УРОК");
                 addLessonBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-size: 12px; -fx-font-weight: 900; -fx-border-color: " + COLOR_SLATE_MUTED + "; -fx-border-radius: 18; -fx-border-style: dashed; -fx-padding: 14 24; -fx-cursor: hand;");
                 addLessonBtn.setMaxWidth(Double.MAX_VALUE);
-                addLessonBtn.setOnAction(e -> parentDialog.openEditDialog(selectedClass, dayNum, lessonsToShow + 1, 0, allTeachers, allSubjects, refreshGrid[0]));
+                addLessonBtn.setOnAction(e -> new LessonEditorDialog(mainApp, selectedClass, dayNum, lessonsToShow + 1, 0, allTeachers, allSubjects, refreshGrid[0]).display());
                 
                 column.getChildren().add(addLessonBtn);
                 grid.add(column, d - 1, 1);
@@ -296,7 +301,7 @@ public class WeeklyScheduleEditorTab {
             card.setStyle("-fx-background-color: white; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + " " + COLOR_BORDER_SOFT + " " + COLOR_BORDER_SOFT + " " + accentColor + "; -fx-border-radius: 18; -fx-border-width: 1 1 1 6;"); 
             clearBtn.setVisible(false); 
         });
-        card.setOnMouseClicked(e -> parentDialog.openEditDialog(cls, day, lesson, parity, teachers, subjects, refreshGrid));
+        card.setOnMouseClicked(e -> new LessonEditorDialog(mainApp, cls, day, lesson, parity, teachers, subjects, refreshGrid).display());
         
         return card;
     }

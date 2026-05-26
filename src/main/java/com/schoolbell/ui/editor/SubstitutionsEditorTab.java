@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import static com.schoolbell.ui.ControlFactory.createEmptyState;
 import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
@@ -62,11 +63,11 @@ public class SubstitutionsEditorTab {
         actionToolbar.setAlignment(Pos.CENTER_LEFT);
 
         Button addBtn = createPrimaryActionButton("НОВА ЗАМІНА", ICON_PLUS);
-        addBtn.setOnAction(e -> new SubstitutionEditorDialog(mainApp, null, LocalDate.now(), refreshSubstitutions).show());
+        addBtn.setOnAction(e -> new SubstitutionEditorDialog(mainApp, null, LocalDate.now(), refreshSubstitutions).display());
 
         Button reportBtn = createPrimaryActionButton("ЗВІТ", ICON_SAVE);
         reportBtn.setStyle(reportBtn.getStyle().replace(COLOR_PRIMARY, COLOR_PURPLE));
-        reportBtn.setOnAction(e -> new SubstitutionReportDialog(mainApp, reportService).show());
+        reportBtn.setOnAction(e -> new SubstitutionReportDialog(mainApp, reportService).display());
 
         TextField searchField = new TextField();
         searchField.setPromptText("Пошук за вчителем або класом...");
@@ -140,19 +141,9 @@ public class SubstitutionsEditorTab {
                 .collect(Collectors.toList());
 
             if (filtered.isEmpty()) {
-                VBox empty = new VBox(20);
-                empty.setAlignment(Pos.CENTER);
-                empty.setPadding(new Insets(100, 0, 100, 0));
-                empty.setMinWidth(900);
-                
-                Node icon = createSVGIcon(ICON_INFO, Color.web(COLOR_WHITE_MUTED_BORDER), 64);
-                Label emptyLabel = new Label(showArchived ? "Архів замін порожній" : "Немає активних замін");
-                emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_ICON_MUTED + ";");
-                Label subLabel = new Label(showArchived ? "Тут з'являтимуться заміни, термін дії яких минув" : "Натисніть 'НОВА ЗАМІНА', щоб внести оперативні зміни");
-                subLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE + ";");
-                
-                empty.getChildren().addAll(icon, emptyLabel, subLabel);
-                contentList.getChildren().add(empty);
+                String title = showArchived ? "Архів замін порожній" : "Немає активних замін";
+                String sub = showArchived ? "Тут з'являтимуться заміни, термін дії яких минув." : "Натисніть 'НОВА ЗАМІНА', щоб внести оперативні зміни в розклад.";
+                contentList.getChildren().add(createEmptyState(ICON_INFO, title, sub));
             } else {
                 LocalDate lastDate = null;
                 DateTimeFormatter headerFormatter = DateTimeFormatter.ofPattern("EEEE, d MMMM", ukLocale);

@@ -62,7 +62,7 @@ public class ControlFactory {
         
         btn.setOnMouseEntered(e -> btn.setStyle(PREMIUM_BTN_STYLE + 
             "-fx-background-color: linear-gradient(to right, " + COLOR_INDIGO_DARK + ", " + COLOR_PRIMARY_DARK + ");" +
-            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_40 + ", 28, 0, 0, 10);"));
+            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_40 + ", 12, 0, 0, 4);"));
         btn.setOnMouseExited(e -> btn.setStyle(PREMIUM_BTN_STYLE));
         
         return btn;
@@ -293,11 +293,12 @@ public class ControlFactory {
     }
 
     public static VBox createLabeledField(String label, Node field) {
-        VBox group = new VBox(10);
+        VBox group = new VBox(8);
         if (field instanceof Region r) r.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(field, Priority.ALWAYS);
-        Label l = new Label(label);
-        l.setStyle(HEADER_STYLE + "-fx-font-size: 12px;");
+        
+        Label l = new Label(label.toUpperCase());
+        l.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-letter-spacing: 1.2px;");
+        
         group.getChildren().addAll(l, field);
         VBox.setVgrow(field, Priority.ALWAYS);
         return group;
@@ -381,7 +382,7 @@ public class ControlFactory {
         return btn;
     }
 
-    private static void applyActionButtonStyle(Button btn, boolean hover) {
+    public static void applyActionButtonStyle(Button btn, boolean hover) {
         String gradient = (String) btn.getProperties().getOrDefault("baseGradient", GRADIENT_PRIMARY);
         String style = "-fx-background-color: " + gradient + "; " +
                           "-fx-background-radius: 28; " +
@@ -390,9 +391,9 @@ public class ControlFactory {
                           "-fx-border-width: 1.5; " +
                           "-fx-border-radius: 28;";
         if (hover) {
-            style += "-fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_30 + ", 40, 0, 0, 20);";
+            style += "-fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_30 + ", 25, 0, 0, 10);";
         } else {
-            style += "-fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_18 + ", 25, 0, 0, 12);";
+            style += "-fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_18 + ", 15, 0, 0, 8);";
         }
         btn.setStyle(style);
     }
@@ -415,5 +416,31 @@ public class ControlFactory {
             btn.getProperties().put("baseGradient", gradient);
             applyActionButtonStyle(btn, false);
         }
+    }
+
+    public static VBox createEmptyState(String iconPath, String title, String subtitle) {
+        VBox empty = new VBox(20);
+        empty.setAlignment(Pos.CENTER);
+        empty.setPadding(new Insets(100, 40, 100, 40));
+        HBox.setHgrow(empty, Priority.ALWAYS);
+
+        VBox iconBox = new VBox(createSVGIcon(iconPath, Color.web(COLOR_WHITE_MUTED_BORDER), 64));
+        iconBox.setAlignment(Pos.CENTER);
+        
+        VBox text = new VBox(8);
+        text.setAlignment(Pos.CENTER);
+        
+        Label t = new Label(title);
+        t.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_ICON_MUTED + ";");
+        
+        Label s = new Label(subtitle);
+        s.setStyle("-fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE + ";");
+        s.setWrapText(true);
+        s.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+        s.setMaxWidth(450);
+        
+        text.getChildren().addAll(t, s);
+        empty.getChildren().addAll(iconBox, text);
+        return empty;
     }
 }
