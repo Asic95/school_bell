@@ -16,16 +16,12 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.SVGPath;
-
-import java.util.List;
 
 import static com.schoolbell.ui.CardFactory.createHelpCard;
 import static com.schoolbell.ui.CardFactory.createSideHelpPanel;
 import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.ControlFactory.createToggleSwitch;
-import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
@@ -114,7 +110,7 @@ public class SystemView {
 
         VBox helpPanel = createSideHelpPanel(
                 createHelpCard(ICON_POWER, "Автостарт", "Рекомендуємо увімкнути автостарт, щоб система відновлювалась після вимкнення світла.", COLOR_SUCCESS),
-                createHelpCard(ICON_WAVEFORM, "Сигнали", "Тривалості сигналів редагуються в новому візуальному блоці параметрів дзвінків.", COLOR_WARNING)
+                createHelpCard(ICON_SAVE, "Бекап", "Регулярно створюйте копію бази, щоб не втратити розклад при перевстановленні системи.", COLOR_INDIGO)
         );
 
         HBox contentLayout = new HBox(25, mainCol, helpPanel);
@@ -146,10 +142,41 @@ public class SystemView {
                 "При закритті вікно буде ховатись у трей замість виходу", ICON_TRAY, COLOR_PURPLE, trayTg));
         rows.getChildren().add(createToggleRow("Режим симуляції",
                 "Робота без фізичного підключення до реле (тільки логування)", ICON_FLASK, COLOR_WARNING, simulationTg));
+
+        // --- BACKUP & RESTORE ROW (General System Maintenance) ---
+        String btnStyle = "-fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 12; -fx-cursor: hand;";
+        
+        Button backupBtn = createPrimaryActionButton("СТВОРИТИ КОПІЮ", ICON_SAVE);
+        backupBtn.setStyle(PREMIUM_BTN_STYLE + btnStyle);
+        backupBtn.setPrefWidth(190);
+        backupBtn.setOnAction(e -> {
+            if (systemService.createDatabaseBackup((javafx.stage.Stage) mainCol.getScene().getWindow())) {
+                ToastService.showSuccess("Резервну копію успішно створено!");
+            }
+        });
+        backupBtn.setOnMouseEntered(e -> backupBtn.setStyle(backupBtn.getStyle() + "-fx-background-color: linear-gradient(to right, " + COLOR_INDIGO_DARK + ", " + COLOR_PRIMARY_DARK + ");"));
+        backupBtn.setOnMouseExited(e -> backupBtn.setStyle(PREMIUM_BTN_STYLE + btnStyle));
+
+        Button restoreBtn = new Button("ВІДНОВИТИ");
+        restoreBtn.setGraphic(createSVGIcon(ICON_REFRESH, Color.web(COLOR_PRIMARY), 14));
+        String secondaryStyle = "-fx-background-color: white; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 12;";
+        restoreBtn.setStyle(secondaryStyle + btnStyle);
+        restoreBtn.setPrefWidth(190);
+        restoreBtn.setOnAction(e -> {
+            if (systemService.restoreDatabaseBackup((javafx.stage.Stage) mainCol.getScene().getWindow())) {
+                new RestoreSuccessDialog((javafx.stage.Stage) mainCol.getScene().getWindow()).display();
+            }
+        });
+        restoreBtn.setOnMouseEntered(e -> restoreBtn.setStyle(secondaryStyle + btnStyle + "-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-border-color: " + COLOR_PRIMARY + ";"));
+        restoreBtn.setOnMouseExited(e -> restoreBtn.setStyle(secondaryStyle + btnStyle));
+
+        HBox btnBox = new HBox(12, restoreBtn, backupBtn);
+        rows.getChildren().add(createActionRow("Резервне копіювання та відновлення", "Збережіть налаштування у файл або відновіть їх із копії", ICON_SAVE, COLOR_INDIGO, btnBox));
+
         rows.getChildren().add(createToggleRow("Автоматизація повітряної тривоги",
                 "Пошук та автоматичне оповіщення про повітряну тривогу", ICON_SETTINGS, COLOR_TANGERINE, airRaidTg));
         
-        // Region Selection with Label
+        // Region Selection
         VBox regionBox = new VBox(8);
         Label regionLbl = new Label("ОБЕРІТЬ РЕГІОН:");
         regionLbl.setStyle(HEADER_STYLE);
@@ -157,7 +184,6 @@ public class SystemView {
         regionBox.getChildren().addAll(regionLbl, regionCombo);
         regionBox.setPadding(new Insets(10, 15, 0, 15));
         
-        // District Selection with Label and Container for dynamic visibility
         VBox districtBox = new VBox(8);
         Label districtLbl = new Label("ОБЕРІТЬ РАЙОН:");
         districtLbl.setStyle(HEADER_STYLE);
@@ -165,7 +191,6 @@ public class SystemView {
         districtBox.getChildren().addAll(districtLbl, districtCombo);
         districtBox.setPadding(new Insets(0, 15, 10, 15));
         
-        // Dynamic visibility logic integration
         Runnable refreshVisibility = () -> {
             String sel = regionCombo.getValue();
             boolean hasDistricts = sel != null && !mainApp.getAirAlertService().getDistricts(sel).isEmpty();
@@ -177,7 +202,6 @@ public class SystemView {
         refreshVisibility.run();
 
         rows.getChildren().addAll(regionBox, districtBox);
-
         card.getChildren().add(rows);
         return card;
     }
@@ -206,8 +230,34 @@ public class SystemView {
 
         header.getChildren().addAll(iconBox, t);
         card.getChildren().add(header);
-
         return card;
+    }
+
+    private HBox createActionRow(String title, String desc, String icon, String iconColor, Node actionNode) {
+        HBox row = new HBox(20);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(12, 18, 12, 18));
+        row.setStyle("-fx-background-radius: 18;");
+
+        VBox iconBox = new VBox(createSVGIcon(icon, Color.web(iconColor), 22));
+        iconBox.setAlignment(Pos.CENTER);
+        iconBox.setPrefSize(48, 48);
+        iconBox.setStyle("-fx-background-color: " + iconColor + "10; -fx-background-radius: 14;");
+
+        VBox texts = new VBox(4);
+        Label t = new Label(title);
+        t.setStyle("-fx-font-weight: 800; -fx-font-size: 16px; -fx-text-fill: " + COLOR_NAVY + ";");
+        Label d = new Label(desc);
+        d.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_SLATE + ";");
+        texts.getChildren().addAll(t, d);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        row.getChildren().addAll(iconBox, texts, spacer, actionNode);
+
+        row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: " + COLOR_SURFACE_SOFT + "; -fx-background-radius: 18;"));
+        row.setOnMouseExited(e -> row.setStyle("-fx-background-color: transparent; -fx-background-radius: 18;"));
+        return row;
     }
 
     private HBox createToggleRow(String title, String desc, String icon, String iconColor, ToggleButton toggle) {

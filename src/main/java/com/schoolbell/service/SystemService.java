@@ -9,12 +9,53 @@ import java.io.InputStreamReader;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import com.schoolbell.ui.RestoreConfirmationDialog;
+
 public class SystemService {
     private static final Logger logger = LoggerFactory.getLogger(SystemService.class);
     private final ConfigService config;
 
     public SystemService(ConfigService config) {
         this.config = config;
+    }
+
+    /**
+     * Shows a file chooser and copies the database file to the selected location.
+     */
+    public boolean createDatabaseBackup(Stage owner) {
+        File dbFile = new File("school_bell.db");
+        if (!dbFile.exists()) {
+            logger.error("Database file not found for backup: " + dbFile.getAbsolutePath());
+            return false;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Зберегти резервну копію бази даних");
+        
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"));
+        fileChooser.setInitialFileName("school_bell_backup_" + timestamp + ".db");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Файли бази даних SQLite", "*.db"));
+
+        File destFile = fileChooser.showSaveDialog(owner);
+        if (destFile != null) {
+            try {
+                Files.copy(dbFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                logger.info("Database backup created successfully: " + destFile.getAbsolutePath());
+                return true;
+            } catch (IOException e) {
+                logger.error("Failed to create database backup", e);
+                return false;
+            }
+        }
+        return false;
     }
 
     /**
@@ -190,5 +231,34 @@ public class SystemService {
         }
         process.waitFor();
         return output.toString();
+    }
+
+    /**
+     * Shows a file chooser to select a backup and restores it.
+     */
+    public boolean restoreDatabaseBackup(Stage owner) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Оберіть файл резервної копії для відновлення");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Файли бази даних SQLite", "*.db"));
+
+        File backupFile = fileChooser.showOpenDialog(owner);
+        if (backupFile != null) {
+            RestoreConfirmationDialog dialog = new RestoreConfirmationDialog(owner);
+            dialog.display();
+
+            if (dialog.isConfirmed()) {
+                File dbFile = new File("school_bell.db");
+                try {
+                    // Overwrite the current database file
+                    Files.copy(backupFile.toPath(), dbFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    logger.info("Database restored successfully from: " + backupFile.getAbsolutePath());
+                    return true;
+                } catch (IOException e) {
+                    logger.error("Failed to restore database backup", e);
+                    return false;
+                }
+            }
+        }
+        return false;
     }
 }

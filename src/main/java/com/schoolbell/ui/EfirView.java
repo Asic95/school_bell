@@ -536,16 +536,9 @@ public class EfirView {
                 .toList();
         
         if (filtered.isEmpty()) {
-            VBox empty = new VBox(20);
-            empty.setAlignment(Pos.CENTER);
-            empty.setPadding(new Insets(60, 0, 60, 0));
-            
-            Node icon = createSVGIcon(ICON_INFO, Color.web(COLOR_SLATE_MUTED), 48);
-            Label msg = new Label(showArchivedAnnouncements ? "В архіві порожньо" : "Оголошень поки немає");
-            msg.setStyle("-fx-font-size: 16px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SLATE_LIGHT + ";");
-            
-            empty.getChildren().addAll(icon, msg);
-            announcementsContainer.getChildren().setAll(empty);
+            String title = showArchivedAnnouncements ? "Архів порожній" : "Оголошень немає";
+            String sub = showArchivedAnnouncements ? "Тут з'являтимуться оголошення, термін дії яких минув." : "Натисніть 'СТВОРИТИ', щоб додати перше інформаційне повідомлення.";
+            announcementsContainer.getChildren().setAll(createEmptyState(ICON_INFO, title, sub));
         } else {
             updateContainer(announcementsContainer, filtered, a -> new AnnouncementCard(a, () -> openEditDialog(a), () -> {
                 announcementService.deleteAnnouncement(a.id());
@@ -618,6 +611,6 @@ public class EfirView {
     }
 
     private void openEditDialog(Announcement a) {
-        new AnnouncementEditorDialog(announcementService, this::refreshAnnouncements).show(a);
+        new AnnouncementEditorDialog(mainApp.getStage(), announcementService, a, this::refreshAnnouncements).display();
     }
 }

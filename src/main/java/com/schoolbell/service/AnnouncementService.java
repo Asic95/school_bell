@@ -103,6 +103,19 @@ public class AnnouncementService {
         return joiner.length() > 0 ? joiner.toString() : null;
     }
 
+    public void cleanupAnnouncements() {
+        String sql = "DELETE FROM announcements WHERE end_date < date('now', '-30 days')";
+        try (Connection conn = DatabaseManager.getConnection();
+             Statement stmt = conn.createStatement()) {
+            int deleted = stmt.executeUpdate(sql);
+            if (deleted > 0) {
+                logger.info("Auto-cleanup: removed " + deleted + " expired announcements.");
+            }
+        } catch (SQLException e) {
+            logger.error("Error during announcements cleanup", e);
+        }
+    }
+
     private Announcement mapResultSetToAnnouncement(ResultSet rs) throws SQLException {
         return new Announcement(
                 rs.getInt("id"),

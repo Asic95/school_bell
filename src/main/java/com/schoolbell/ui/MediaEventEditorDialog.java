@@ -22,7 +22,7 @@ import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
-public class MediaEventEditorDialog extends Stage {
+public class MediaEventEditorDialog extends BasePremiumDialog {
     private final MainApp mainApp;
     private final MediaEvent event;
 
@@ -35,30 +35,20 @@ public class MediaEventEditorDialog extends Stage {
     private TextField offsetF;
 
     public MediaEventEditorDialog(MainApp mainApp, MediaEvent event) {
+        super(mainApp.getStage(),
+                event == null ? "Додати подію" : "Редагувати подію",
+                "Налаштування події",
+                event == null ? "Налаштування нового автоматичного сповіщення." : event.name(),
+                "ЗБЕРЕГТИ ПОДІЮ");
+
         this.mainApp = mainApp;
         this.event = event;
-
-        initModality(Modality.APPLICATION_MODAL);
-        initStyle(StageStyle.TRANSPARENT);
-        initOwner(mainApp.getStage());
-
-        VBox root = new VBox(25);
-        root.setPadding(new Insets(35));
-        root.setStyle(SOFT_CARD + "-fx-background-radius: 32; -fx-border-radius: 32; -fx-border-width: 2; -fx-border-color: " + COLOR_BORDER_SOFT + ";");
-        root.setPrefWidth(650);
-
-        Label title = new Label(event == null ? "Додати подію" : "Редагувати подію");
-        title.setStyle("-fx-font-size: 24px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_TEXT + ";");
-        Label subtitle = new Label(event == null ? "Налаштування нового автоматичного сповіщення." : event.name());
-        subtitle.setStyle("-fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
-
-        VBox headerBox = new VBox(4, title, subtitle);
 
         GridPane grid = new GridPane();
         grid.setHgap(20);
         grid.setVgap(20);
         grid.setAlignment(Pos.CENTER_LEFT);
-        
+
         javafx.scene.layout.ColumnConstraints labelCol = new javafx.scene.layout.ColumnConstraints();
         labelCol.setPrefWidth(130);
         javafx.scene.layout.ColumnConstraints fieldCol = new javafx.scene.layout.ColumnConstraints();
@@ -90,26 +80,26 @@ public class MediaEventEditorDialog extends Stage {
 
         HBox sourceInfo = new HBox(15);
         sourceInfo.setAlignment(Pos.CENTER_LEFT);
-        
+
         VBox pathIconBox = new VBox();
         pathIconBox.setAlignment(Pos.CENTER);
         pathIconBox.setPrefSize(50, 50);
         pathIconBox.setStyle(ICON_BADGE_STYLE + "-fx-background-radius: 14;");
-        
+
         VBox pathTextStack = new VBox(2);
         Label pathMainLabel = new Label("Джерело не обрано");
         pathMainLabel.setStyle("-fx-font-weight: 800; -fx-font-size: 15px; -fx-text-fill: " + COLOR_NAVY + ";");
         pathMainLabel.setWrapText(true);
         pathMainLabel.setMaxWidth(420);
-        
+
         Label pathSubLabel = new Label("Оберіть аудіофайл або папку для програвання");
         pathSubLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + COLOR_SLATE + ";");
         pathSubLabel.setEllipsisString("...");
         pathSubLabel.setTextOverrun(OverrunStyle.CENTER_ELLIPSIS);
         pathSubLabel.setMaxWidth(420);
-        
+
         pathTextStack.getChildren().addAll(pathMainLabel, pathSubLabel);
-        
+
         sourceInfo.getChildren().addAll(pathIconBox, pathTextStack);
 
         pathF = new TextField(event != null ? event.path() : ""); // Hidden but used for logic
@@ -127,19 +117,29 @@ public class MediaEventEditorDialog extends Stage {
                 File file = new File(currentPath);
                 boolean exists = file.exists();
                 boolean isDir = file.isDirectory();
-                
-                pathIconBox.getChildren().setAll(createSVGIcon(isDir ? ICON_FOLDER : ICON_MUSIC, Color.web(COLOR_PRIMARY), 24));
+
+                pathIconBox.getChildren().setAll(createSVGIcon(isDir ? ICON_FOLDER : ICON_MUSIC, Color.web(exists ? COLOR_PRIMARY : COLOR_DANGER), 24));
                 pathMainLabel.setText(file.getName().isEmpty() ? currentPath : file.getName());
-                pathSubLabel.setText(currentPath);
+                
+                if (!exists) {
+                    pathMainLabel.setStyle(pathMainLabel.getStyle() + "-fx-text-fill: " + COLOR_DANGER + ";");
+                    pathSubLabel.setText("УВАГА: Файл або папка не існує!");
+                    pathSubLabel.setStyle(pathSubLabel.getStyle() + "-fx-text-fill: " + COLOR_DANGER + "; -fx-font-weight: 800;");
+                    sourceCard.setStyle(sourceCard.getStyle().replace(COLOR_BORDER_FIELD, COLOR_DANGER).replace(COLOR_INDIGO, COLOR_DANGER) + "-fx-border-style: solid; -fx-background-color: " + COLOR_DANGER_PALE + ";");
+                } else {
+                    pathMainLabel.setStyle(pathMainLabel.getStyle().replace("-fx-text-fill: " + COLOR_DANGER + ";", "") + "-fx-text-fill: " + COLOR_NAVY + ";");
+                    pathSubLabel.setText(currentPath);
+                    pathSubLabel.setStyle(pathSubLabel.getStyle().replace("-fx-text-fill: " + COLOR_DANGER + "; -fx-font-weight: 800;", "") + "-fx-text-fill: " + COLOR_SLATE + ";");
+                    sourceCard.setStyle(sourceCard.getStyle().replace(COLOR_DANGER, COLOR_INDIGO) + "-fx-border-style: solid; -fx-background-color: " + COLOR_SURFACE_SKY + ";");
+                }
                 pathSubLabel.setTooltip(new Tooltip(currentPath));
-                sourceCard.setStyle(sourceCard.getStyle().replace(COLOR_BORDER_FIELD, COLOR_INDIGO) + "-fx-border-style: solid;");
             }
         };
 
         Button browseFile = new Button("ОБРАТИ ФАЙЛ");
         browseFile.setGraphic(createSVGIcon(ICON_MUSIC, Color.web(COLOR_PRIMARY), 14));
         browseFile.setStyle("-fx-background-color: white; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 8 16; -fx-background-radius: 10; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 10; -fx-cursor: hand;");
-        
+
         Button browseFolder = new Button("ОБРАТИ ПАПКУ");
         browseFolder.setGraphic(createSVGIcon(ICON_FOLDER, Color.web(COLOR_VIOLET), 14));
         browseFolder.setStyle("-fx-background-color: white; -fx-text-fill: " + COLOR_VIOLET + "; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 8 16; -fx-background-radius: 10; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 10; -fx-cursor: hand;");
@@ -164,7 +164,7 @@ public class MediaEventEditorDialog extends Stage {
 
         HBox btnRow = new HBox(12, browseFile, browseFolder);
         sourceCard.getChildren().addAll(sourceInfo, btnRow);
-        
+
         grid.add(createLabel("ДЖЕРЕЛО ЗВУКУ"), 0, 2);
         grid.add(sourceCard, 1, 2);
 
@@ -202,7 +202,7 @@ public class MediaEventEditorDialog extends Stage {
             dynamicGrid.setHgap(20);
             dynamicGrid.setVgap(20);
             dynamicGrid.setAlignment(Pos.CENTER_LEFT);
-            
+
             javafx.scene.layout.ColumnConstraints dLabelCol = new javafx.scene.layout.ColumnConstraints();
             dLabelCol.setPrefWidth(170);
             dynamicGrid.getColumnConstraints().add(dLabelCol);
@@ -234,30 +234,12 @@ public class MediaEventEditorDialog extends Stage {
         breakAnchorC.valueProperty().addListener((obs, oldV, newV) -> updateFields.run());
         updateFields.run();
 
-        HBox actions = new HBox(15);
-        actions.setAlignment(Pos.CENTER_RIGHT);
-        actions.setPadding(new Insets(10, 0, 0, 0));
+        content.getChildren().addAll(grid, dynamicFields);
+    }
 
-        Button cancelBtn = new Button("СКАСУВАТИ");
-        cancelBtn.setStyle("-fx-background-color: " + COLOR_SURFACE_SUBTLE + "; -fx-text-fill: " + COLOR_NEUTRAL + "; -fx-font-weight: 800; -fx-padding: 12 24; -fx-background-radius: 14; -fx-cursor: hand;");
-        cancelBtn.setOnAction(e -> close());
-
-        Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ПОДІЮ", ICON_SAVE);
-        saveBtn.setOnAction(ev -> {
-            if (saveEvent()) {
-                close();
-            }
-        });
-
-        actions.getChildren().addAll(cancelBtn, saveBtn);
-        root.getChildren().addAll(headerBox, grid, dynamicFields, actions);
-
-        Scene scene = new Scene(root);
-        scene.setFill(Color.TRANSPARENT);
-        scene.getStylesheets().addAll(
-            "data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20")
-        );
-        setScene(scene);
+    @Override
+    protected boolean onSave() {
+        return saveEvent();
     }
 
     private Label createLabel(String text) {

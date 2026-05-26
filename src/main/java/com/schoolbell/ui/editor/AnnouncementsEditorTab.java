@@ -3,25 +3,29 @@ package com.schoolbell.ui.editor;
 import com.schoolbell.MainApp;
 import com.schoolbell.model.Announcement;
 import com.schoolbell.service.AnnouncementService;
+import com.schoolbell.ui.AnnouncementEditorDialog;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.schoolbell.ui.CardFactory.createCardActionButton;
-import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
+import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
@@ -88,6 +92,11 @@ public class AnnouncementsEditorTab {
 
         VBox cardsContainer = new VBox(20);
         cardsContainer.setPadding(new Insets(10));
+        
+        ScrollPane scroll = new ScrollPane(cardsContainer);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        VBox.setVgrow(scroll, Priority.ALWAYS);
 
         refreshList = () -> {
             cardsContainer.getChildren().clear();
@@ -114,17 +123,9 @@ public class AnnouncementsEditorTab {
                 .collect(Collectors.toList());
 
             if (filtered.isEmpty()) {
-                VBox empty = new VBox(20);
-                empty.setAlignment(Pos.CENTER);
-                empty.setPadding(new Insets(100, 0, 100, 0));
-                empty.setMinWidth(900);
-                Node emptyIcon = createSVGIcon(ICON_INFO, Color.web(COLOR_WHITE_MUTED_BORDER), 64);
-                Label emptyLabel = new Label(showArchived ? "Архів оголошень порожній" : "Немає активних оголошень");
-                emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_ICON_MUTED + ";");
-                Label subLabel = new Label(showArchived ? "Тут з'являтимуться оголошення, термін дії яких минув" : "Натисніть 'СТВОРИТИ ОГОЛОШЕННЯ', щоб додати перше повідомлення");
-                subLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE + ";");
-                empty.getChildren().addAll(emptyIcon, emptyLabel, subLabel);
-                cardsContainer.getChildren().add(empty);
+                String title = showArchived ? "Архів оголошень порожній" : "Немає активних оголошень";
+                String sub = showArchived ? "Тут з'являтимуться оголошення, термін дії яких минув." : "Натисніть 'СТВОРИТИ ОГОЛОШЕННЯ', щоб додати перше повідомлення.";
+                cardsContainer.getChildren().add(createEmptyState(ICON_INFO, title, sub));
             } else {
                 for (Announcement a : filtered) {
                     cardsContainer.getChildren().add(createAnnouncementCard(a));
@@ -132,7 +133,7 @@ public class AnnouncementsEditorTab {
             }
         };
 
-        content.getChildren().addAll(headerArea, actionToolbar, cardsContainer);
+        content.getChildren().addAll(headerArea, actionToolbar, scroll);
         refreshList.run();
         return content;
     }
@@ -220,104 +221,6 @@ public class AnnouncementsEditorTab {
     }
 
     private void openEditDialog(Announcement a) {
-        Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setTitle(a == null ? "Нове оголошення" : "Редагування оголошення");
-
-        VBox root = new VBox(25);
-        root.setPadding(new Insets(30));
-        root.setStyle("-fx-background-color: white;");
-
-        VBox header = createSectionHeader(a == null ? "Створення" : "Редагування", "Налаштуйте параметри показу", COLOR_INDIGO_DARK, ICON_BROADCAST);
-
-        TextArea textArea = new TextArea(a != null ? a.text() : "");
-        textArea.setPromptText("Текст оголошення...");
-        textArea.setPrefRowCount(3);
-        textArea.setWrapText(true);
-        textArea.setStyle(PREMIUM_FIELD_STYLE);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(20);
-        grid.setVgap(20);
-
-        DatePicker startPicker = new DatePicker(a != null ? a.startDate() : LocalDate.now());
-        DatePicker endPicker = new DatePicker(a != null ? a.endDate() : LocalDate.now().plusWeeks(1));
-
-        TextField startTimeField = new TextField(a != null && a.startTime() != null ? a.startTime().toString() : "08:00");
-        TextField endTimeField = new TextField(a != null && a.endTime() != null ? a.endTime().toString() : "18:00");
-        startTimeField.setStyle(PREMIUM_FIELD_STYLE); endTimeField.setStyle(PREMIUM_FIELD_STYLE);
-
-        HBox daysBox = new HBox(8);
-        String[] dayNames = {"Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"};
-        List<CheckBox> dayCbs = new ArrayList<>();
-        List<String> activeDays = a != null && a.daysOfWeek() != null ? List.of(a.daysOfWeek().split(",")) : List.of("1","2","3","4","5");
-        for (int i = 1; i <= 7; i++) {
-            CheckBox cb = new CheckBox(dayNames[i-1]);
-            cb.setSelected(activeDays.contains(String.valueOf(i)));
-            dayCbs.add(cb);
-            daysBox.getChildren().add(cb);
-        }
-
-        CheckBox activeCb = new CheckBox("Оголошення активне");
-        activeCb.setSelected(a == null || a.isActive());
-        activeCb.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_NAVY + ";");
-
-        Label startDL = new Label("ПОЧАТОК (ДАТА):"); startDL.setStyle(HEADER_STYLE);
-        grid.add(startDL, 0, 0); grid.add(startPicker, 1, 0);
-        
-        Label endDL = new Label("КІНЕЦЬ (ДАТА):"); endDL.setStyle(HEADER_STYLE);
-        grid.add(endDL, 0, 1); grid.add(endPicker, 1, 1);
-        
-        Label startTL = new Label("ПОЧАТОК (ЧАС):"); startTL.setStyle(HEADER_STYLE);
-        grid.add(startTL, 0, 2); grid.add(startTimeField, 1, 2);
-        
-        Label endTL = new Label("КІНЕЦЬ (ЧАС):"); endTL.setStyle(HEADER_STYLE);
-        grid.add(endTL, 0, 3); grid.add(endTimeField, 1, 3);
-        
-        Label daysL = new Label("ДНІ ТИЖНЯ:"); daysL.setStyle(HEADER_STYLE);
-        grid.add(daysL, 0, 4); grid.add(daysBox, 1, 4);
-
-        Button saveBtn = new Button("ЗБЕРЕГТИ");
-        saveBtn.setStyle(PREMIUM_BTN_STYLE);
-        saveBtn.setOnAction(ev -> {
-            String text = textArea.getText().trim();
-            if (text.isEmpty()) return;
-
-            String days = dayCbs.stream()
-                    .filter(CheckBox::isSelected)
-                    .map(cb -> String.valueOf(dayCbs.indexOf(cb) + 1))
-                    .collect(Collectors.joining(","));
-
-            LocalTime st = null, et = null;
-            try { st = LocalTime.parse(startTimeField.getText().trim()); } catch (Exception e) {}
-            try { et = LocalTime.parse(endTimeField.getText().trim()); } catch (Exception e) {}
-
-            Announcement newA = new Announcement(
-                    a != null ? a.id() : 0,
-                    text,
-                    startPicker.getValue(),
-                    endPicker.getValue(),
-                    st, et, days,
-                    activeCb.isSelected()
-            );
-
-            if (a == null) announcementService.addAnnouncement(newA);
-            else announcementService.updateAnnouncement(newA);
-
-            refreshList.run();
-            stage.close();
-        });
-
-        Label textL = new Label("ТЕКСТ ПОВІДОМЛЕННЯ:");
-        textL.setStyle(HEADER_STYLE);
-        root.getChildren().addAll(header, textL, textArea, grid, activeCb, new HBox(saveBtn));
-        ((HBox)root.getChildren().get(root.getChildren().size()-1)).setAlignment(Pos.CENTER);
-
-        Scene scene = new Scene(root, 620, 780);
-        String css = MODERN_DATE_PICKER_STYLE + "\n" + MODERN_CHECKBOX_STYLE;
-        scene.getStylesheets().add("data:text/css," + css.replace(" ", "%20").replace("\n", "%20"));
-        stage.setScene(scene);
-        stage.showAndWait();
+        new AnnouncementEditorDialog(mainApp.getStage(), announcementService, a, refreshList).display();
     }
 }
-

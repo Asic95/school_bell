@@ -7,18 +7,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -86,19 +76,43 @@ public class MediaSchedulerPanel {
         HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(20, 24, 20, 24));
-        row.setStyle("-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-background-radius: 22; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 22;");
 
-        VBox iconBox = new VBox(createSVGIcon(event.isFolder() ? ICON_FOLDER : ICON_MUSIC, Color.web(COLOR_PRIMARY), 22));
+        boolean pathExists = new File(event.path()).exists();
+        
+        String normalStyle = "-fx-background-color: white; -fx-background-radius: 22; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 22;";
+        String normalHover = "-fx-background-color: " + COLOR_SURFACE_SUBTLE + "; -fx-background-radius: 22; -fx-border-color: " + COLOR_SLATE_MUTED + "; -fx-border-radius: 22;";
+        String errorStyle = "-fx-background-color: " + COLOR_DANGER_PALE + "; -fx-background-radius: 22; -fx-border-color: " + COLOR_DANGER_BORDER + "; -fx-border-radius: 22;";
+        String errorHover = "-fx-background-color: " + COLOR_DANGER_LIGHT + "; -fx-background-radius: 22; -fx-border-color: " + COLOR_DANGER + "40; -fx-border-radius: 22;";
+
+        row.setStyle(pathExists ? normalStyle : errorStyle);
+        row.setOnMouseEntered(e -> {
+            if (pathExists) {
+                row.setStyle(normalStyle + "-fx-border-color: " + COLOR_PRIMARY + "40;");
+            } else {
+                row.setStyle(errorStyle + "-fx-border-color: " + COLOR_DANGER + "60;");
+            }
+        });
+        row.setOnMouseExited(e -> row.setStyle(pathExists ? normalStyle : errorStyle));
+
+        VBox iconBox = new VBox(createSVGIcon(event.isFolder() ? ICON_FOLDER : ICON_MUSIC, Color.web(pathExists ? COLOR_PRIMARY : COLOR_DANGER), 22));
         iconBox.setAlignment(Pos.CENTER);
         iconBox.setPrefSize(52, 52);
         iconBox.setStyle(ICON_BADGE_STYLE + "-fx-background-radius: 14;");
 
         Label name = new Label(event.name());
-        name.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_NAVY + ";");
+        name.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: " + (pathExists ? COLOR_NAVY : COLOR_DANGER) + ";");
+        
         Label detail = new Label(describeEvent(event));
         detail.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 13px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
+        
         VBox info = new VBox(4, name, detail);
         HBox.setHgrow(info, Priority.ALWAYS);
+
+        if (!pathExists) {
+            Label errorLabel = new Label("УВАГА: Файл або папка не існує!");
+            errorLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_DANGER + "; -fx-padding: 2 0;");
+            info.getChildren().add(1, errorLabel);
+        }
 
         Label status = new Label(event.isActive() ? "АКТИВНЕ" : "ВИМКНЕНЕ");
         status.setStyle(
@@ -148,9 +162,6 @@ public class MediaSchedulerPanel {
 
         actions.getChildren().addAll(status, toggle, edit, delete);
         row.getChildren().addAll(iconBox, info, actions);
-        
-        row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: " + COLOR_SURFACE_SOFT + "; -fx-background-radius: 22; -fx-border-color: " + COLOR_SLATE_MUTED + "; -fx-border-radius: 22;"));
-        row.setOnMouseExited(e -> row.setStyle("-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-background-radius: 22; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 22;"));
         
         return row;
     }

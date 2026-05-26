@@ -141,7 +141,7 @@ public class SubstitutionCard {
         actions.setAlignment(Pos.CENTER_RIGHT);
 
         Button editBtn = createCardActionButton(ICON_EDIT, COLOR_SURFACE_SUBTLE, COLOR_PRIMARY);
-        editBtn.setOnAction(e -> new com.schoolbell.ui.SubstitutionEditorDialog(mainApp, sub, sub.date(), refreshSubstitutions).show());
+        editBtn.setOnAction(e -> new com.schoolbell.ui.SubstitutionEditorDialog(mainApp, sub, sub.date(), refreshSubstitutions).display());
 
         Button delBtn = createCardActionButton(ICON_TRASH, COLOR_DANGER_LIGHT, COLOR_DANGER);
         delBtn.setOnAction(e -> {

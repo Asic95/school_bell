@@ -37,7 +37,7 @@ import static com.schoolbell.ui.UIStyles.MODERN_SPINNER_STYLE;
 import static com.schoolbell.ui.UIStyles.PREMIUM_BTN_STYLE;
 import static com.schoolbell.ui.UIStyles.PREMIUM_SELECT_STYLE;
 
-public class SubstitutionEditorDialog extends Stage {
+public class SubstitutionEditorDialog extends BasePremiumDialog {
     private final MainApp mainApp;
     private final SubstitutionEntry entry;
     private final Runnable onSave;
@@ -50,20 +50,15 @@ public class SubstitutionEditorDialog extends Stage {
     private ComboBox<Classroom> classroomCombo;
 
     public SubstitutionEditorDialog(MainApp mainApp, SubstitutionEntry entry, LocalDate defaultDate, Runnable onSave) {
+        super(mainApp.getStage(),
+                entry == null ? "Створення" : "Редагування",
+                entry == null ? "Нова заміна" : "Редагування заміни",
+                "Оберіть параметри для автоматичної заміни в розкладі.",
+                "ЗБЕРЕГТИ ЗАМІНУ");
+
         this.mainApp = mainApp;
         this.entry = entry;
         this.onSave = onSave;
-
-        initModality(Modality.APPLICATION_MODAL);
-        initStyle(StageStyle.TRANSPARENT);
-        initOwner(mainApp.getStage());
-
-        VBox root = createDialogRoot(650);
-        VBox headerBox = createDialogHeader(
-                entry == null ? "Створення" : "Редагування",
-                entry == null ? "Нова заміна" : "Редагування заміни",
-                "Оберіть параметри для автоматичної заміни в розкладі."
-        );
 
         GridPane grid = new GridPane();
         grid.setHgap(25);
@@ -139,40 +134,11 @@ public class SubstitutionEditorDialog extends Stage {
             mainApp.getAcademicService().getAllClassrooms().stream().filter(c -> c.id() == entry.classroomId()).findFirst().ifPresent(classroomCombo::setValue);
         }
 
-        HBox actions = new HBox(15);
-        actions.setAlignment(Pos.CENTER_RIGHT);
-        actions.setPadding(new Insets(10, 0, 0, 0));
-
-        Button cancelBtn = createSecondaryDialogButton("СКАСУВАТИ");
-        cancelBtn.setOnAction(e -> close());
-
-        Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ЗАМІНУ", ICON_SAVE);
-        saveBtn.setStyle(PREMIUM_BTN_STYLE);
-        saveBtn.setOnAction(ev -> {
-            if (saveSubstitution()) {
-                close();
-            }
-        });
-
-        actions.getChildren().addAll(cancelBtn, saveBtn);
-        root.getChildren().addAll(headerBox, grid, actions);
-
-        Scene scene = new Scene(root);
-        scene.setFill(Color.TRANSPARENT);
-        scene.getStylesheets().addAll(
-                "data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"),
-                "data:text/css," + MODERN_SPINNER_STYLE.replace(" ", "%20")
-        );
-        setScene(scene);
+        content.getChildren().add(grid);
     }
 
-    private Label createLabel(String text) {
-        Label lbl = new Label(text);
-        lbl.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
-        return lbl;
-    }
-
-    private boolean saveSubstitution() {
+    @Override
+    protected boolean onSave() {
         if (classCombo.getValue() == null || teacherCombo.getValue() == null || subjectCombo.getValue() == null) {
             ToastService.showError("Заповніть всі обов'язкові поля (клас, вчитель, предмет)");
             return false;
@@ -199,5 +165,11 @@ public class SubstitutionEditorDialog extends Stage {
         }
         ToastService.showSuccess("Зміну збережено успішно");
         return true;
+    }
+
+    private Label createLabel(String text) {
+        Label lbl = new Label(text);
+        lbl.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
+        return lbl;
     }
 }

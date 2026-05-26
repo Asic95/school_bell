@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -27,7 +28,7 @@ import static com.schoolbell.ui.UIStyles.*;
 
 import static com.schoolbell.ui.UIStyles.PREMIUM_FIELD_STYLE;
 
-public class SignalAudioEditorDialog extends Stage {
+public class SignalAudioEditorDialog extends BasePremiumDialog {
     private final ConfigService config;
     private final String alertType;
 
@@ -36,17 +37,15 @@ public class SignalAudioEditorDialog extends Stage {
     private TextField pathError;
 
     public SignalAudioEditorDialog(MainApp mainApp, String alertType) {
+        super(mainApp.getStage(),
+                "ЗВУКОВІ СИГНАЛИ",
+                "Налаштування звуків",
+                formatTitle(alertType),
+                "ЗБЕРЕГТИ",
+                600);
+
         this.config = mainApp.getConfigService();
         this.alertType = alertType;
-
-        initModality(Modality.APPLICATION_MODAL);
-        initOwner(mainApp.getStage());
-        initStyle(StageStyle.TRANSPARENT);
-
-        VBox root = createDialogRoot(600);
-
-        Label title = new Label("Налаштування звуків: " + formatTitle(alertType));
-        title.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
 
         VBox fields = new VBox(22);
 
@@ -60,32 +59,40 @@ public class SignalAudioEditorDialog extends Stage {
             pathStart = createFileRow(fields, "Основний звук сигналу", config.getAudioSilencePath());
         }
 
-        HBox actions = new HBox(15);
-        actions.setAlignment(Pos.CENTER_RIGHT);
-        actions.setPadding(new Insets(10, 0, 0, 0));
+        content.getChildren().add(fields);
+    }
 
-        Button cancelBtn = createSecondaryDialogButton("СКАСУВАТИ");
-        cancelBtn.setOnAction(e -> close());
-
-        Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ", ICON_SAVE);
-        saveBtn.setStyle(PREMIUM_BTN_STYLE);
-        saveBtn.setOnAction(e -> {
-            save();
-            close();
-        });
-
-        actions.getChildren().addAll(cancelBtn, saveBtn);
-        root.getChildren().addAll(title, fields, actions);
-
-        Scene scene = new Scene(root);
-        scene.setFill(Color.TRANSPARENT);
-        setScene(scene);
+    @Override
+    protected boolean onSave() {
+        if (alertType.equals("AIR_RAID")) {
+            config.setAudioAirRaidPath(pathStart.getText());
+            config.setAudioAirRaidClearPath(pathClear.getText());
+            config.setAudioAirRaidErrorPath(pathError.getText());
+        } else if (alertType.equals("EMERGENCY")) {
+            config.setAudioEmergencyPath(pathStart.getText());
+        } else {
+            config.setAudioSilencePath(pathStart.getText());
+        }
+        ToastService.showSuccess("Налаштування звуків збережено");
+        return true;
     }
 
     private TextField createFileRow(VBox container, String labelText, String initialValue) {
         VBox box = new VBox(8);
+        
+        HBox labelRow = new HBox(8);
+        labelRow.setAlignment(Pos.CENTER_LEFT);
+        
         Label lbl = new Label(labelText.toUpperCase());
         lbl.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
+        
+        Label alertIcon = new Label();
+        alertIcon.setGraphic(createSVGIcon(ICON_ALERT, Color.web(COLOR_DANGER), 14));
+        alertIcon.setVisible(false);
+        Tooltip alertTooltip = new Tooltip("Файл не знайдено за вказаним шляхом!");
+        Tooltip.install(alertIcon, alertTooltip);
+        
+        labelRow.getChildren().addAll(lbl, alertIcon);
 
         HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -94,6 +101,20 @@ public class SignalAudioEditorDialog extends Stage {
         field.setEditable(false);
         field.setStyle(PREMIUM_FIELD_STYLE + "-fx-font-size: 14px; -fx-padding: 11 16;");
         HBox.setHgrow(field, Priority.ALWAYS);
+
+        Runnable validate = () -> {
+            String path = field.getText();
+            boolean exists = path != null && !path.isEmpty() && new File(path).exists();
+            alertIcon.setVisible(!exists && path != null && !path.isEmpty());
+            if (!exists && path != null && !path.isEmpty()) {
+                field.setStyle(PREMIUM_FIELD_ERROR_STYLE + "-fx-font-size: 14px; -fx-padding: 11 16;");
+            } else {
+                field.setStyle(PREMIUM_FIELD_STYLE + "-fx-font-size: 14px; -fx-padding: 11 16;");
+            }
+        };
+
+        field.textProperty().addListener((obs, old, nv) -> validate.run());
+        validate.run();
 
         Button pickBtn = new Button();
         pickBtn.setGraphic(createSVGIcon(ICON_FOLDER, Color.web(COLOR_PRIMARY), 18));
@@ -120,28 +141,16 @@ public class SignalAudioEditorDialog extends Stage {
         clearBtn.setOnAction(e -> field.setText(""));
 
         row.getChildren().addAll(field, pickBtn, clearBtn);
-        box.getChildren().addAll(lbl, row);
+        box.getChildren().addAll(labelRow, row);
         container.getChildren().add(box);
         return field;
     }
 
-    private String formatTitle(String type) {
+    private static String formatTitle(String type) {
         return switch (type) {
             case "AIR_RAID" -> "Повітряна тривога";
             case "EMERGENCY" -> "Екстрена ситуація";
             default -> "Хвилина мовчання";
         };
-    }
-
-    private void save() {
-        if (alertType.equals("AIR_RAID")) {
-            config.setAudioAirRaidPath(pathStart.getText());
-            config.setAudioAirRaidClearPath(pathClear.getText());
-            config.setAudioAirRaidErrorPath(pathError.getText());
-        } else if (alertType.equals("EMERGENCY")) {
-            config.setAudioEmergencyPath(pathStart.getText());
-        } else {
-            config.setAudioSilencePath(pathStart.getText());
-        }
     }
 }
