@@ -52,22 +52,34 @@ public class ControlFactory {
     }
 
     public static Button createPrimaryActionButton(String text, String iconPath) {
+        return createActionButton(text, iconPath, PREMIUM_BTN_STYLE, COLOR_INDIGO_DARK, COLOR_PRIMARY_DARK, SHADOW_INDIGO_40);
+    }
+
+    public static Button createDangerActionButton(String text, String iconPath) {
+        String dangerStyle = PREMIUM_BTN_STYLE + "-fx-background-color: " + GRADIENT_DANGER + ";";
+        return createActionButton(text, iconPath, dangerStyle, "#c0392b", "#a93226", SHADOW_BLACK_30);
+    }
+
+    public static Button createSmallPrimaryActionButton(String text, String iconPath) {
+        return createActionButton(text, iconPath, PREMIUM_BTN_SMALL_STYLE, COLOR_INDIGO_DARK, COLOR_PRIMARY_DARK, SHADOW_INDIGO_40);
+    }
+
+    private static Button createActionButton(String text, String iconPath, String baseStyle, String hoverStart, String hoverEnd, String shadow) {
         Button btn = new Button(text);
         if (iconPath != null) {
             btn.setGraphic(createSVGIcon(iconPath, Color.WHITE, 18));
             btn.setGraphicTextGap(10);
         }
-        
-        btn.setStyle(PREMIUM_BTN_STYLE);
-        
-        btn.setOnMouseEntered(e -> btn.setStyle(PREMIUM_BTN_STYLE + 
-            "-fx-background-color: linear-gradient(to right, " + COLOR_INDIGO_DARK + ", " + COLOR_PRIMARY_DARK + ");" +
-            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_40 + ", 12, 0, 0, 4);"));
-        btn.setOnMouseExited(e -> btn.setStyle(PREMIUM_BTN_STYLE));
-        
+
+        btn.setStyle(baseStyle);
+
+        btn.setOnMouseEntered(e -> btn.setStyle(baseStyle +
+            "-fx-background-color: linear-gradient(to right, " + hoverStart + ", " + hoverEnd + ");" +
+            "-fx-effect: dropshadow(three-pass-box, " + shadow + ", 12, 0, 0, 4);"));
+        btn.setOnMouseExited(e -> btn.setStyle(baseStyle));
+
         return btn;
     }
-
     public static VBox createDialogRoot(double prefWidth) {
         VBox root = new VBox(28);
         root.setPadding(new Insets(35));

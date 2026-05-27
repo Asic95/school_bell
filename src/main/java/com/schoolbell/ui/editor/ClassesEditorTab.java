@@ -46,9 +46,6 @@ public class ClassesEditorTab {
 
         FlowPane listContainer = new FlowPane(20, 20);
         listContainer.setPadding(new Insets(10));
-        ScrollPane scroll = new ScrollPane(listContainer);
-        scroll.setFitToWidth(true);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         refreshClasses = () -> {
             listContainer.getChildren().clear();
@@ -70,7 +67,7 @@ public class ClassesEditorTab {
                 for (SchoolClass c : classes) {
                     VBox card = new VBox(20);
                     card.setStyle(SOFT_CARD + "-fx-padding: 24;");
-                    card.setPrefWidth(240);
+                    card.setPrefWidth(320);
                     
                     HBox topRow = new HBox(12);
                     topRow.setAlignment(Pos.CENTER_LEFT);
@@ -94,6 +91,8 @@ public class ClassesEditorTab {
                     VBox nameArea = new VBox(5);
                     Label nameLabel = new Label(c.name());
                     nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: " + COLOR_NAVY + ";");
+                    nameLabel.setWrapText(true);
+                    nameLabel.setMaxWidth(260);
                     
                     TextField nameEdit = new TextField(c.name());
                     nameEdit.setStyle(PREMIUM_FIELD_STYLE + "-fx-font-size: 15px; -fx-padding: 8 12;");
@@ -136,7 +135,7 @@ public class ClassesEditorTab {
             }
         });
 
-        VBox contentLayout = new VBox(25, header, new HBox(15, addField, addBtn), scroll);
+        VBox contentLayout = new VBox(25, header, new HBox(15, addField, addBtn), listContainer);
         contentLayout.setPadding(new Insets(30));
         contentLayout.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
 

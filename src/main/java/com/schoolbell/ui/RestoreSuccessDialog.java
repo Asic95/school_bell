@@ -3,6 +3,7 @@ package com.schoolbell.ui;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import static com.schoolbell.ui.UIStyles.*;
@@ -36,8 +37,10 @@ public class RestoreSuccessDialog extends BasePremiumDialog {
         
         content.getChildren().add(infoBox);
         
-        // Use standard primary style for the button
-        saveBtn.setText("ЗАКРИТИ");
+        // Cleanup footer: remove redundant Cancel and fix icon/text for the primary button
+        actions.getChildren().remove(cancelBtn);
+        saveBtn.setText("ЗРОЗУМІЛО");
+        saveBtn.setGraphic(UIComponents.createSVGIcon(ICON_CHECK, Color.WHITE, 18));
     }
 
     @Override

@@ -50,7 +50,10 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
         grid.setAlignment(Pos.CENTER_LEFT);
 
         javafx.scene.layout.ColumnConstraints labelCol = new javafx.scene.layout.ColumnConstraints();
-        labelCol.setPrefWidth(130);
+        labelCol.setMinWidth(170);
+        labelCol.setPrefWidth(170);
+        labelCol.setMaxWidth(170);
+        
         javafx.scene.layout.ColumnConstraints fieldCol = new javafx.scene.layout.ColumnConstraints();
         fieldCol.setHgrow(Priority.ALWAYS);
         grid.getColumnConstraints().addAll(labelCol, fieldCol);
@@ -204,7 +207,9 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
             dynamicGrid.setAlignment(Pos.CENTER_LEFT);
 
             javafx.scene.layout.ColumnConstraints dLabelCol = new javafx.scene.layout.ColumnConstraints();
+            dLabelCol.setMinWidth(170);
             dLabelCol.setPrefWidth(170);
+            dLabelCol.setMaxWidth(170);
             dynamicGrid.getColumnConstraints().add(dLabelCol);
 
             if (typeC.getValue().equals("На перервах")) {

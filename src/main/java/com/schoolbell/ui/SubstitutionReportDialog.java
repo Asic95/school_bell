@@ -44,7 +44,10 @@ public class SubstitutionReportDialog extends BasePremiumDialog {
         grid.setAlignment(Pos.CENTER_LEFT);
 
         javafx.scene.layout.ColumnConstraints labelCol = new javafx.scene.layout.ColumnConstraints();
-        labelCol.setPrefWidth(100);
+        labelCol.setMinWidth(170);
+        labelCol.setPrefWidth(170);
+        labelCol.setMaxWidth(170);
+        
         javafx.scene.layout.ColumnConstraints fieldCol = new javafx.scene.layout.ColumnConstraints();
         fieldCol.setHgrow(Priority.ALWAYS);
         grid.getColumnConstraints().addAll(labelCol, fieldCol);

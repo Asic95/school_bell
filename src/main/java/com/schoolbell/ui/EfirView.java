@@ -8,6 +8,7 @@ import com.schoolbell.service.ConfigService;
 import com.schoolbell.service.DatabaseManager;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
 import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
@@ -56,7 +57,7 @@ public class EfirView {
     private Label liveStatusLabelText;
     private Circle liveStatusDotCore;
     private Circle liveStatusDotGlow;
-    private ScaleTransition liveStatusGlowAnim;
+    private Timeline pulseTimeline;
 
     public EfirView(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -140,7 +141,7 @@ public class EfirView {
         );
 
         // --- TOP STATUS BAR ---
-        HBox statusBar = createTopStatusBar();
+        Pane statusBar = createTopStatusBar();
 
         // --- MAIN CONTENT AREA ---
         HBox mainContent = new HBox(28);
@@ -172,13 +173,18 @@ public class EfirView {
         return scrollPane;
     }
 
-    private HBox createTopStatusBar() {
-        HBox bar = new HBox(20);
+    private Pane createTopStatusBar() {
+        StackPane container = new StackPane();
+        
+        Region bg = new Region();
+        bg.setStyle(SOFT_CARD + "-fx-background-radius: 28; -fx-border-radius: 28;");
+        bg.setCache(true);
+        bg.setCacheHint(javafx.scene.CacheHint.SPEED);
+        
+        HBox bar = new HBox(24);
         bar.setAlignment(Pos.CENTER_LEFT);
-        bar.setPadding(new Insets(14, 28, 14, 28));
-        bar.setStyle(SOFT_CARD + "-fx-background-radius: 28; -fx-border-radius: 28;");
-        bar.setCache(true);
-        bar.setCacheHint(javafx.scene.CacheHint.SPEED);
+        bar.setPadding(new Insets(16, 28, 16, 28));
+        bar.setStyle("-fx-background-color: transparent;");
 
         HBox liveStatus = createLiveStatusWidget();
         Region divider1 = createVerticalDivider();
@@ -188,10 +194,6 @@ public class EfirView {
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        // 4. Main Control
-        HBox controls = new HBox(25);
-        controls.setAlignment(Pos.CENTER_LEFT);
 
         HBox broadcastToggle = new HBox(12);
         broadcastToggle.setAlignment(Pos.CENTER_LEFT);
@@ -207,19 +209,16 @@ public class EfirView {
             updateLiveStatusStyle(toggle.isSelected());
         });
         Label toggleLabel = new Label("ТРАНСЛЯЦІЯ");
-        toggleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
+        toggleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         broadcastToggle.getChildren().addAll(toggle, toggleLabel);
 
-        Button openBtn = new Button("ВІДКРИТИ ТАБЛО");
-        openBtn.setGraphic(createSVGIcon(ICON_EXTERNAL_LINK, Color.WHITE, 16));
-        openBtn.setGraphicTextGap(10);
-        openBtn.setStyle(PREMIUM_BTN_STYLE + "-fx-padding: 12 24; -fx-font-size: 13px;");
+        Button openBtn = createSmallPrimaryActionButton("ВІДКРИТИ ТАБЛО", ICON_EXTERNAL_LINK);
         openBtn.setOnAction(e -> mainApp.getHostServices().showDocument("http://localhost:" + config.getBroadcastPort()));
 
-        controls.getChildren().addAll(broadcastToggle, openBtn);
-
-        bar.getChildren().addAll(liveStatus, divider1, connStatus, divider2, broadcastAddr, spacer, controls);
-        return bar;
+        bar.getChildren().addAll(liveStatus, divider1, connStatus, divider2, broadcastAddr, spacer, broadcastToggle, openBtn);
+        
+        container.getChildren().addAll(bg, bar);
+        return container;
     }
 
     private Region createVerticalDivider() {
@@ -227,9 +226,9 @@ public class EfirView {
         divider.setPrefWidth(1);
         divider.setMinWidth(1);
         divider.setMaxWidth(1);
-        divider.setPrefHeight(28);
-        divider.setMinHeight(28);
-        divider.setMaxHeight(28);
+        divider.setPrefHeight(32);
+        divider.setMinHeight(32);
+        divider.setMaxHeight(32);
         divider.setStyle("-fx-background-color: " + COLOR_BORDER_SOFT + ";");
         return divider;
     }
@@ -256,9 +255,9 @@ public class EfirView {
     }
 
     private HBox createLiveStatusWidget() {
-        liveStatusCard = new HBox(14);
-        liveStatusCard.setAlignment(Pos.CENTER_LEFT);
-        liveStatusCard.setPadding(new Insets(4, 8, 4, 8));
+        liveStatusCard = new HBox(12);
+        liveStatusCard.setAlignment(Pos.TOP_LEFT);
+        liveStatusCard.setPadding(new Insets(10, 18, 10, 14));
         
         liveStatusBadge = new StackPane();
         liveStatusBadge.setPrefSize(44, 44);
@@ -266,14 +265,15 @@ public class EfirView {
         liveStatusBadge.setMaxSize(44, 44);
         liveStatusBadge.setAlignment(Pos.CENTER);
         
-        liveStatusDotGlow = new Circle(10);
+        liveStatusDotGlow = new Circle(14);
         liveStatusDotGlow.setOpacity(0.3);
         
-        liveStatusDotCore = new Circle(5.5);
+        liveStatusDotCore = new Circle(7);
         
         liveStatusBadge.getChildren().addAll(liveStatusDotGlow, liveStatusDotCore);
         
-        VBox textCol = new VBox(2);
+        VBox textCol = new VBox(1);
+        textCol.setAlignment(Pos.TOP_LEFT);
         Label eyebrow = new Label("СТАТУС ЕФІРУ");
         eyebrow.setStyle(HEADER_STYLE + "-fx-font-size: 10px;");
         
@@ -286,14 +286,19 @@ public class EfirView {
         Label bullet = new Label("•");
         bullet.setStyle("-fx-font-size: 12px; -fx-text-fill: " + COLOR_SLATE_MUTED + ";");
         
-        uptimeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SLATE + ";");
+        uptimeLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SLATE + ";");
         
         contentRow.getChildren().addAll(liveStatusLabelText, bullet, uptimeLabel);
         textCol.getChildren().addAll(eyebrow, contentRow);
+
+        // Optimization: No animation timeline; static appearance will reduce GPU load
+        pulseTimeline = null;
         
-        liveStatusCard.getChildren().addAll(liveStatusBadge, textCol);
-        
+        // Apply initial live status style based on configuration
         updateLiveStatusStyle(config.isBroadcastEnabled());
+        
+        HBox.setMargin(textCol, new Insets(4, 0, 0, 0));
+        liveStatusCard.getChildren().addAll(liveStatusBadge, textCol);
         
         return liveStatusCard;
     }
@@ -301,18 +306,6 @@ public class EfirView {
     private void updateLiveStatusStyle(boolean active) {
         String baseColor = active ? COLOR_SUCCESS : COLOR_DANGER;
         String text = active ? "АКТИВНИЙ" : "ВИМКНЕНО";
-        
-        if (liveStatusBadge != null) {
-            String bgGradient = active ? "linear-gradient(to bottom right, " + COLOR_SUCCESS_LIGHT + ", " + COLOR_SUCCESS_BORDER + ")" : "linear-gradient(to bottom right, " + COLOR_DANGER_SOFT + ", " + COLOR_DANGER_BORDER + ")";
-            String borderColor = active ? TR_SUCCESS_15 : TR_DANGER_15;
-            liveStatusBadge.setStyle(
-                "-fx-background-color: " + bgGradient + "; " +
-                "-fx-border-color: " + borderColor + "; " +
-                "-fx-border-width: 1; " +
-                "-fx-background-radius: 12; " +
-                "-fx-border-radius: 12;"
-            );
-        }
         
         Color fxColor = Color.web(baseColor);
         liveStatusDotCore.setFill(fxColor);
@@ -322,57 +315,72 @@ public class EfirView {
     }
 
     private HBox createMonitoringWidget() {
-        HBox card = new HBox(14);
-        card.setAlignment(Pos.CENTER_LEFT);
-        card.setPadding(new Insets(4, 8, 4, 8));
+        HBox card = new HBox(12);
+        card.setAlignment(Pos.TOP_LEFT);
+        card.setPadding(new Insets(10, 18, 10, 14));
         
-        VBox iconBox = new VBox(createSVGIcon(ICON_MONITOR, Color.web(COLOR_PRIMARY), 20));
+        VBox iconBox = new VBox(createSVGIcon(ICON_MONITOR, Color.web(COLOR_PRIMARY), 32));
         iconBox.setAlignment(Pos.CENTER);
         iconBox.setPrefSize(44, 44);
         iconBox.setMinSize(44, 44);
-        iconBox.setStyle(ICON_BADGE_STYLE + "-fx-background-radius: 12;");
+        iconBox.setMaxSize(44, 44);
+        iconBox.setStyle("-fx-background-color: " + COLOR_PRIMARY + "15; -fx-background-radius: 12;");
         
-        VBox textCol = new VBox(2);
+        VBox textCol = new VBox(1);
+        textCol.setAlignment(Pos.TOP_LEFT);
         Label eyebrow = new Label("МОНІТОРИНГ");
         eyebrow.setStyle(HEADER_STYLE + "-fx-font-size: 10px;");
         
+        HBox contentRow = new HBox(8);
+        contentRow.setAlignment(Pos.CENTER_LEFT);
+        
         connectionsLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         
-        textCol.getChildren().addAll(eyebrow, connectionsLabel);
+        Label bullet = new Label("•");
+        bullet.setStyle("-fx-font-size: 12px; -fx-text-fill: " + COLOR_SLATE_MUTED + ";");
+        
+        wsStatusLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: 800;");
+        
+        contentRow.getChildren().addAll(connectionsLabel, bullet, wsStatusLabel);
+        textCol.getChildren().addAll(eyebrow, contentRow);
+        
+        HBox.setMargin(textCol, new Insets(4, 0, 0, 0));
         card.getChildren().addAll(iconBox, textCol);
         
         return card;
     }
 
     private HBox createAddressWidget() {
-        HBox card = new HBox(14);
-        card.setAlignment(Pos.CENTER_LEFT);
-        card.setPadding(new Insets(4, 8, 4, 8));
+        HBox card = new HBox(12);
+        card.setAlignment(Pos.TOP_LEFT);
+        card.setPadding(new Insets(10, 18, 10, 14));
         
         String accentColor = COLOR_INDIGO;
-        VBox iconBox = new VBox(createSVGIcon(ICON_LINK, Color.web(accentColor), 20));
+        VBox iconBox = new VBox(createSVGIcon(ICON_LINK, Color.web(accentColor), 32));
         iconBox.setAlignment(Pos.CENTER);
         iconBox.setPrefSize(44, 44);
         iconBox.setMinSize(44, 44);
-        iconBox.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_PURPLE_SOFT + ", " + COLOR_SURFACE_GLASS_END + "); -fx-background-radius: 12;");
+        iconBox.setMaxSize(44, 44);
+        iconBox.setStyle("-fx-background-color: " + accentColor + "15; -fx-background-radius: 12;");
         
-        VBox textCol = new VBox(2);
+        VBox textCol = new VBox(1);
+        textCol.setAlignment(Pos.TOP_LEFT);
         Label eyebrow = new Label("АДРЕСА ТАБЛО");
         eyebrow.setStyle(HEADER_STYLE + "-fx-font-size: 10px;");
         
-        HBox valueRow = new HBox(10);
+        HBox valueRow = new HBox(8);
         valueRow.setAlignment(Pos.CENTER_LEFT);
         
         addrLabel = new Label("http://" + getLocalIp() + ":" + config.getBroadcastPort());
-        addrLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + "; -fx-font-family: 'Inter';");
+        addrLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + "; -fx-font-family: 'Inter';");
         
         Button copyBtn = new Button();
         copyBtn.setGraphic(createSVGIcon(ICON_CLONE, Color.web(COLOR_SLATE), 12));
-        String copyBaseStyle = "-fx-background-color: transparent; -fx-background-radius: 8; -fx-padding: 6; -fx-cursor: hand;";
+        String copyBaseStyle = "-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: " + BORDER_SLATE_85 + "; -fx-border-width: 1; -fx-border-radius: 8; -fx-padding: 4 8; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_03 + ", 5, 0, 0, 1);";
         copyBtn.setStyle(copyBaseStyle);
         copyBtn.setOnMouseEntered(e -> {
-            copyBtn.setStyle(copyBaseStyle + "-fx-background-color: " + COLOR_SURFACE_SOFT + ";");
-            copyBtn.setGraphic(createSVGIcon(ICON_CLONE, Color.web(COLOR_NAVY), 12));
+            copyBtn.setStyle(copyBaseStyle + "-fx-background-color: " + COLOR_SURFACE_SOFT + "; -fx-border-color: " + COLOR_PRIMARY + ";");
+            copyBtn.setGraphic(createSVGIcon(ICON_CLONE, Color.web(COLOR_PRIMARY), 12));
         });
         copyBtn.setOnMouseExited(e -> {
             copyBtn.setStyle(copyBaseStyle);
@@ -391,6 +399,8 @@ public class EfirView {
         
         valueRow.getChildren().addAll(addrLabel, copyBtn);
         textCol.getChildren().addAll(eyebrow, valueRow);
+        
+        HBox.setMargin(textCol, new Insets(4, 0, 0, 0));
         card.getChildren().addAll(iconBox, textCol);
         
         return card;
@@ -437,7 +447,7 @@ public class EfirView {
         card.setPadding(new Insets(28));
         card.setStyle(SOFT_CARD);
 
-        HBox header = new HBox(15);
+        HBox header = new HBox(20);
         header.setAlignment(Pos.CENTER_LEFT);
         
         VBox titleBox = new VBox(4);
@@ -450,15 +460,7 @@ public class EfirView {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button addBtn = createPrimaryActionButton("СТВОРИТИ", ICON_PLUS);
-        addBtn.setStyle(PREMIUM_BTN_STYLE + "-fx-padding: 10 20; -fx-font-size: 13px;");
-        addBtn.setOnAction(e -> openEditDialog(null));
-
-        header.getChildren().addAll(titleBox, spacer, addBtn);
-
-        HBox filterRow = new HBox(0);
-        filterRow.setAlignment(Pos.CENTER_LEFT);
-        
+        // Filter Toggle Group
         HBox toggleGroup = new HBox(0);
         toggleGroup.setAlignment(Pos.CENTER);
         toggleGroup.setStyle(PREMIUM_TOGGLE_CONTAINER);
@@ -485,12 +487,18 @@ public class EfirView {
             }
             refreshAnnouncements();
         });
-
         toggleGroup.getChildren().addAll(activeBtn, archiveBtn);
-        filterRow.getChildren().add(toggleGroup);
+
+        Button addBtn = createSmallPrimaryActionButton("СТВОРИТИ", ICON_PLUS);
+        addBtn.setOnAction(e -> openEditDialog(null));
+
+        HBox actionsRow = new HBox(20, toggleGroup, addBtn);
+        actionsRow.setAlignment(Pos.CENTER_RIGHT);
+
+        header.getChildren().addAll(titleBox, spacer, actionsRow);
 
         announcementsContainer.setPadding(new Insets(5, 0, 0, 0));
-        card.getChildren().addAll(header, filterRow, announcementsContainer);
+        card.getChildren().addAll(header, announcementsContainer);
 
         return card;
     }

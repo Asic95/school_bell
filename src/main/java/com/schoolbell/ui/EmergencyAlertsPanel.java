@@ -120,9 +120,7 @@ public class EmergencyAlertsPanel {
         row.setAlignment(Pos.CENTER_LEFT);
         row.setFillHeight(true); // Allow stretching to match tallest sibling
 
-        Node iconNode = createSVGIcon(iconPath, Color.web(accent), 24);
-        iconNode.setScaleX(2.0); // Very large icon, ~85% fill
-        iconNode.setScaleY(2.0);
+        Node iconNode = createSVGIcon(iconPath, Color.web(accent), 26);
 
         VBox iconBox = new VBox(iconNode);
         iconBox.setAlignment(Pos.CENTER);

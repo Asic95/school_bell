@@ -32,7 +32,6 @@ import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.ControlFactory.createSecondaryDialogButton;
 import static com.schoolbell.ui.UIStyles.HEADER_STYLE;
 import static com.schoolbell.ui.UIStyles.ICON_SAVE;
-import static com.schoolbell.ui.UIStyles.MODERN_DATE_PICKER_STYLE;
 import static com.schoolbell.ui.UIStyles.MODERN_SPINNER_STYLE;
 import static com.schoolbell.ui.UIStyles.PREMIUM_BTN_STYLE;
 import static com.schoolbell.ui.UIStyles.PREMIUM_SELECT_STYLE;
@@ -66,7 +65,10 @@ public class SubstitutionEditorDialog extends BasePremiumDialog {
         grid.setAlignment(Pos.CENTER_LEFT);
 
         javafx.scene.layout.ColumnConstraints labelCol = new javafx.scene.layout.ColumnConstraints();
-        labelCol.setPrefWidth(180);
+        labelCol.setMinWidth(170);
+        labelCol.setPrefWidth(170);
+        labelCol.setMaxWidth(170);
+        
         javafx.scene.layout.ColumnConstraints fieldCol = new javafx.scene.layout.ColumnConstraints();
         fieldCol.setHgrow(Priority.ALWAYS);
         grid.getColumnConstraints().addAll(labelCol, fieldCol);
