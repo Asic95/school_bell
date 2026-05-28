@@ -38,7 +38,6 @@ import static com.schoolbell.ui.UIStyles.COLOR_SURFACE_BRAND;
 import static com.schoolbell.ui.UIStyles.HEADER_STYLE;
 import static com.schoolbell.ui.UIStyles.ICON_SAVE;
 import static com.schoolbell.ui.UIStyles.MODERN_CHECKBOX_STYLE;
-import static com.schoolbell.ui.UIStyles.MODERN_DATE_PICKER_STYLE;
 import static com.schoolbell.ui.UIStyles.PREMIUM_BTN_STYLE;
 import static com.schoolbell.ui.UIStyles.PREMIUM_FIELD_STYLE;
 

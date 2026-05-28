@@ -46,9 +46,6 @@ public class ClassroomsEditorTab {
 
         FlowPane classroomsContainer = new FlowPane(20, 20);
         classroomsContainer.setPadding(new Insets(10));
-        ScrollPane scroll = new ScrollPane(classroomsContainer);
-        scroll.setFitToWidth(true);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         refreshClassrooms = () -> {
             classroomsContainer.getChildren().clear();
@@ -141,7 +138,7 @@ public class ClassroomsEditorTab {
             }
         });
 
-        VBox contentLayout = new VBox(25, header, new HBox(15, addField, addBtn), scroll);
+        VBox contentLayout = new VBox(25, header, new HBox(15, addField, addBtn), classroomsContainer);
         contentLayout.setPadding(new Insets(30));
         contentLayout.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
 

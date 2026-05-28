@@ -65,72 +65,78 @@ public class SubstitutionCard {
                 .findFirst().orElse(null);
 
         HBox mainContent = new HBox(35);
-        mainContent.setAlignment(Pos.CENTER_LEFT);
+        mainContent.setAlignment(Pos.TOP_LEFT);
         HBox.setHgrow(mainContent, Priority.ALWAYS);
+        mainContent.setPadding(new Insets(5, 0, 0, 0));
 
         // --- ORIGINAL BLOCK ---
         VBox fromBox = new VBox(10);
-        fromBox.setAlignment(Pos.CENTER_LEFT);
+        fromBox.setAlignment(Pos.TOP_LEFT);
         Label fromLabel = new Label("БУЛО (ЗА РОЗКЛАДОМ)");
-        fromLabel.setStyle(HEADER_STYLE + "-fx-font-size: 9px;");
+        fromLabel.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
         
         HBox fromInfo = new HBox(15);
-        fromInfo.setAlignment(Pos.CENTER_LEFT);
+        fromInfo.setAlignment(Pos.TOP_LEFT);
         if (original != null) {
             Teacher ot = mainApp.getStaffService().getAllTeachers().stream().filter(t -> t.id() == original.teacherId()).findFirst().orElse(null);
             Subject os = mainApp.getStaffService().getAllSubjects().stream().filter(s -> s.id() == original.subjectId()).findFirst().orElse(null);
             
             VBox otStack = new VBox(2);
+            otStack.setAlignment(Pos.TOP_LEFT);
             Label otName = new Label(ot != null ? ot.name() : "Невідомий");
             otName.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: " + COLOR_SLATE + ";");
             Label osName = new Label(os != null ? os.name().toUpperCase() : "?");
             osName.setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SLATE_LIGHT + ";");
             otStack.getChildren().addAll(otName, osName);
             
+            HBox.setMargin(otStack, new Insets(3, 0, 0, 0));
             fromInfo.getChildren().addAll(createAvatar(ot != null ? ot.name() : "?", 42), otStack);
         } else {
             Label noOrig = new Label("ВІЛЬНИЙ УРОК");
-            noOrig.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-opacity: 0.6;");
+            noOrig.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-opacity: 0.6; -fx-padding: 10 0;");
             fromInfo.getChildren().add(noOrig);
         }
         fromBox.getChildren().addAll(fromLabel, fromInfo);
 
         // --- DECORATIVE TRANSITION ---
         VBox transitionBox = new VBox();
-        transitionBox.setAlignment(Pos.CENTER);
-        Node arrow = createSVGIcon("M14,16.94V12.94H5.08L5.05,10.93H14V6.94L19,11.94L14,16.94Z", Color.web(COLOR_ORANGE), 28);
-        arrow.setStyle("-fx-effect: dropshadow(three-pass-box, " + COLOR_ORANGE + "40, 15, 0, 0, 0);");
+        transitionBox.setAlignment(Pos.TOP_CENTER);
+        transitionBox.setPadding(new Insets(34, 0, 0, 0)); // Align arrow with the names area
+        Node arrow = createSVGIcon("M14,16.94V12.94H5.08L5.05,10.93H14V6.94L19,11.94L14,16.94Z", Color.web(COLOR_INDIGO), 28);
+        arrow.setStyle("-fx-effect: dropshadow(three-pass-box, " + COLOR_INDIGO + "30, 15, 0, 0, 0);");
         transitionBox.getChildren().add(arrow);
 
         // --- REPLACEMENT BLOCK ---
         VBox toBox = new VBox(10);
-        toBox.setAlignment(Pos.CENTER_LEFT);
+        toBox.setAlignment(Pos.TOP_LEFT);
         Label toLabel = new Label("СТАЛО (ЗАМІНА)");
-        toLabel.setStyle(HEADER_STYLE + "-fx-font-size: 9px; -fx-text-fill: " + COLOR_ORANGE + ";");
+        toLabel.setStyle(HEADER_STYLE + "-fx-font-size: 11px; -fx-text-fill: " + COLOR_INDIGO + ";");
         
         HBox toInfo = new HBox(15);
-        toInfo.setAlignment(Pos.CENTER_LEFT);
+        toInfo.setAlignment(Pos.TOP_LEFT);
         Teacher nt = mainApp.getStaffService().getAllTeachers().stream().filter(t -> t.id() == sub.teacherId()).findFirst().orElse(null);
         Subject ns = mainApp.getStaffService().getAllSubjects().stream().filter(s -> s.id() == sub.subjectId()).findFirst().orElse(null);
         
         VBox ntStack = new VBox(2);
+        ntStack.setAlignment(Pos.TOP_LEFT);
         Label ntName = new Label(nt != null ? nt.name() : "Немає вчителя");
         ntName.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: " + COLOR_NAVY + ";");
         Label nsName = new Label(ns != null ? ns.name().toUpperCase() : "ЗАМІНА");
-        nsName.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_ORANGE + ";");
+        nsName.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_INDIGO + ";");
         ntStack.getChildren().addAll(ntName, nsName);
 
         // Add classroom badge
         if (sub.classroomId() > 0) {
             String roomName = mainApp.getClassroomName(sub.classroomId());
             Label roomBadge = new Label(roomName);
-            roomBadge.setGraphic(createSVGIcon(ICON_ROOM, Color.WHITE, 10));
-            roomBadge.setStyle("-fx-font-size: 10px; -fx-text-fill: white; -fx-background-color: " + COLOR_ORANGE + "; -fx-background-radius: 8; -fx-padding: 3 10; -fx-font-weight: 900;");
+            roomBadge.setGraphic(createSVGIcon(ICON_ROOM, Color.web(COLOR_SKY), 10));
+            roomBadge.setStyle("-fx-font-size: 10px; -fx-text-fill: " + COLOR_SKY + "; -fx-background-color: " + COLOR_BLUE_LIGHT + "; -fx-background-radius: 8; -fx-padding: 3 10; -fx-font-weight: 900; -fx-border-color: " + COLOR_SKY + "30; -fx-border-radius: 8;");
             HBox roomWrapper = new HBox(roomBadge);
             roomWrapper.setPadding(new Insets(4, 0, 0, 0));
             ntStack.getChildren().add(roomWrapper);
         }
         
+        HBox.setMargin(ntStack, new Insets(3, 0, 0, 0));
         toInfo.getChildren().addAll(createAvatar(nt != null ? nt.name() : "?", 42), ntStack);
         toBox.getChildren().addAll(toLabel, toInfo);
 

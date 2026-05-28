@@ -192,12 +192,22 @@ public class SystemView {
         districtBox.setPadding(new Insets(0, 15, 10, 15));
         
         Runnable refreshVisibility = () -> {
+            boolean active = airRaidTg.isSelected();
+            regionBox.setVisible(active);
+            regionBox.setManaged(active);
+            
             String sel = regionCombo.getValue();
-            boolean hasDistricts = sel != null && !mainApp.getAirAlertService().getDistricts(sel).isEmpty();
+            boolean hasDistricts = active && sel != null && !mainApp.getAirAlertService().getDistricts(sel).isEmpty();
             districtBox.setVisible(hasDistricts);
             districtBox.setManaged(hasDistricts);
         };
         
+        airRaidTg.selectedProperty().addListener((obs, old, nv) -> {
+            if (nv) {
+                new AirRaidInfoDialog((javafx.stage.Stage) mainCol.getScene().getWindow()).display();
+            }
+            refreshVisibility.run();
+        });
         regionCombo.valueProperty().addListener((obs, old, nv) -> refreshVisibility.run());
         refreshVisibility.run();
 

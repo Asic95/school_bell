@@ -6,7 +6,7 @@ import javafx.scene.shape.SVGPath;
 
 public class UIStyles {
     // Colors (Zinc-based palette)
-    public static final String COLOR_BG = "#f9f9fb";
+    public static final String COLOR_BG = "linear-gradient(to bottom right, #f8fbff 0%, #f5f7fb 45%, #edf4ff 100%)";
     public static final String COLOR_WHITE = "#ffffff";
     public static final String COLOR_ZINC_200 = "#e4e4e7";
     public static final String COLOR_ZINC_500 = "#71717a";
@@ -202,6 +202,9 @@ public class UIStyles {
             "-fx-cursor: hand;" +
             "-fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_28 + ", 24, 0, 0, 8);";
 
+    public static final String PREMIUM_BTN_SMALL_STYLE =
+            PREMIUM_BTN_STYLE + "-fx-padding: 10 20; -fx-font-size: 13px;";
+
     public static final String ICON_BADGE_STYLE =
             "-fx-min-width: 54; -fx-min-height: 54; -fx-max-width: 54; -fx-max-height: 54;" +
             "-fx-background-radius: 18;" +
@@ -297,12 +300,22 @@ public class UIStyles {
         ".date-picker > .arrow-button { -fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 0 18 18 0; -fx-padding: 11 16; -fx-cursor: hand; } " +
         ".date-picker > .arrow-button > .arrow { -fx-shape: \"M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z\"; -fx-background-color: white; -fx-padding: 8; } " +
         ".date-picker-popup { -fx-background-color: white; -fx-background-radius: 24; -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_15 + ", 30, 0, 0, 10); -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-width: 1; -fx-border-radius: 24; -fx-padding: 15; } " +
-        ".date-picker-popup > .month-year-pane { -fx-background-color: white; -fx-padding: 10; } " +
+        ".date-picker-popup > .month-year-pane { -fx-background-color: white; -fx-padding: 15 20; } " +
+        ".date-picker-popup > .month-year-pane > .label, " +
+        ".date-picker-popup > .month-year-pane > .spinner > .label { " +
+        "    -fx-font-family: 'Inter'; -fx-font-size: 20px; -fx-font-weight: 400; -fx-text-fill: " + COLOR_NAVY + "; -fx-padding: 0 12; " +
+        "} " +
+        ".date-picker-popup > .month-year-pane > .button { -fx-background-color: " + COLOR_SURFACE_SOFT + "; -fx-background-radius: 12; -fx-cursor: hand; -fx-padding: 10 18; -fx-focus-color: transparent; -fx-faint-focus-color: transparent; } " +
+        ".date-picker-popup > .month-year-pane > .button:hover { -fx-background-color: " + COLOR_PRIMARY + "20; } " +
+        ".date-picker-popup > .month-year-pane > .button > .left-arrow, " +
+        ".date-picker-popup > .month-year-pane > .button > .right-arrow { " +
+        "    -fx-background-color: " + COLOR_PRIMARY + "; -fx-padding: 10; " +
+        "} " +
         ".date-picker-popup > .calendar-grid { -fx-background-color: white; -fx-padding: 5; } " +
-        ".date-picker-popup > * > .day-name-cell, .date-picker-popup > * > .week-number-cell { -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-padding: 10; } " +
-        ".date-picker-popup > * > .day-cell { -fx-background-color: white; -fx-background-radius: 10; -fx-padding: 10; -fx-cursor: hand; -fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + "; } " +
+        ".date-picker-popup > * > .day-name-cell, .date-picker-popup > * > .week-number-cell { -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-padding: 12; } " +
+        ".date-picker-popup > * > .day-cell { -fx-background-color: white; -fx-background-radius: 12; -fx-padding: 12; -fx-cursor: hand; -fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + "; -fx-font-size: 14px; } " +
         ".date-picker-popup > * > .day-cell:hover { -fx-background-color: " + COLOR_SURFACE_SOFT + "; } " +
-        ".date-picker-popup > * > .today { -fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 900; -fx-border-color: " + COLOR_PRIMARY + "30; -fx-border-radius: 10; } " +
+        ".date-picker-popup > * > .today { -fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 900; -fx-border-color: " + COLOR_PRIMARY + "30; -fx-border-radius: 12; } " +
         ".date-picker-popup > * > .selected { -fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white; -fx-font-weight: 900; } ";
 
     public static final String SIDEBAR_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20 0 20 0;";

@@ -67,7 +67,16 @@ public class LayoutUtils {
         if (initials.isEmpty()) initials = "?";
 
         int hash = name != null ? name.hashCode() : 0;
-        String[] colors = {COLOR_SKY_PASTEL, COLOR_MINT, COLOR_PEACH, COLOR_PURPLE, COLOR_BUTTER, COLOR_AQUA};
+        String[] colors = {
+            COLOR_INDIGO,
+            COLOR_VIOLET,
+            COLOR_TEAL_DARK,
+            COLOR_SKY,
+            COLOR_CORAL,
+            COLOR_LAVENDER,
+            COLOR_BLUE_VIVID,
+            COLOR_PINK
+        };
         String bgColor = colors[Math.abs(hash) % colors.length];
 
         StackPane avatar = new StackPane();

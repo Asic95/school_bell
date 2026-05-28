@@ -1,8 +1,10 @@
 package com.schoolbell.ui;
 
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
@@ -13,6 +15,9 @@ import static com.schoolbell.ui.UIStyles.ICON_SAVE;
 import static com.schoolbell.ui.UIStyles.MODERN_CHECKBOX_STYLE;
 import static com.schoolbell.ui.UIStyles.MODERN_DATE_PICKER_STYLE;
 import static com.schoolbell.ui.UIStyles.MODERN_SPINNER_STYLE;
+
+import java.util.Base64;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Base class for all premium dialogs in the system.
@@ -57,14 +62,27 @@ public abstract class BasePremiumDialog extends Stage {
 
         root.getChildren().addAll(header, content, actions);
 
-        Scene scene = new Scene(root);
+        // Wrap root in a transparent StackPane with padding to prevent shadow clipping
+        // and eliminate grey corner artifacts caused by non-transparent window bounds.
+        StackPane wrapper = new StackPane(root);
+        wrapper.setStyle("-fx-background-color: transparent;");
+        wrapper.setPadding(new Insets(40)); // Space for the 30px shadow
+
+        Scene scene = new Scene(wrapper);
         scene.setFill(Color.TRANSPARENT);
+        
+        // Use Base64 encoding for data: URIs to safely handle CSS special characters like '#'
         scene.getStylesheets().addAll(
-                "data:text/css," + MODERN_DATE_PICKER_STYLE.replace(" ", "%20"),
-                "data:text/css," + MODERN_CHECKBOX_STYLE.replace(" ", "%20"),
-                "data:text/css," + MODERN_SPINNER_STYLE.replace(" ", "%20")
+                encodeCssToDataUri(MODERN_DATE_PICKER_STYLE),
+                encodeCssToDataUri(MODERN_CHECKBOX_STYLE),
+                encodeCssToDataUri(MODERN_SPINNER_STYLE)
         );
         setScene(scene);
+    }
+
+    private String encodeCssToDataUri(String css) {
+        String base64 = Base64.getEncoder().encodeToString(css.getBytes(StandardCharsets.UTF_8));
+        return "data:text/css;base64," + base64;
     }
 
     /**

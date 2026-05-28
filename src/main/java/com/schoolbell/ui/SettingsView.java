@@ -25,6 +25,9 @@ import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIStyles.*;
 
+import java.util.Base64;
+import java.nio.charset.StandardCharsets;
+
 public class SettingsView {
     private final MainApp mainApp;
     private final ConfigService config;
@@ -207,7 +210,8 @@ public class SettingsView {
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         
         String css = MODERN_CHECKBOX_STYLE + "\n" + MODERN_DATE_PICKER_STYLE;
-        scroll.getStylesheets().add("data:text/css," + css.replace(" ", "%20").replace("\n", "%20"));
+        String base64 = Base64.getEncoder().encodeToString(css.getBytes(StandardCharsets.UTF_8));
+        scroll.getStylesheets().add("data:text/css;base64," + base64);
         
         return scroll;
     }

@@ -17,9 +17,7 @@ import javafx.stage.Stage;
 import java.io.File;
 
 import static com.schoolbell.ui.CardFactory.createCardActionButton;
-import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
-import static com.schoolbell.ui.ControlFactory.createStyledField;
-import static com.schoolbell.ui.ControlFactory.createToggleSwitch;
+import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
@@ -48,8 +46,7 @@ public class MediaSchedulerPanel {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button addBtn = createPrimaryActionButton("ДОДАТИ ПОВІДОМЛЕННЯ", ICON_PLUS);
-        addBtn.setStyle(PREMIUM_BTN_STYLE + "-fx-padding: 10 20; -fx-font-size: 13px;");
+        Button addBtn = createSmallPrimaryActionButton("ДОДАТИ ПОВІДОМЛЕННЯ", ICON_PLUS);
         addBtn.setOnAction(e -> {
             new MediaEventEditorDialog(mainApp, null).showAndWait();
             refreshMediaEventsList((VBox) card.getChildren().get(1));

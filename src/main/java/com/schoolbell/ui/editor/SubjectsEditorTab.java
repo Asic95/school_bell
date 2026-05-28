@@ -46,9 +46,6 @@ public class SubjectsEditorTab {
 
         FlowPane subjectsContainer = new FlowPane(20, 20);
         subjectsContainer.setPadding(new Insets(10));
-        ScrollPane scroll = new ScrollPane(subjectsContainer);
-        scroll.setFitToWidth(true);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         refreshSubjects = () -> {
             subjectsContainer.getChildren().clear();
@@ -137,7 +134,7 @@ public class SubjectsEditorTab {
                 refreshSubjects.run();
             }
         });
-        content.getChildren().addAll(header, new HBox(15, addField, addBtn), scroll);
+        content.getChildren().addAll(header, new HBox(15, addField, addBtn), subjectsContainer);
         refreshSubjects.run();
 
         ScrollPane mainScroll = new ScrollPane(content);
