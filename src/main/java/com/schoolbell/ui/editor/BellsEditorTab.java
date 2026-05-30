@@ -2,6 +2,9 @@ package com.schoolbell.ui.editor;
 
 import com.schoolbell.MainApp;
 import com.schoolbell.model.DaySchedule;
+import com.schoolbell.ui.ConfirmationDialog;
+import com.schoolbell.ui.ConfirmationDialog;
+import com.schoolbell.ui.TextInputModalDialog;
 import com.schoolbell.ui.ToastService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -14,7 +17,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -31,7 +33,6 @@ import static com.schoolbell.ui.CardFactory.createSideHelpPanel;
 import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.ControlFactory.createTimeCombo;
-import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
@@ -59,14 +60,13 @@ public class BellsEditorTab {
             saveBtn
         );
 
-        HBox contentLayout = new HBox(28); // Standard section gap
-        VBox mainContent = new VBox(28); // Gap between cards
+        HBox contentLayout = new HBox(28); 
+        VBox mainContent = new VBox(28); 
         HBox.setHgrow(mainContent, Priority.ALWAYS);
 
-        // --- CARD 1: MANAGEMENT ---
         VBox managementCard = new VBox(14);
         managementCard.setPadding(new Insets(28));
-        managementCard.setStyle(SOFT_CARD); // Uses the centralized style from UIStyles
+        managementCard.setStyle(SOFT_CARD);
 
         HBox topBar = new HBox(14);
         topBar.setAlignment(Pos.CENTER_LEFT);
@@ -128,7 +128,15 @@ public class BellsEditorTab {
         deleteBtn.setOnMouseEntered(e -> deleteBtn.setStyle(deleteBaseStyle + "-fx-background-color: " + COLOR_DANGER_SOFT + "; -fx-border-color: " + COLOR_DANGER + "; -fx-effect: dropshadow(three-pass-box, " + TR_DANGER_05 + ", 10, 0, 0, 2);"));
         deleteBtn.setOnMouseExited(e -> deleteBtn.setStyle(deleteBaseStyle));
 
-        HBox actions = new HBox(10, addBtn, renameBtn, deleteBtn);
+        Button activateBtn = new Button("ВСТАНОВИТИ ЯК АКТИВНИЙ");
+        activateBtn.setGraphic(createSVGIcon(ICON_CHECK, Color.web(COLOR_SUCCESS), 16));
+        activateBtn.setGraphicTextGap(10);
+        String activateBaseStyle = "-fx-background-color: white; -fx-text-fill: " + COLOR_SUCCESS + "; -fx-font-weight: 800; -fx-font-size: 13px; -fx-padding: 12 20; -fx-background-radius: 18; -fx-border-color: " + COLOR_SUCCESS + "40; -fx-border-radius: 18; -fx-cursor: hand;";
+        activateBtn.setStyle(activateBaseStyle);
+        activateBtn.setOnMouseEntered(e -> activateBtn.setStyle(activateBaseStyle + "-fx-background-color: " + COLOR_SURFACE_SOFT + "; -fx-border-color: " + COLOR_SUCCESS + "; -fx-effect: dropshadow(three-pass-box, rgba(16, 185, 129, 0.1), 10, 0, 0, 2);"));
+        activateBtn.setOnMouseExited(e -> activateBtn.setStyle(activateBaseStyle));
+
+        HBox actions = new HBox(10, activateBtn, addBtn, renameBtn, deleteBtn);
         actions.setAlignment(Pos.BOTTOM_RIGHT);
 
         Region topSpacer = new Region();
@@ -136,7 +144,6 @@ public class BellsEditorTab {
         topBar.getChildren().addAll(selectorBox, topSpacer, actions);
         managementCard.getChildren().add(topBar);
 
-        // --- CARD 2: EDITOR ---
         VBox editorCard = new VBox(22);
         editorCard.setPadding(new Insets(28));
         editorCard.setStyle(SOFT_CARD);
@@ -169,17 +176,30 @@ public class BellsEditorTab {
         mainContent.getChildren().addAll(managementCard, editorCard);
 
         VBox rightColumn = createSideHelpPanel(
+                createHelpCard(ICON_CHECK, "Активація", "Оберіть розклад у списку та натисніть кнопку \"ВСТАНОВИТИ ЯК АКТИВНИЙ\", щоб він почав діяти.", COLOR_SUCCESS),
                 createHelpCard(ICON_CALENDAR, "Гнучкість", "Можна вести декілька варіантів розкладу і швидко між ними перемикатись.", COLOR_INDIGO_DARK),
-                createHelpCard(ICON_CLOCK, "Перерви", "Перерва задається після уроку і впливає на старт наступного.", COLOR_TEAL),
-                createHelpCard(ICON_SAVE, "Збереження", "Кнопка \"ЗБЕРЕГТИ ЗМІНИ\" знаходиться у верхньому правому куті.", COLOR_TANGERINE)
+                createHelpCard(ICON_CLOCK, "Перерви", "Перерва задається після уроку і впливає на старт наступного.", COLOR_TEAL)
         );
 
         contentLayout.getChildren().addAll(mainContent, rightColumn);
         root.getChildren().addAll(header, contentLayout);
 
+        activateBtn.setOnAction(e -> {
+            String selected = selector.getValue();
+            if (selected != null) {
+                mainApp.getConfigService().setSelectedScheduleName(selected);
+                mainApp.saveConfig();
+                mainApp.getDashboardView().refreshActiveScheduleLabel();
+                ToastService.showSuccess("Розклад '" + selected + "' тепер активний!");
+                
+                activateBtn.setDisable(true);
+                activateBtn.setText("ПОТОЧНИЙ АКТИВНИЙ");
+            }
+        });
+
         addBtn.setOnAction(e -> {
             new com.schoolbell.ui.TextInputModalDialog(
-                    mainApp,
+                    mainApp.getStage(),
                     "Додати розклад",
                     "Введіть назву для нового розкладу дзвінків",
                     "Новий розклад",
@@ -195,14 +215,14 @@ public class BellsEditorTab {
                         selector.setValue(name);
                         ToastService.showSuccess("Розклад '" + name + "' додано успішно");
                     }
-            ).show();
+            ).display();
         });
 
         renameBtn.setOnAction(e -> {
             String current = selector.getValue();
             if (current == null) return;
             new com.schoolbell.ui.TextInputModalDialog(
-                    mainApp,
+                    mainApp.getStage(),
                     "Перейменувати розклад",
                     "Введіть нову назву для поточного розкладу",
                     current,
@@ -221,24 +241,34 @@ public class BellsEditorTab {
                         selector.setValue(newName);
                         ToastService.showSuccess("Розклад перейменовано на '" + newName + "'");
                     }
-            ).show();
+            ).display();
         });
 
         deleteBtn.setOnAction(e -> {
             String current = selector.getValue();
             if (current == null) return;
             if (mainApp.getInternalSchedules().size() <= 1) {
-                new Alert(Alert.AlertType.WARNING, "Неможливо видалити останній розклад!").show();
+                ToastService.showError("Неможливо видалити останній розклад!");
                 return;
             }
-            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Ви впевнені, що хочете видалити '" + current + "'?", ButtonType.YES, ButtonType.NO);
-            confirm.showAndWait().ifPresent(type -> {
-                if (type == ButtonType.YES) {
+
+            ConfirmationDialog dialog = new ConfirmationDialog(
+                    mainApp.getStage(),
+                    "Видалення розкладу",
+                    "Ви впевнені, що хочете видалити розклад '" + current + "'?",
+                    "Ця дія призведе до остаточного видалення всіх уроків та часових інтервалів у цьому розкладі.",
+                    "ВИДАЛИТИ РОЗКЛАД"
+            );
+            
+            dialog.setOnHidden(windowEvent -> {
+                if (dialog.isConfirmed()) {
                     mainApp.getInternalSchedules().removeIf(s -> s.getName().equals(current));
                     mainApp.getScheduleService().saveInternalSchedules(mainApp.getInternalSchedules());
                     refreshBells.run();
+                    ToastService.showSuccess("Розклад '" + current + "' видалено");
                 }
             });
+            dialog.display();
         });
 
         Runnable saveAction = () -> {
@@ -262,6 +292,11 @@ public class BellsEditorTab {
 
         selector.valueProperty().addListener((obs, oldV, newV) -> {
             if (newV == null) return;
+            
+            boolean isActive = newV.equals(mainApp.getConfigService().getSelectedScheduleName());
+            activateBtn.setDisable(isActive);
+            activateBtn.setText(isActive ? "ПОТОЧНИЙ АКТИВНИЙ" : "ВСТАНОВИТИ ЯК АКТИВНИЙ");
+
             rows.getChildren().clear();
             lessonRows.clear();
             DaySchedule ds = mainApp.getInternalSchedules().stream()
@@ -280,7 +315,12 @@ public class BellsEditorTab {
         refreshBells = () -> {
             selector.getItems().setAll(mainApp.getInternalSchedules().stream().map(DaySchedule::getName).toList());
             if (!selector.getItems().isEmpty()) {
-                selector.setValue(selector.getItems().get(0));
+                String currentActive = mainApp.getConfigService().getSelectedScheduleName();
+                if (currentActive != null && selector.getItems().contains(currentActive)) {
+                    selector.setValue(currentActive);
+                } else {
+                    selector.setValue(selector.getItems().get(0));
+                }
             }
         };
         refreshBells.run();
@@ -334,10 +374,6 @@ public class BellsEditorTab {
         return new LessonRow(row, sh, sm, eh, em, breakF);
     }
 
-    private void styleTimeCombo(ComboBox<String> combo, String style) {
-        // Not used anymore as createTimeCombo uses premium style
-    }
-
     private HBox lessonBox(int index, String tone) {
         StackPane badge = new StackPane();
         badge.setMinSize(44, 44);
@@ -386,31 +422,6 @@ public class BellsEditorTab {
         HBox box = new HBox(6, h, sep, m);
         box.setAlignment(Pos.CENTER_LEFT);
         return box;
-    }
-
-    private Button createToolbarButton(String text, String iconPath, String textColor, String bgColor, String borderColor) {
-        Button b = new Button(text);
-        b.setGraphic(createSVGIcon(iconPath, Color.web(textColor), 16));
-        b.setGraphicTextGap(10);
-        b.setMinHeight(46);
-        b.setPrefHeight(46);
-        String baseStyle = String.format(
-                "-fx-background-color: %s;" +
-                        "-fx-text-fill: %s;" +
-                        "-fx-font-weight: 800;" +
-                        "-fx-font-size: 13px;" +
-                        "-fx-padding: 10 20;" +
-                        "-fx-background-radius: 12;" +
-                        "-fx-border-color: %s;" +
-                        "-fx-border-width: 1.2;" +
-                        "-fx-border-radius: 12;" +
-                        "-fx-cursor: hand;",
-                bgColor, textColor, borderColor
-        );
-        b.setStyle(baseStyle);
-        b.setOnMouseEntered(e -> b.setStyle(baseStyle + "-fx-background-color: derive(" + bgColor + ", -4%); -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_08 + ", 8, 0.2, 0, 2);"));
-        b.setOnMouseExited(e -> b.setStyle(baseStyle));
-        return b;
     }
 
     private record LessonRow(

@@ -83,7 +83,7 @@ public class AnnouncementService {
                 "AND (end_time IS NULL OR end_time >= ?) " +
                 "AND (days_of_week IS NULL OR days_of_week = '' OR days_of_week LIKE ?)";
         
-        java.util.StringJoiner joiner = new java.util.StringJoiner("   •   ");
+        java.util.StringJoiner joiner = new java.util.StringJoiner("|||");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, date.toString());

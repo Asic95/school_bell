@@ -87,6 +87,7 @@ public class WeeklyScheduleEditorTab {
         grid.setHgap(20);
         grid.setVgap(20);
         grid.setAlignment(Pos.TOP_LEFT);
+        grid.setMaxWidth(Double.MAX_VALUE);
 
         scheduleCard.getChildren().add(grid);
 
@@ -103,11 +104,18 @@ public class WeeklyScheduleEditorTab {
 
         refreshGrid[0] = () -> {
             SchoolClass selectedClass = classPicker.getValue();
-            grid.getChildren().clear();
+            scheduleCard.getChildren().clear();
+            
             if (selectedClass == null) {
-                grid.add(createEmptyState(ICON_CLASS, "Оберіть клас", "Оберіть конкретний клас зі списку вище, щоб розпочати редагування його розкладу."), 0, 1, 7, 1);
+                VBox empty = createEmptyState(ICON_CLASS, "Оберіть клас", "Оберіть конкретний клас зі списку вище, щоб розпочати редагування його розкладу.");
+                scheduleCard.setAlignment(Pos.CENTER);
+                scheduleCard.getChildren().add(empty);
                 return;
             }
+
+            scheduleCard.setAlignment(Pos.TOP_LEFT);
+            scheduleCard.getChildren().add(grid);
+            grid.getChildren().clear();
 
             List<ScheduleEntry> entries = mainApp.getAcademicService().getScheduleForClass(selectedClass.id());
             

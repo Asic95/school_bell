@@ -184,7 +184,7 @@ public class BroadcastView {
             masterSwitch,
             createModernField("НАЗВА ЗАКЛАДУ (ДЛЯ ТАБЛО):", schoolNameField),
             createModernField("МІСТО:", cityField),
-            createModernField("ПОРТ ТРАНСЛЯЦІЇ (РЕКОМЕНДОВАНО: 8080):", portField),
+            createModernField("ПОРТ ТРАНСЛЯЦІЇ (РЕКОМЕНДОВАНО: 9090):", portField),
             addrBox
         );
         settingsCard.getChildren().add(form);

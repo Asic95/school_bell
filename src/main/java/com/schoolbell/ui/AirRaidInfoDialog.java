@@ -45,7 +45,7 @@ public class AirRaidInfoDialog extends BasePremiumDialog {
         warnTitle.setStyle("-fx-font-weight: 900; -fx-font-size: 12px; -fx-text-fill: " + COLOR_WARNING_AMBER + ";");
         
         Label warnText = new Label("Робота функції залежить від інтернет-з'єднання та сторонніх серверів. " +
-                "У разі непередбачуваної помилки зв'язку пролунає спеціальний сигнал 'ПОМИЛКА АВТОМАТИЗАЦІЇ' (налаштовується у параметрах 'Повітряної тривоги' у розділіт меню 'Сповіщення').");
+                "У разі непередбачуваної помилки зв'язку пролунає спеціальний сигнал 'ПОМИЛКА АВТОМАТИЗАЦІЇ' (налаштовується у параметрах 'Повітряної тривоги' у розділі меню 'Сповіщення').");
         warnText.setStyle("-fx-font-size: 14px; -fx-text-fill: " + COLOR_NAVY + "; -fx-line-spacing: 3;");
         warnText.setWrapText(true);
 

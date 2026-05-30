@@ -100,6 +100,26 @@ public class DashboardDataModel {
         data.put("currentStageIndex", currentStageIndex);
         if (currentStageIndex != -1) {
             data.put("schoolStatus", stages.get(currentStageIndex));
+        } else if (!activeDs.getLessons().isEmpty()) {
+            LocalTime firstStart = activeDs.getLessons().get(0).start;
+            LocalTime lastEnd = activeDs.getLessons().get(activeDs.getLessons().size() - 1).end;
+            
+            Map<String, Object> extraStage = new HashMap<>();
+            if (firstStart != null && now.isBefore(firstStart)) {
+                extraStage.put("type", "BEFORE");
+                extraStage.put("title", "Очікування навчання");
+                extraStage.put("start", "--:--");
+                extraStage.put("end", firstStart.toString());
+                extraStage.put("progress", 0.0);
+                data.put("schoolStatus", extraStage);
+            } else if (lastEnd != null && now.isAfter(lastEnd)) {
+                extraStage.put("type", "AFTER");
+                extraStage.put("title", "Навчання завершено");
+                extraStage.put("start", lastEnd.toString());
+                extraStage.put("end", "--:--");
+                extraStage.put("progress", 100.0);
+                data.put("schoolStatus", extraStage);
+            }
         }
 
         List<Map<String, Object>> classStatuses = new ArrayList<>();

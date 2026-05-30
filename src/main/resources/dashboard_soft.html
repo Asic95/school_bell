@@ -156,7 +156,7 @@
         main {
             flex: 1;
             display: grid;
-            grid-template-columns: 1fr 450px;
+            grid-template-columns: 1fr 280px;
             gap: 30px;
             padding: 30px 50px;
             overflow: hidden;
@@ -169,7 +169,7 @@
             background: var(--card-bg);
             border-radius: var(--radius-lg);
             border: 1px solid var(--card-border);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(15px);
             overflow: hidden;
             box-shadow: var(--card-shadow);
         }
@@ -177,11 +177,12 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         th {
             text-align: left;
-            padding: 25px 30px;
+            padding: 15px 30px;
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
@@ -202,19 +203,27 @@
             stroke: var(--text-slate-light);
             stroke-width: 2.5;
             fill: none;
+            flex-shrink: 0;
         }
 
         td {
-            padding: 24px 30px;
-            font-size: 24px;
+            padding: 0 25px;
+            font-size: 20px;
             font-weight: 700;
             border-bottom: 1px solid rgba(226, 232, 240, 0.4);
             color: var(--text-navy);
+            height: 75px;
+            overflow: hidden;
+            vertical-align: middle;
         }
 
         td b {
             font-weight: 900;
             color: var(--indigo);
+        }
+
+        tr {
+            height: 75px;
         }
 
         tr.row-fade-in {
@@ -266,15 +275,16 @@
         }
 
         .status-badge {
-            padding: 8px 16px;
+            padding: 8px 12px;
             border-radius: var(--radius-sm);
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            white-space: nowrap;
         }
 
         .status-badge.current { 
@@ -297,9 +307,9 @@
         .status-card {
             background: var(--card-bg);
             border-radius: var(--radius-lg);
-            padding: 40px;
+            padding: 30px;
             border: 1px solid var(--card-border);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(15px);
             box-shadow: var(--card-shadow);
         }
 
@@ -345,7 +355,7 @@
         }
 
         .countdown-value {
-            font-size: 84px;
+            font-size: 68px;
             font-weight: 900;
             color: white;
             text-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
@@ -363,7 +373,7 @@
         }
 
         .global-status-value {
-            font-size: 38px;
+            font-size: 30px;
             font-weight: 900;
             color: var(--text-navy);
             margin-bottom: 8px;
@@ -396,7 +406,7 @@
 
         /* BOTTOM: ANNOUNCEMENTS */
         footer {
-            height: 100px;
+            height: 80px;
             margin: 0 50px 30px 50px;
             background: var(--card-bg);
             border-radius: var(--radius-lg);
@@ -410,13 +420,13 @@
 
         .announcement-tag {
             background: linear-gradient(to right, var(--indigo), var(--primary));
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: var(--radius-md);
             color: white;
             font-weight: 900;
             font-size: 14px;
             text-transform: uppercase;
-            margin-right: 40px;
+            margin-right: 35px;
             white-space: nowrap;
             box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
             z-index: 10;
@@ -424,21 +434,23 @@
 
         .announcement-content {
             flex: 1;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
             color: var(--text-navy);
-            white-space: nowrap;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            height: 100%;
         }
 
-        .announcement-scroller {
-            display: inline-block;
-            animation: scrollText 25s linear infinite;
+        #announcement-text {
+            transition: opacity 0.5s ease-in-out;
+            opacity: 1;
+            white-space: normal;
         }
 
-        @keyframes scrollText {
-            from { transform: translateX(100vw); }
-            to { transform: translateX(-100%); }
+        #announcement-text.fade-out {
+            opacity: 0;
         }
 
         /* EMERGENCY OVERLAY */
@@ -539,15 +551,43 @@
     <script>
         let socket;
         let currentPage = 0;
-        const rowsPerPage = 10;
+        const rowsPerPage = 8;
         let allRows = [];
         let paginationTimeout = null;
+
+        let announcements = [];
+        let announcementIndex = 0;
+        let announcementTimer = null;
 
         function updateClock() {
             const now = new Date();
             document.getElementById('clock').textContent = now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', hour12: false });
             document.getElementById('header-date').textContent = now.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
         }
+
+        // --- Screen Wake Lock implementation ---
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake Lock active');
+                    wakeLock.addEventListener('release', () => {
+                        console.log('Wake Lock released');
+                    });
+                }
+            } catch (err) {
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
+        
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+        requestWakeLock();
+        // ----------------------------------------
 
         setInterval(updateClock, 1000);
         updateClock();
@@ -562,6 +602,7 @@
                 const status = document.getElementById('conn-status');
                 status.style.background = '#16a34a';
                 status.style.color = '#16a34a';
+                status.parentElement.querySelector('span').textContent = 'Система активна';
             };
 
             socket.onmessage = (event) => {
@@ -573,13 +614,24 @@
                 const status = document.getElementById('conn-status');
                 status.style.background = '#ef4444';
                 status.style.color = '#ef4444';
+                status.parentElement.querySelector('span').textContent = 'Система неактивна';
                 setTimeout(connectWS, 5000);
             };
         }
 
         function handleUpdate(data) {
             if (data.schoolName) document.getElementById('school-name').textContent = data.schoolName;
-            if (data.announcement) document.getElementById('announcement-text').textContent = data.announcement;
+            
+            if (data.announcement !== undefined) {
+                const raw = data.announcement || "Вітаємо у системі School Bell!";
+                const newAnnouncements = raw.split('|||').filter(s => s.trim().length > 0);
+                
+                if (JSON.stringify(newAnnouncements) !== JSON.stringify(announcements)) {
+                    announcements = newAnnouncements;
+                    announcementIndex = 0;
+                    startAnnouncementRotation();
+                }
+            }
             
             const overlay = document.getElementById('emergency-overlay');
             const alert = data.alertType;
@@ -600,7 +652,7 @@
                 document.getElementById('global-progress-bar').style.width = (s.progress || 0) + '%';
                 
                 const label = document.getElementById('countdown-label');
-                label.textContent = s.type === 'BREAK' ? 'До уроку' : 'До дзвінка';
+                label.textContent = (s.type === 'BREAK' || s.type === 'BEFORE') ? 'До уроку' : 'До дзвінка';
             }
 
             if (data.rows) {
@@ -621,12 +673,45 @@
             }
         }
 
+        function startAnnouncementRotation() {
+            if (announcementTimer) clearInterval(announcementTimer);
+            showNextAnnouncement();
+            if (announcements.length > 1) {
+                announcementTimer = setInterval(showNextAnnouncement, 10000);
+            }
+        }
+
+        function showNextAnnouncement() {
+            const el = document.getElementById('announcement-text');
+            if (announcements.length === 0) {
+                el.textContent = "";
+                return;
+            }
+            
+            el.classList.add('fade-out');
+            setTimeout(() => {
+                el.textContent = announcements[announcementIndex];
+                el.classList.remove('fade-out');
+                announcementIndex = (announcementIndex + 1) % announcements.length;
+            }, 500);
+        }
+
         function renderTable() {
             if (paginationTimeout) clearTimeout(paginationTimeout);
+            
+            const container = document.querySelector('.table-section');
+            const thead = document.querySelector('thead');
+            const availableHeight = container.clientHeight - thead.offsetHeight;
+            const dynamicRowsPerPage = Math.max(1, Math.floor(availableHeight / 75)); // 75px is tr height
+
             const body = document.getElementById('schedule-body');
             body.innerHTML = '';
-            const start = currentPage * rowsPerPage;
-            const pageRows = allRows.slice(start, start + rowsPerPage);
+            
+            const totalPages = Math.ceil(allRows.length / dynamicRowsPerPage);
+            if (currentPage >= totalPages && totalPages > 0) currentPage = 0;
+
+            const start = currentPage * dynamicRowsPerPage;
+            const pageRows = allRows.slice(start, start + dynamicRowsPerPage);
 
             const statusIcons = {
                 current: '<svg style="width:18px;height:18px" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor"/></svg>',
@@ -665,9 +750,9 @@
                 body.appendChild(tr);
             });
 
-            if (allRows.length > rowsPerPage) {
+            if (allRows.length > dynamicRowsPerPage) {
                 paginationTimeout = setTimeout(() => {
-                    currentPage = (currentPage + 1) % Math.ceil(allRows.length / rowsPerPage);
+                    currentPage = (currentPage + 1) % totalPages;
                     renderTable();
                 }, 10000);
             }

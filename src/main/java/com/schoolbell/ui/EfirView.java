@@ -76,7 +76,7 @@ public class EfirView {
         this.portField = ControlFactory.createStyledField(String.valueOf(config.getBroadcastPort()));
         
         this.themeCombo = new ComboBox<>();
-        this.themeCombo.getItems().addAll("classic", "modern", "cyber", "soft");
+        this.themeCombo.getItems().addAll("classic", "modern", "modern_full", "neo", "cyber", "soft");
         this.themeCombo.setValue(config.getDashboardTheme());
         this.themeCombo.setStyle(PREMIUM_SELECT_STYLE);
         this.themeCombo.setPrefWidth(200);
@@ -562,12 +562,11 @@ public class EfirView {
         updateContainer(deviceListContainer, savedDevices, device -> new DeviceRow(device, activeIps.contains(device.ip()), 
             () -> {
                 // Edit logic
-                TextInputModalDialog dialog = new TextInputModalDialog(mainApp, "Редагування пристрою", "Введіть нову назву для " + device.ip(), device.name(), "Назва пристрою", newName -> {
+                new TextInputModalDialog(mainApp.getStage(), "Редагування пристрою", "Введіть нову назву для " + device.ip(), device.name(), "Назва пристрою", newName -> {
                     BroadcastDevice updated = new BroadcastDevice(device.ip(), newName, device.isBanned(), device.deviceType(), device.os(), device.lastSeen());
                     DatabaseManager.saveBroadcastDevice(updated);
                     refreshDevices();
-                });
-                dialog.show();
+                }).display();
             },
             () -> {
                 // Ban/Unban logic
@@ -607,7 +606,7 @@ public class EfirView {
         connectionsLabel.setText(formatDevicesCount(count));
 
         boolean isWsOk = mainApp.getBroadcastService() != null && mainApp.getBroadcastService().isBroadcasting();
-        wsStatusLabel.setText(isWsOk ? "Підключено" : "Помилка");
+        wsStatusLabel.setText(isWsOk ? "Підключено" : "");
         wsStatusLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: 800; -fx-text-fill: " + (isWsOk ? COLOR_SUCCESS : COLOR_DANGER) + ";");
     }
 

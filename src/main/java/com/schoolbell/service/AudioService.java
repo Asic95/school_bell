@@ -10,8 +10,12 @@ import java.io.File;
 
 public class AudioService {
     private static final Logger logger = LoggerFactory.getLogger(AudioService.class);
+    private static final int FADE_DURATION_MS = 3000;
+    
     private MediaPlayer currentPlayer;
     private final ConfigService configService;
+    private String currentPlayingTrack = null;
+    private javafx.animation.Timeline fadeTimeline;
 
     public AudioService(ConfigService configService) {
         this.configService = configService;
@@ -39,58 +43,130 @@ public class AudioService {
                 }
 
                 if (path.toLowerCase().endsWith(".wav") && selectedMixerInfo != null) {
-                    try (AudioInputStream ais = AudioSystem.getAudioInputStream(file)) {
-                        Mixer mixer = AudioSystem.getMixer(selectedMixerInfo);
-                        DataLine.Info info = new DataLine.Info(SourceDataLine.class, ais.getFormat());
-                        try (SourceDataLine line = (SourceDataLine) mixer.getLine(info)) {
-                            line.open(ais.getFormat());
-                            
-                            // Apply Volume (GAIN control)
-                            if (line.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-                                FloatControl volumeControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
-                                float min = volumeControl.getMinimum();
-                                float max = volumeControl.getMaximum();
-                                float value = min + (max - min) * (configService.getSystemVolume() / 100.0f);
-                                volumeControl.setValue(value);
-                            }
-                            
-                            line.start();
-                            byte[] buffer = new byte[4096];
-                            int read;
-                            while ((read = ais.read(buffer)) != -1) {
-                                line.write(buffer, 0, read);
-                            }
-                            line.drain();
-                            logger.info("Played (WAV): {}", file.getName());
-                            return;
-                        }
-                    } catch (Exception ex) {
-                        logger.warn("Fallback to JavaFX MediaPlayer for {}: {}", file.getName(), ex.getMessage());
-                    }
+                    playWavDirect(file, selectedMixerInfo);
+                    return;
                 }
 
                 Platform.runLater(() -> {
                     try {
                         javafx.scene.media.Media media = new javafx.scene.media.Media(file.toURI().toString());
-                        if (currentPlayer != null) currentPlayer.stop();
+                        stopCurrentPlayerImmediate(); // Stop any existing
+                        
+                        currentPlayingTrack = file.getName();
                         currentPlayer = new MediaPlayer(media);
-                        currentPlayer.setVolume(configService.getSystemVolume() / 100.0);
+                        currentPlayer.setVolume(0.0); // Start silent
+                        
+                        currentPlayer.setOnEndOfMedia(() -> {
+                            currentPlayingTrack = null;
+                            currentPlayer = null;
+                        });
+                        
                         currentPlayer.play();
-                        logger.info("Playing (System): {}", file.getName());
+                        fadeMediaPlayer(configService.getSystemVolume() / 100.0, FADE_DURATION_MS);
+                        logger.info("Playing (System with Fade-in): {}", file.getName());
                     } catch (Exception e) {
                         logger.error("Media player failed for {}: {}", file.getName(), e.getMessage());
+                        currentPlayingTrack = null;
                     }
                 });
             } catch (Exception e) {
                 logger.error("Audio playback error for {}: {}", path, e.getMessage());
+                currentPlayingTrack = null;
             }
         }).start();
     }
-    
+
+    private void playWavDirect(File file, Mixer.Info mixerInfo) {
+        try (AudioInputStream ais = AudioSystem.getAudioInputStream(file)) {
+            Mixer mixer = AudioSystem.getMixer(mixerInfo);
+            DataLine.Info info = new DataLine.Info(SourceDataLine.class, ais.getFormat());
+            try (SourceDataLine line = (SourceDataLine) mixer.getLine(info)) {
+                line.open(ais.getFormat());
+                currentPlayingTrack = file.getName();
+                
+                FloatControl gainControl = null;
+                if (line.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                    gainControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
+                }
+                
+                line.start();
+                byte[] buffer = new byte[4096];
+                int read;
+                long totalPlayed = 0;
+                float targetVol = configService.getSystemVolume() / 100.0f;
+                float fadeDurationSec = FADE_DURATION_MS / 1000.0f;
+                
+                while ((read = ais.read(buffer)) != -1) {
+                    if (currentPlayingTrack == null) break; // Interrupted
+                    
+                    // Fade-in logic for direct line
+                    if (gainControl != null) {
+                        float fadePoint = Math.min(1.0f, totalPlayed / (ais.getFormat().getFrameRate() * fadeDurationSec)); 
+                        applyGain(gainControl, targetVol * fadePoint);
+                    }
+                    
+                    line.write(buffer, 0, read);
+                    totalPlayed += (read / ais.getFormat().getFrameSize());
+                }
+                line.drain();
+                currentPlayingTrack = null;
+                logger.info("Played (WAV): {}", file.getName());
+            }
+        } catch (Exception ex) {
+            logger.error("WAV playback error: {}", ex.getMessage());
+        }
+    }
+
+    private void applyGain(FloatControl gainControl, float volume) {
+        float min = gainControl.getMinimum();
+        float max = gainControl.getMaximum();
+        // Logarithmic volume to linear gain conversion
+        float dB = (float) (Math.log10(Math.max(0.0001, volume)) * 20.0);
+        gainControl.setValue(Math.max(min, Math.min(max, dB)));
+    }
+
+    private void fadeMediaPlayer(double targetVolume, int durationMs) {
+        if (currentPlayer == null) return;
+        if (fadeTimeline != null) fadeTimeline.stop();
+
+        fadeTimeline = new javafx.animation.Timeline(
+            new javafx.animation.KeyFrame(javafx.util.Duration.ZERO, new javafx.animation.KeyValue(currentPlayer.volumeProperty(), currentPlayer.getVolume())),
+            new javafx.animation.KeyFrame(javafx.util.Duration.millis(durationMs), new javafx.animation.KeyValue(currentPlayer.volumeProperty(), targetVolume))
+        );
+        fadeTimeline.play();
+    }
+
     public void stopAll() {
+        if (currentPlayingTrack == null) return;
+
+        if (currentPlayer != null) {
+            Platform.runLater(() -> {
+                if (currentPlayer == null) return;
+                if (fadeTimeline != null) fadeTimeline.stop();
+                
+                fadeTimeline = new javafx.animation.Timeline(
+                    new javafx.animation.KeyFrame(javafx.util.Duration.millis(FADE_DURATION_MS), e -> {
+                        stopCurrentPlayerImmediate();
+                    }, new javafx.animation.KeyValue(currentPlayer.volumeProperty(), 0.0))
+                );
+                fadeTimeline.play();
+            });
+        } else {
+            currentPlayingTrack = null; // Interrupts WAV thread
+        }
+    }
+
+    private void stopCurrentPlayerImmediate() {
+        if (fadeTimeline != null) fadeTimeline.stop();
         if (currentPlayer != null) {
             currentPlayer.stop();
+            currentPlayer = null;
         }
+        currentPlayingTrack = null;
+    }
+
+    public String getCurrentPlayingTrack() {
+        return currentPlayingTrack;
     }
 
     public void setVolume(double volume) {

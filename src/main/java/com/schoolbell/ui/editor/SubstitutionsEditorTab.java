@@ -143,8 +143,10 @@ public class SubstitutionsEditorTab {
             if (filtered.isEmpty()) {
                 String title = showArchived ? "Архів замін порожній" : "Немає активних замін";
                 String sub = showArchived ? "Тут з'являтимуться заміни, термін дії яких минув." : "Натисніть 'НОВА ЗАМІНА', щоб внести оперативні зміни в розклад.";
+                contentList.setAlignment(Pos.CENTER);
                 contentList.getChildren().add(createEmptyState(ICON_INFO, title, sub));
             } else {
+                contentList.setAlignment(Pos.TOP_LEFT);
                 LocalDate lastDate = null;
                 DateTimeFormatter headerFormatter = DateTimeFormatter.ofPattern("EEEE, d MMMM", ukLocale);
                 for (SubstitutionEntry sub : filtered) {

@@ -123,10 +123,10 @@ public class ScheduleService {
         int lessonNum = 1;
         for (DaySchedule.LessonInfo li : daySchedule.getLessons()) {
             if (li.start != null) {
-                entries.add(new BellEntry(li.start, DEFAULT_DURATION, lessonNum + " урок (початок)"));
+                entries.add(new BellEntry(li.start, DEFAULT_DURATION, "IN: " + lessonNum + " урок (початок)"));
             }
             if (li.end != null) {
-                entries.add(new BellEntry(li.end, DEFAULT_DURATION, lessonNum + " урок (кінець)"));
+                entries.add(new BellEntry(li.end, DEFAULT_DURATION, "OUT: " + lessonNum + " урок (кінець)"));
             }
             lessonNum++;
         }

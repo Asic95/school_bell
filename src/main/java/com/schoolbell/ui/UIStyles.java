@@ -72,6 +72,7 @@ public class UIStyles {
     public static final String COLOR_PURPLE_SOFT = "#f5f3ff";
     public static final String COLOR_TEXT_STRONG = "#1e293b";
     public static final String COLOR_TANGERINE = "#e17055";
+    public static final String COLOR_TANGERINE_LIGHT = "#fff2f0";
     public static final String COLOR_AMBER_LIGHT = "#fff7ed";
     public static final String COLOR_ALERT_RED = "#ef4444";
     public static final String COLOR_ALERT_RED_LIGHT = "#fef2f2";
@@ -362,7 +363,9 @@ public class UIStyles {
     public static final String ICON_BAN = "M12,2A10,10 0 1,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 18,12A8,8 0 0,1 17.41,15.59L8.41,6.59A8,8 0 0,1 12,4M12,20A8,8 0 0,1 6,12A8,8 0 0,1 6.59,8.41L15.59,17.41A8,8 0 0,1 12,20Z";
     public static final String ICON_CHECK = "M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z";
     public static final String ICON_DANGER = "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z";
+    public static final String ICON_AIRPLAY = "M6,22H18L12,16M21,3H3A2,2 0 0,0 1,5V17A2,2 0 0,0 3,19H7V17H3V5H21V17H17V19H21A2,2 0 0,0 23,17V5A2,2 0 0,0 21,3Z";
     public static final String ICON_AIR_RAID = "M12,2L1,21H23L12,2M12,6L19.53,19H4.47L12,6M13,16H11V18H13V16M13,10H11V14H13V10Z";
+    public static final String ICON_STOP = "M6,6H18V18H6V6Z";
     public static final String ICON_WAVEFORM = "M2,14H4V16H2V14M6,10H8V20H6V10M10,4H12V22H10V4M14,12H16V18H14V12M18,8H20V20H18V8M22,14H24V16H22V14Z";
     public static final String ICON_LIFEBUOY = "M12,1L3,5v6c0,5.55,3.84,10.74,9,12c5.16,-1.26,9,-6.45,9,-12V5L12,1z M11,7h2v7h-2V7z M11,16h2v2h-2V16z";
     public static final String ICON_ALL_CLEAR = "M10,17L5,12L6.41,10.58L10,14.17L17.59,6.58L19,8L10,17Z";
@@ -390,6 +393,13 @@ public class UIStyles {
     public static final String GRADIENT_INFO = "linear-gradient(to bottom right, " + COLOR_BLUE + ", " + COLOR_SKY_DARK + ")";
     public static final String GRADIENT_PURPLE = "linear-gradient(to bottom right, #9b59b6, " + COLOR_PURPLE_DARK + ")";
     public static final String GRADIENT_NEUTRAL = "linear-gradient(to bottom right, " + COLOR_NEUTRAL + ", " + COLOR_TEXT + ")";
+
+    public static final String ICON_WINDOW_MINIMIZE = "M20,14H4V10H20V14Z";
+    public static final String ICON_WINDOW_MAXIMIZE = "M4,4H20V20H4V4M6,8V18H18V8H6Z";
+    public static final String ICON_WINDOW_RESTORE = "M4,8H8V4H20V16H16V20H4V8M16,8V14H18V6H10V8H16M6,12V18H14V12H6Z";
+    public static final String ICON_WINDOW_CLOSE = "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z";
+
+    public static final String TITLE_BAR_STYLE = "-fx-background-color: #0c1427; -fx-padding: 5 15 5 15; -fx-alignment: CENTER_LEFT; -fx-border-color: " + BORDER_WHITE_05 + "; -fx-border-width: 0 0 1 0;";
 
     public static final String MODERN_CHECKBOX_STYLE = 
         ".check-box .box {" +

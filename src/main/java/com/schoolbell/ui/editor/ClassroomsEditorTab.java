@@ -44,26 +44,23 @@ public class ClassroomsEditorTab {
         Button addBtn = createPrimaryActionButton("ДОДАТИ КАБІНЕТ", ICON_PLUS);
         addBtn.setStyle(PREMIUM_BTN_STYLE);
 
+        VBox cardsArea = new VBox();
+        VBox.setVgrow(cardsArea, Priority.ALWAYS);
+
         FlowPane classroomsContainer = new FlowPane(20, 20);
         classroomsContainer.setPadding(new Insets(10));
 
         refreshClassrooms = () -> {
-            classroomsContainer.getChildren().clear();
+            cardsArea.getChildren().clear();
             java.util.List<Classroom> classrooms = mainApp.getAcademicService().getAllClassrooms();
             
             if (classrooms.isEmpty()) {
-                VBox empty = new VBox(20);
-                empty.setAlignment(Pos.CENTER);
-                empty.setPadding(new Insets(100, 0, 100, 0));
-                empty.setMinWidth(900); // Ensure it fills the area
-                Node emptyIcon = createSVGIcon(ICON_INFO, Color.web(COLOR_WHITE_MUTED_BORDER), 64);
-                Label emptyLabel = new Label("Список кабінетів порожній");
-                emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_ICON_MUTED + ";");
-                Label subLabel = new Label("Використовуйте поле вище, щоб додати перший кабінет");
-                subLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE + ";");
-                empty.getChildren().addAll(emptyIcon, emptyLabel, subLabel);
-                classroomsContainer.getChildren().add(empty);
+                cardsArea.setAlignment(Pos.CENTER);
+                cardsArea.getChildren().add(createEmptyState(ICON_INFO, "Список кабінетів порожній", "Використовуйте поле вище, щоб додати перший кабінет"));
             } else {
+                cardsArea.setAlignment(Pos.TOP_LEFT);
+                cardsArea.getChildren().add(classroomsContainer);
+                classroomsContainer.getChildren().clear();
                 for (Classroom c : classrooms) {
                     VBox card = new VBox(20);
                     card.setStyle(SOFT_CARD + "-fx-padding: 24;");
@@ -138,7 +135,7 @@ public class ClassroomsEditorTab {
             }
         });
 
-        VBox contentLayout = new VBox(25, header, new HBox(15, addField, addBtn), classroomsContainer);
+        VBox contentLayout = new VBox(25, header, new HBox(15, addField, addBtn), cardsArea);
         contentLayout.setPadding(new Insets(30));
         contentLayout.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
 

@@ -88,7 +88,7 @@ public class MediaSchedulerService {
             BellEntry current = schedule.get(i);
             BellEntry next = schedule.get(i + 1);
 
-            if ("OUT".equals(current.type()) && "IN".equals(next.type())) {
+            if (current.type().startsWith("OUT") && next.type().startsWith("IN")) {
                 LocalTime start = current.time();
                 LocalTime end = next.time();
 
@@ -103,11 +103,14 @@ public class MediaSchedulerService {
                         if (playedEventsInCurrentBreak.contains(trackingKey)) continue;
 
                         LocalTime triggerTime = calculateTriggerTime(event, start, end);
-                        if (triggerTime != null && now.getHour() == triggerTime.getHour() && now.getMinute() == triggerTime.getMinute()) {
-                            playEvent(event);
-                            playedEventsInCurrentBreak.add(trackingKey);
-                            if (event.breakAnchor().equals("START") || event.breakAnchor().equals("MIDDLE") || (event.breakAnchor().equals("OFFSET") && event.breakOffset() >= 0)) {
-                                isPlayingOnBreak = true;
+                        if (triggerTime != null) {
+                            // Trigger if we are at or slightly after the trigger time within the same break
+                            if (!now.isBefore(triggerTime) && now.isBefore(end)) {
+                                playEvent(event);
+                                playedEventsInCurrentBreak.add(trackingKey);
+                                if (event.breakAnchor().equals("START") || event.breakAnchor().equals("MIDDLE") || (event.breakAnchor().equals("OFFSET") && event.breakOffset() >= 0)) {
+                                    isPlayingOnBreak = true;
+                                }
                             }
                         }
                     }
@@ -145,7 +148,7 @@ public class MediaSchedulerService {
             BellEntry current = schedule.get(i);
             BellEntry next = schedule.get(i + 1);
 
-            if ("OUT".equals(current.type()) && "IN".equals(next.type())) {
+            if (current.type().startsWith("OUT") && next.type().startsWith("IN")) {
                 if (now.isAfter(current.time()) && now.isBefore(next.time())) {
                     long secondsToNext = java.time.Duration.between(now, next.time()).getSeconds();
                     if (secondsToNext > 10) {
@@ -198,6 +201,45 @@ public class MediaSchedulerService {
     public void deleteEvent(int id) {
         DatabaseManager.deleteMediaEvent(id);
         loadEvents();
+    }
+
+    public MediaEvent getNextEvent() {
+        LocalTime now = LocalTime.now();
+        MediaEvent next = null;
+        LocalTime minTime = LocalTime.MAX;
+
+        List<BellEntry> schedule = mainApp.getSchedule();
+
+        for (MediaEvent e : events) {
+            if (!e.isActive()) continue;
+            
+            try {
+                if ("BREAKS".equals(e.type())) {
+                    // Calculate next break trigger
+                    if (schedule != null && !schedule.isEmpty()) {
+                        for (int i = 0; i < schedule.size() - 1; i++) {
+                            BellEntry curr = schedule.get(i);
+                            BellEntry nxt = schedule.get(i + 1);
+                            if (curr.type().startsWith("OUT") && nxt.type().startsWith("IN")) {
+                                LocalTime trigger = calculateTriggerTime(e, curr.time(), nxt.time());
+                                if (trigger.isAfter(now) && trigger.isBefore(minTime)) {
+                                    minTime = trigger;
+                                    // We return a temporary clone or modified event to show the calculated time
+                                    next = new MediaEvent(e.id(), e.name(), e.path(), e.type(), trigger.toString(), e.daysOfWeek(), e.date(), e.isActive(), e.isFolder(), e.durationMinutes(), e.breakAnchor(), e.breakOffset());
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    LocalTime eventTime = LocalTime.parse(e.time());
+                    if (eventTime.isAfter(now) && eventTime.isBefore(minTime)) {
+                        minTime = eventTime;
+                        next = e;
+                    }
+                }
+            } catch (Exception ex) {}
+        }
+        return next;
     }
 
     public void stop() {

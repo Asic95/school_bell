@@ -48,27 +48,24 @@ public class TeachersEditorTab {
         Button addBtn = createPrimaryActionButton("ДОДАТИ ВЧИТЕЛЯ", ICON_PLUS);
         addBtn.setStyle(PREMIUM_BTN_STYLE);
 
+        VBox cardsArea = new VBox();
+        VBox.setVgrow(cardsArea, Priority.ALWAYS);
+
         FlowPane cardsContainer = new FlowPane(20, 20);
         cardsContainer.setPadding(new Insets(10));
 
         refreshTeachers = () -> {
-            cardsContainer.getChildren().clear();
+            cardsArea.getChildren().clear();
             List<Subject> allSubs = mainApp.getStaffService().getAllSubjects();
             List<Teacher> teachers = mainApp.getStaffService().getAllTeachers();
             
             if (teachers.isEmpty()) {
-                VBox empty = new VBox(20);
-                empty.setAlignment(Pos.CENTER);
-                empty.setPadding(new Insets(100, 0, 100, 0));
-                empty.setMinWidth(900);
-                Node emptyIcon = createSVGIcon(ICON_INFO, Color.web(COLOR_WHITE_MUTED_BORDER), 64);
-                Label emptyLabel = new Label("Список вчителів порожній");
-                emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_ICON_MUTED + ";");
-                Label subLabel = new Label("Введіть ім'я та натисніть кнопку, щоб додати першого вчителя");
-                subLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE + ";");
-                empty.getChildren().addAll(emptyIcon, emptyLabel, subLabel);
-                cardsContainer.getChildren().add(empty);
+                cardsArea.setAlignment(Pos.CENTER);
+                cardsArea.getChildren().add(createEmptyState(ICON_INFO, "Список вчителів порожній", "Введіть ім'я та натисніть кнопку, щоб додати першого вчителя"));
             } else {
+                cardsArea.setAlignment(Pos.TOP_LEFT);
+                cardsArea.getChildren().add(cardsContainer);
+                cardsContainer.getChildren().clear();
                 for (Teacher t : teachers) {
                     VBox card = new VBox(20);
                     card.setStyle(SOFT_CARD + "-fx-padding: 24;");
@@ -153,7 +150,7 @@ public class TeachersEditorTab {
             }
         });
 
-        content.getChildren().addAll(header, new HBox(15, addField, addBtn), cardsContainer);
+        content.getChildren().addAll(header, new HBox(15, addField, addBtn), cardsArea);
         refreshTeachers.run();
 
         ScrollPane mainScroll = new ScrollPane(content);
