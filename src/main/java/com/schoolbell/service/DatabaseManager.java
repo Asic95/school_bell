@@ -11,7 +11,7 @@ import java.util.List;
 
 public class DatabaseManager {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
-    private static final String DB_URL = "jdbc:sqlite:school_bell.db";
+    private static final String DB_URL = PathService.getDatabaseUrl();
 
     public static Connection getConnection() throws SQLException {
         try {
@@ -24,6 +24,7 @@ public class DatabaseManager {
     }
 
     public static void initialize() {
+        PathService.migrateIfNeeded();
         try (Connection conn = getConnection()) {
             DatabaseMigrations.run(conn);
             logger.info("Database initialized successfully.");

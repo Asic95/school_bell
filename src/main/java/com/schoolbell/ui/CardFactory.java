@@ -47,9 +47,9 @@ public class CardFactory {
 
     public static VBox createSmallInfoCard(String title, Node valueNode, String actionText, Runnable action, String iconPath, String circleColor, String iconColor, boolean hasSlider, int volumeValue, java.util.function.Consumer<Integer> sliderAction) {
         VBox card = new VBox();
-        card.setPadding(new Insets(28, 32, 28, 32));
-        card.setMinWidth(420);
-        card.setMinHeight(160);
+        card.setPadding(new Insets(24, 28, 24, 28));
+        card.setMinWidth(280);
+        card.setMinHeight(140);
         card.setMaxWidth(Double.MAX_VALUE);
         card.setStyle(SOFT_CARD);
         card.setCache(true);
@@ -71,10 +71,6 @@ public class CardFactory {
         
         Label t = new Label(title);
         t.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SLATE + "; -fx-letter-spacing: 1.5px; -fx-text-transform: uppercase;");
-        
-        if (valueNode instanceof Label l) {
-            l.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
-        }
         
         textStack.getChildren().addAll(t, valueNode);
         

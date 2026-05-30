@@ -434,19 +434,27 @@ public class ControlFactory {
         VBox empty = new VBox(20);
         empty.setAlignment(Pos.CENTER);
         empty.setPadding(new Insets(100, 40, 100, 40));
+        empty.setMaxWidth(Double.MAX_VALUE);
+        empty.setStyle("-fx-alignment: center;");
         HBox.setHgrow(empty, Priority.ALWAYS);
 
         VBox iconBox = new VBox(createSVGIcon(iconPath, Color.web(COLOR_WHITE_MUTED_BORDER), 64));
         iconBox.setAlignment(Pos.CENTER);
+        iconBox.setStyle("-fx-alignment: center;");
         
         VBox text = new VBox(8);
         text.setAlignment(Pos.CENTER);
+        text.setStyle("-fx-alignment: center;");
         
         Label t = new Label(title);
-        t.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_ICON_MUTED + ";");
+        t.setMaxWidth(Double.MAX_VALUE);
+        t.setAlignment(Pos.CENTER);
+        t.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_ICON_MUTED + "; -fx-text-alignment: center;");
         
         Label s = new Label(subtitle);
-        s.setStyle("-fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE + ";");
+        s.setMaxWidth(Double.MAX_VALUE);
+        s.setAlignment(Pos.CENTER);
+        s.setStyle("-fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE + "; -fx-text-alignment: center;");
         s.setWrapText(true);
         s.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
         s.setMaxWidth(450);

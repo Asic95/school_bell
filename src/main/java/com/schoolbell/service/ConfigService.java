@@ -31,7 +31,7 @@ public class ConfigService {
 
     // Broadcast
     private boolean isBroadcastEnabled = false;
-    private int broadcastPort = 8080;
+    private int broadcastPort = 9090;
     private boolean isAirRaidAutomationEnabled = false;
     private String selectedRegionId = null;
     private String selectedDistrictId = null;
@@ -67,7 +67,7 @@ public class ConfigService {
         selectedAudioDeviceName = DatabaseManager.getSetting("audio.device", "Системний за замовчуванням");
         systemVolume = Integer.parseInt(DatabaseManager.getSetting("audio.volume", "70"));
         isBroadcastEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("broadcast.enabled", "false"));
-        broadcastPort = Integer.parseInt(DatabaseManager.getSetting("broadcast.port", "8080"));
+        broadcastPort = Integer.parseInt(DatabaseManager.getSetting("broadcast.port", "9090"));
         // Air Raid Automation
         isAirRaidAutomationEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("airAutomation.enabled", "false"));
         selectedRegionId = DatabaseManager.getSetting("airAutomation.region", null);

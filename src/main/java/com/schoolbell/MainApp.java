@@ -18,21 +18,17 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.SystemTray;
-import java.awt.TrayIcon;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.time.LocalTime;
@@ -41,13 +37,13 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import javax.swing.SwingUtilities;
 
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class MainApp extends Application {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
+    private static final String APP_TITLE = "SchoolBell v1.0";
 
     // Services
     private final RelayController relayController = new RelayController();
@@ -89,7 +85,6 @@ public class MainApp extends Application {
     private SystemView systemView;
     private ImportView importView;
     private Stage primaryStage;
-    private TrayIcon trayIcon;
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -97,6 +92,7 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) {
         java.util.Locale.setDefault(Locale.of("uk", "UA"));
         this.primaryStage = primaryStage;
+        primaryStage.initStyle(StageStyle.TRANSPARENT);
         DatabaseManager.initialize();
 
         // Initialize Services
@@ -114,11 +110,20 @@ public class MainApp extends Application {
         }
 
         startBroadcastServers();
+        InstanceGuard.startListener(primaryStage);
 
-        primaryStage.setTitle("SchoolBell Dashboard v4.0");
+        primaryStage.setTitle(APP_TITLE);
+        try {
+            InputStream iconStream = getClass().getResourceAsStream("/icon.png");
+            if (iconStream != null) {
+                primaryStage.getIcons().add(new Image(iconStream));
+            }
+        } catch (Exception e) {
+            logger.warn("Could not load application icon: " + e.getMessage());
+        }
 
         // Tray Support
-        initTray();
+        new TrayManager(this, primaryStage).init();
         primaryStage.setOnCloseRequest(event -> {
             if (configService.isMinimizeToTray()) {
                 event.consume();
@@ -192,9 +197,21 @@ public class MainApp extends Application {
         // Initialize Toast System
         ToastService.setup(root);
 
-        Scene scene = new Scene(root, 1400, 950);
+        VBox windowWrapper = new VBox();
+        windowWrapper.getChildren().addAll(new TitleBar(primaryStage, this, APP_TITLE), root);
+        VBox.setVgrow(root, Priority.ALWAYS);
+
+        Scene scene = new Scene(windowWrapper, 1400, 950);
+        scene.setFill(Color.TRANSPARENT);
         primaryStage.setScene(scene);
-        primaryStage.setMaximized(true);
+        
+        // Use visual bounds to maximize without covering taskbar
+        javafx.geometry.Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        primaryStage.setX(bounds.getMinX());
+        primaryStage.setY(bounds.getMinY());
+        primaryStage.setWidth(bounds.getWidth());
+        primaryStage.setHeight(bounds.getHeight());
+        
         primaryStage.show();
 
         // Initialize Views
@@ -270,7 +287,6 @@ public class MainApp extends Application {
             schedule = scheduleService.convertToBellEntries(ds);
             Platform.runLater(() -> {
                 dashboardView.refreshActiveScheduleLabel();
-                dashboardView.clearFlow();
             });
             logger.info("Schedule reloaded: " + name);
         });
@@ -392,90 +408,12 @@ public class MainApp extends Application {
         stopBroadcastServers();
         if (audioService != null) audioService.stopAll();
     }
-    private void initTray() {
-        if (!SystemTray.isSupported()) return;
-        Platform.runLater(() -> Platform.setImplicitExit(false));
-        SwingUtilities.invokeLater(() -> {
-            try {
-                SystemTray tray = SystemTray.getSystemTray();
-                int size = 32;
-                BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g2 = image.createGraphics();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-                g2.setColor(new java.awt.Color(9, 132, 227));
-                g2.fillRoundRect(0, 0, size, size, 8, 8);
-                g2.setColor(java.awt.Color.WHITE);
-                double s = size / 24.0;
-                g2.scale(s, s);
-                g2.fill(new java.awt.geom.Area(createBellShape()));
-                g2.dispose();
-                java.awt.PopupMenu popup = new java.awt.PopupMenu();
-                java.awt.MenuItem showItem = new java.awt.MenuItem("Відкрити");
-                showItem.addActionListener(e -> Platform.runLater(() -> {
-                    primaryStage.show();
-                    primaryStage.toFront();
-                }));
-                java.awt.MenuItem exitItem = new java.awt.MenuItem("Вихід");
-                exitItem.addActionListener(e -> {
-                    Platform.runLater(() -> {
-                        stop();
-                        Platform.exit();
-                        System.exit(0);
-                    });
-                });
-                popup.add(showItem);
-                popup.addSeparator();
-                popup.add(exitItem);
-                trayIcon = new TrayIcon(image, "SchoolBell", popup);
-                trayIcon.setImageAutoSize(true);
-                trayIcon.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
-                            Platform.runLater(() -> {
-                                if (primaryStage.isShowing()) {
-                                    primaryStage.hide();
-                                } else {
-                                    primaryStage.show();
-                                    primaryStage.toFront();
-                                }
-                            });
-                        }
-                    }
-                });
-                tray.add(trayIcon);
-            } catch (Exception e) {
-                logger.error("Failed to initialize tray icon", e);
-            }
-        });
-    }
 
-    private java.awt.Shape createBellShape() {
-        java.awt.geom.Path2D.Double path = new java.awt.geom.Path2D.Double();
-        path.moveTo(12, 2);
-        path.curveTo(11.45, 2, 10.95, 2.22, 10.59, 2.59);
-        path.lineTo(10, 4);
-        path.curveTo(10, 4.1, 10, 4.2, 10, 4.29);
-        path.curveTo(7.12, 5.14, 5, 7.82, 5, 11);
-        path.lineTo(5, 17);
-        path.lineTo(3, 19);
-        path.lineTo(3, 20);
-        path.lineTo(21, 20);
-        path.lineTo(21, 19);
-        path.lineTo(19, 17);
-        path.lineTo(19, 11);
-        path.curveTo(19, 7.82, 16.88, 5.14, 14, 4.29);
-        path.curveTo(14, 4.19, 14, 4.1, 14, 4);
-        path.curveTo(14, 2.9, 13.1, 2, 12, 2);
-        path.closePath();
-        path.moveTo(10, 21);
-        path.curveTo(10, 22.1, 10.9, 23, 12, 23);
-        path.curveTo(13.1, 23, 14, 22.1, 14, 21);
-        path.lineTo(10, 21);
-        path.closePath();
-        return path;
+    public static void main(String[] args) {
+        if (InstanceGuard.isAnotherInstanceRunning()) {
+            System.out.println("Another instance is already running. Notifying it and exiting.");
+            System.exit(0);
+        }
+        launch(args);
     }
-
-    public static void main(String[] args) { launch(args); }
 }

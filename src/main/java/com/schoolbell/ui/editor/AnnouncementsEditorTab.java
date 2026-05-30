@@ -125,8 +125,10 @@ public class AnnouncementsEditorTab {
             if (filtered.isEmpty()) {
                 String title = showArchived ? "Архів оголошень порожній" : "Немає активних оголошень";
                 String sub = showArchived ? "Тут з'являтимуться оголошення, термін дії яких минув." : "Натисніть 'СТВОРИТИ ОГОЛОШЕННЯ', щоб додати перше повідомлення.";
+                cardsContainer.setAlignment(Pos.CENTER);
                 cardsContainer.getChildren().add(createEmptyState(ICON_INFO, title, sub));
             } else {
+                cardsContainer.setAlignment(Pos.TOP_LEFT);
                 for (Announcement a : filtered) {
                     cardsContainer.getChildren().add(createAnnouncementCard(a));
                 }

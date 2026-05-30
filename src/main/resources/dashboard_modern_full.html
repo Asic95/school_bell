@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Bell Dashboard - Modern</title>
+    <title>School Bell Dashboard - Modern Full</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -131,15 +131,15 @@
 
         main {
             flex: 1;
-            display: grid;
-            grid-template-columns: 1fr 260px;
-            gap: 25px;
             padding: 25px 40px;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* LEFT SIDE: TABLE */
+        /* TABLE SECTION */
         .table-section {
+            flex: 1;
             display: flex;
             flex-direction: column;
             background: var(--card-bg);
@@ -148,6 +148,7 @@
             backdrop-filter: blur(8px);
             overflow: hidden;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative; /* Base for absolute positioning if needed, or just layout */
         }
 
         table {
@@ -183,7 +184,7 @@
         }
 
         td {
-            padding: 0 20px;
+            padding: 0 25px;
             font-size: 22px;
             font-weight: 600;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -213,12 +214,12 @@
         /* ROW SPECIAL STYLES */
         tr.status-replacement {
             background: rgba(239, 68, 68, 0.05);
-            border-left: 4px solid var(--accent-red);
+            border-left: 6px solid var(--accent-red);
         }
 
         tr.status-current {
             background: rgba(59, 130, 246, 0.08);
-            border-left: 4px solid var(--accent-blue);
+            border-left: 6px solid var(--accent-blue);
             box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.1);
         }
 
@@ -240,114 +241,43 @@
             font-weight: 700;
         }
 
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: inline-flex;
+        /* COMPACT STATUS BAR */
+        .compact-status-bar {
+            height: 60px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
             align-items: center;
-            gap: 6px;
+            padding: 0 30px;
+            gap: 40px;
+            margin-top: auto; /* Push to bottom of the flex container */
+        }
+
+        .compact-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
             white-space: nowrap;
         }
 
-        .status-badge.current { 
-            background: var(--accent-blue); 
-            color: white; 
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
-            animation: pulse-glow 2s infinite;
-        }
-        
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.4); }
-            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); }
-            100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.4); }
-        }
-
-        .status-badge.upcoming { background: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); border: 1px solid rgba(245, 158, 11, 0.3); }
-        .status-badge.replacement { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3); }
-        .status-badge.normal { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
-
-        /* RIGHT SIDE: STATUS */
-        .status-section {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .status-card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(8px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .countdown-card {
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            transition: all 0.5s ease;
-        }
-
-        .countdown-card.urgent {
-            background: linear-gradient(135deg, #7f1d1d 0%, #ef4444 100%);
-            animation: urgent-pulse 1s infinite alternate;
-        }
-
-        @keyframes urgent-pulse {
-            from { transform: scale(1); }
-            to { transform: scale(1.02); }
-        }
-
-        .countdown-label {
-            font-size: 14px;
+        .compact-label {
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 10px;
-        }
-
-        .countdown-value {
-            font-size: 52px;
-            font-weight: 900;
-            color: white;
-            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .current-lesson-info h3 {
-            font-size: 14px;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            margin-bottom: 20px;
+            font-weight: 800;
+            color: var(--accent-blue);
             letter-spacing: 1px;
         }
 
-        .global-status-value {
-            font-size: 24px;
-            font-weight: 800;
+        .compact-value {
+            font-size: 20px;
+            font-weight: 900;
             color: white;
-            margin-bottom: 5px;
-            letter-spacing: -0.5px;
+            font-variant-numeric: tabular-nums;
         }
 
-        .global-status-time {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--accent-blue);
-            margin-bottom: 20px;
-        }
-
-        .global-progress-container {
-            width: 100%;
-            height: 10px;
+        .compact-progress-container {
+            flex: 1;
+            height: 8px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
             overflow: hidden;
@@ -356,19 +286,12 @@
 
         .global-progress-bar {
             height: 100%;
-            background: linear-gradient(to right, var(--accent-blue), var(--accent-purple), var(--accent-blue));
-            background-size: 200% 100%;
+            background: linear-gradient(to right, var(--accent-blue), var(--accent-purple));
             width: 0%;
             transition: width 1s linear;
-            animation: progress-slide 3s linear infinite;
         }
 
-        @keyframes progress-slide {
-            0% { background-position: 100% 0%; }
-            100% { background-position: -100% 0%; }
-        }
-
-        /* BOTTOM: ANNOUNCEMENTS */
+        /* FOOTER: ANNOUNCEMENTS */
         footer {
             height: 80px;
             margin: 0 40px 20px 40px;
@@ -391,7 +314,6 @@
             text-transform: uppercase;
             margin-right: 25px;
             white-space: nowrap;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
             z-index: 10;
         }
 
@@ -432,11 +354,26 @@
             backdrop-filter: blur(20px);
         }
 
-        #emergency-overlay.silence { background: rgba(15, 23, 42, 0.95); }
-        #emergency-overlay.emergency { background: rgba(245, 158, 11, 0.95); }
-
         .em-title { font-size: 100px; font-weight: 900; color: white; margin-bottom: 20px; }
         .em-desc { font-size: 40px; font-weight: 700; color: white; opacity: 0.9; }
+
+        /* Status badge styles from modern */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .status-badge.current { background: var(--accent-blue); color: white; }
+        .status-badge.upcoming { background: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-badge.replacement { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .status-badge.normal { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
     </style>
 </head>
 <body>
@@ -464,31 +401,28 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 15%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Клас</div></th>
-                        <th style="width: 30%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg> Предмет</div></th>
-                        <th style="width: 30%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Вчитель</div></th>
+                        <th style="width: 10%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Клас</div></th>
+                        <th style="width: 25%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg> Предмет</div></th>
+                        <th style="width: 40%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Вчитель</div></th>
                         <th style="width: 10%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Каб.</div></th>
                         <th style="width: 15%"><div class="th-content"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Статус</div></th>
                     </tr>
                 </thead>
                 <tbody id="schedule-body"></tbody>
             </table>
-        </div>
 
-        <div class="status-section">
-            <div class="status-card countdown-card" id="countdown-card">
-                <div class="countdown-label" id="countdown-label">До дзвінка</div>
-                <div class="countdown-value" id="countdown-text">--:--</div>
-            </div>
-
-            <div class="status-card current-lesson-info">
-                <h3>Статус школи</h3>
-                <div id="school-status-content">
-                    <div class="global-status-value" id="global-status-title">Завантаження...</div>
-                    <div class="global-status-time" id="global-status-time">--:-- – --:--</div>
-                    <div class="global-progress-container">
-                        <div class="global-progress-bar" id="global-progress-bar"></div>
-                    </div>
+            <div class="compact-status-bar">
+                <div class="compact-item">
+                    <span class="compact-label" id="countdown-label">До дзвінка</span>
+                    <span class="compact-value" id="countdown-text">--:--</span>
+                </div>
+                <div class="compact-progress-container">
+                    <div class="global-progress-bar" id="global-progress-bar"></div>
+                </div>
+                <div class="compact-item">
+                    <span class="compact-label">Статус:</span>
+                    <span class="compact-value" id="global-status-title">Завантаження...</span>
+                    <span class="compact-value" id="global-status-time" style="font-size: 14px; opacity: 0.7;">--:-- – --:--</span>
                 </div>
             </div>
         </div>
@@ -497,7 +431,7 @@
     <footer>
         <div class="announcement-tag">Оголошення</div>
         <div class="announcement-content">
-            <div class="announcement-scroller" id="announcement-text">Вітаємо у системі School Bell!</div>
+            <div id="announcement-text">Вітаємо у системі School Bell!</div>
         </div>
     </footer>
 
@@ -509,7 +443,6 @@
     <script>
         let socket;
         let currentPage = 0;
-        const rowsPerPage = 8;
         let allRows = [];
         let paginationTimeout = null;
 
@@ -609,7 +542,6 @@
                 document.getElementById('global-status-time').textContent = `${s.start} – ${s.end}`;
                 document.getElementById('global-progress-bar').style.width = (s.progress || 0) + '%';
                 
-                // Update countdown label based on status
                 const label = document.getElementById('countdown-label');
                 label.textContent = (s.type === 'BREAK' || s.type === 'BEFORE') ? 'До уроку' : 'До дзвінка';
             }
@@ -625,13 +557,6 @@
 
             if (data.countdown) {
                 document.getElementById('countdown-text').textContent = data.countdown;
-                
-                // Urgent mode: if countdown is less than 1 minute (format is MM:SS or HH:MM:SS)
-                const parts = data.countdown.split(':');
-                const isUrgent = (parts.length === 2 && parseInt(parts[0]) === 0) || 
-                                 (parts.length === 3 && parseInt(parts[0]) === 0 && parseInt(parts[1]) === 0);
-                
-                document.getElementById('countdown-card').classList.toggle('urgent', isUrgent);
             }
         }
 
@@ -649,7 +574,6 @@
                 el.textContent = "";
                 return;
             }
-            
             el.classList.add('fade-out');
             setTimeout(() => {
                 el.textContent = announcements[announcementIndex];
@@ -663,8 +587,9 @@
             
             const container = document.querySelector('.table-section');
             const thead = document.querySelector('thead');
-            const availableHeight = container.clientHeight - thead.offsetHeight;
-            const dynamicRowsPerPage = Math.max(1, Math.floor(availableHeight / 80)); // 80px is tr height
+            const statusBar = document.querySelector('.compact-status-bar');
+            const availableHeight = container.clientHeight - thead.offsetHeight - statusBar.offsetHeight;
+            const dynamicRowsPerPage = Math.max(1, Math.floor(availableHeight / 80));
 
             const body = document.getElementById('schedule-body');
             body.innerHTML = '';
@@ -686,13 +611,11 @@
                 const tr = document.createElement('tr');
                 tr.classList.add('row-fade-in');
                 tr.style.animationDelay = `${i * 0.05}s`;
-                
                 if (row.isReplacement) tr.classList.add('status-replacement');
                 if (row.statusClass === 'current') tr.classList.add('status-current');
                 
                 let sClass = row.statusClass || 'normal';
                 let sText = sClass === 'current' ? 'Зараз' : sClass === 'upcoming' ? 'Скоро' : row.isReplacement ? 'Заміна' : 'Ок';
-                
                 let iconKey = sClass;
                 if (row.isReplacement && sClass !== 'current') iconKey = 'replacement';
                 let sIcon = statusIcons[iconKey] || statusIcons.normal;

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Bell - Neo Academic v2</title>
+    <style>
+        :root {
+            /* Design Language: Modern Academic Soft UI v2 */
+            --bg-gradient: linear-gradient(to bottom right, #f8fbff 0%, #f5f7fb 45%, #edf4ff 100%);
+            --glass-white: rgba(255, 255, 255, 0.96);
+            --border-slate: rgba(226, 232, 240, 0.7);
+            --shadow-navy: 0 10px 30px rgba(15, 23, 42, 0.08);
+            
+            --color-navy: #0f172a;
+            --color-slate: #64748b;
+            --color-indigo: #4f46e5;
+            --color-success: #10b981;
+            --color-danger: #ef4444;
+            --color-warning: #f59e0b;
+
+            --radius-lg: 28px;
+            --radius-md: 18px;
+            --radius-sm: 14px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--color-navy);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* PREMIUM HEADER */
+        header {
+            height: 120px;
+            padding: 0 50px;
+            display: grid;
+            grid-template-columns: 1.5fr auto 1.5fr;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-slate);
+            z-index: 100;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .brand-badge {
+            width: 54px;
+            height: 54px;
+            background: var(--glass-white);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-slate);
+            box-shadow: var(--shadow-navy);
+        }
+
+        .brand-badge svg {
+            width: 28px;
+            height: 28px;
+            stroke: var(--color-indigo);
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-eyebrow {
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--color-slate);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .brand-title {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--color-navy);
+            letter-spacing: -0.5px;
+        }
+
+        .header-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #clock {
+            font-size: 64px;
+            font-weight: 900;
+            color: var(--color-navy);
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        #header-date {
+            font-size: 14px;
+            color: var(--color-indigo);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 5px;
+        }
+
+        .header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .hub-badge {
+            background: var(--glass-white);
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-slate);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-navy);
+        }
+
+        .hub-label {
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--color-slate);
+            text-transform: uppercase;
+        }
+
+        .hub-value {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--color-indigo);
+        }
+
+        /* MAIN CONTENT - TABLE CARD */
+        main {
+            flex: 1;
+            padding: 30px 50px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .table-card {
+            flex: 1;
+            background: var(--glass-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-slate);
+            box-shadow: 0 30px 60px rgba(15, 23, 42, 0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th {
+            padding: 20px 30px;
+            text-align: left;
+            background: rgba(248, 250, 252, 0.5);
+            border-bottom: 1px solid var(--border-slate);
+        }
+
+        .th-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--color-slate);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        th svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--color-indigo);
+            fill: none;
+            stroke-width: 2.5;
+            flex-shrink: 0;
+        }
+
+        td {
+            padding: 0 30px;
+            height: 80px;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--color-navy);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+            vertical-align: middle;
+            overflow: hidden;
+        }
+
+        td b { color: var(--color-indigo); font-weight: 900; }
+
+        tr.row-fade-in {
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* REPLACEMENT STYLES */
+        tr.status-replacement { background: rgba(239, 68, 68, 0.02); position: relative; }
+        tr.status-replacement::after {
+            content: ''; position: absolute; left: 0; top: 15%; height: 70%; width: 4px;
+            background: var(--color-danger); border-radius: 0 4px 4px 0;
+        }
+
+        tr.status-current { background: rgba(79, 70, 229, 0.03); position: relative; }
+        tr.status-current::after {
+            content: ''; position: absolute; left: 0; top: 15%; height: 70%; width: 4px;
+            background: var(--color-indigo); border-radius: 0 4px 4px 0;
+        }
+
+        .teacher-replacement {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .teacher-replacement .original { text-decoration: line-through; color: var(--color-slate); font-size: 16px; opacity: 0.6; }
+        .teacher-replacement .new { color: var(--color-danger); font-weight: 800; }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            gap: 8px;
+        }
+        .badge-current { background: linear-gradient(135deg, var(--color-indigo), #6366f1); color: white; box-shadow: 0 8px 16px rgba(79, 70, 229, 0.2); }
+        .badge-upcoming { background: rgba(245, 158, 11, 0.1); color: var(--color-warning); border: 1px solid rgba(245, 158, 11, 0.2); }
+        .badge-replacement { background: rgba(239, 68, 68, 0.1); color: var(--color-danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .badge-normal { background: rgba(16, 185, 129, 0.1); color: var(--color-success); border: 1px solid rgba(16, 185, 129, 0.2); }
+
+        /* FOOTER HUB */
+        footer {
+            height: 100px;
+            margin: 0 50px 30px 50px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            padding: 0 30px;
+            background: var(--glass-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-slate);
+            box-shadow: var(--shadow-navy);
+        }
+
+        .announcement-tag {
+            background: linear-gradient(135deg, var(--color-indigo), #6366f1);
+            color: white;
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            font-weight: 900;
+            font-size: 13px;
+            text-transform: uppercase;
+            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.15);
+        }
+
+        .announcement-content {
+            flex: 1;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--color-navy);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #announcement-text { transition: all 0.5s ease; }
+        #announcement-text.fade-out { opacity: 0; transform: translateY(-10px); }
+
+        .school-status-card {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 300px;
+        }
+
+        .status-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--color-slate);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-progress-bg {
+            height: 10px;
+            background: #f1f5f9;
+            border-radius: 100px;
+            overflow: hidden;
+            border: 1px solid var(--border-slate);
+        }
+
+        .status-progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--color-indigo), #6366f1);
+            width: 0%;
+            transition: width 1s linear;
+        }
+
+        #emergency-overlay {
+            position: fixed; inset: 0; z-index: 10000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            background: var(--color-danger); text-align: center;
+        }
+        .em-title { font-size: 100px; font-weight: 900; color: white; margin-bottom: 20px; }
+        .em-desc { font-size: 40px; font-weight: 700; color: white; opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-brand">
+            <div class="brand-badge">
+                <svg viewBox="0 0 24 24"><path d="M14 22v-4a2 2 0 1 0-4 0v4"/><path d="m18 10 4 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8l4-2"/><path d="m4 12 8-4 8 4"/><path d="M16 22V2h-8v20"/></svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-eyebrow" id="school-status-title">СТАТУС ЗАКЛАДУ</span>
+                <h1 class="brand-title" id="school-name">Школа</h1>
+            </div>
+        </div>
+        
+        <div class="header-center">
+            <div id="clock">00:00</div>
+            <div id="header-date">-- --- ----</div>
+        </div>
+
+        <div class="header-right">
+            <div class="hub-badge">
+                <span class="hub-label" id="countdown-label">До дзвінка</span>
+                <span class="hub-value" id="countdown-text">--:--</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-top:5px; margin-right:10px;">
+                <div id="conn-status" style="width:8px; height:8px; border-radius:50%; background:var(--color-danger);"></div>
+                <span id="conn-text" style="font-size:10px; font-weight:900; color:var(--color-slate); text-transform:uppercase;">Офлайн</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 10%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Клас</div></th>
+                        <th style="width: 25%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>Предмет</div></th>
+                        <th style="width: 40%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Вчитель</div></th>
+                        <th style="width: 10%"><div class="th-content"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Каб.</div></th>
+                        <th style="width: 15%"><div class="th-content"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Статус</div></th>
+                    </tr>
+                </thead>
+                <tbody id="schedule-body"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer>
+        <div class="announcement-tag">Оголошення</div>
+        <div class="announcement-content">
+            <div id="announcement-text">Вітаємо у системі School Bell</div>
+        </div>
+        <div class="school-status-card">
+            <div class="status-top">
+                <span id="prog-title">НАВЧАННЯ</span>
+                <span id="prog-time">--:-- – --:--</span>
+            </div>
+            <div class="status-progress-bg">
+                <div class="status-progress-fill" id="global-progress-bar"></div>
+            </div>
+        </div>
+    </footer>
+
+    <div id="emergency-overlay">
+        <h1 class="em-title" id="em-title">УВАГА</h1>
+        <p class="em-desc" id="em-desc">Дотримуйтесь інструкцій</p>
+    </div>
+
+    <script>
+        let socket, allRows = [], currentPage = 0, paginationTimeout;
+        let announcements = [], announcementIndex = 0, announcementTimer;
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', hour12: false });
+            document.getElementById('header-date').textContent = now.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+        setInterval(updateClock, 1000); updateClock();
+
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
+        }
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') requestWakeLock(); });
+        requestWakeLock();
+
+        function connectWS() {
+            const port = (parseInt(window.location.port) || 80) + 2;
+            socket = new WebSocket(`ws://${window.location.hostname}:${port}`);
+            socket.onopen = () => {
+                document.getElementById('conn-status').style.background = 'var(--color-success)';
+                document.getElementById('conn-text').textContent = 'Система активна';
+            };
+            socket.onmessage = (e) => handleUpdate(JSON.parse(e.data));
+            socket.onclose = () => {
+                document.getElementById('conn-status').style.background = 'var(--color-danger)';
+                document.getElementById('conn-text').textContent = 'Зв’язок втрачено';
+                setTimeout(connectWS, 5000);
+            };
+        }
+
+        function handleUpdate(data) {
+            if (data.schoolName) document.getElementById('school-name').textContent = data.schoolName;
+            if (data.announcement !== undefined) {
+                const newAn = (data.announcement || "Вітаємо у системі School Bell!").split('|||').filter(s => s.trim().length > 0);
+                if (JSON.stringify(newAn) !== JSON.stringify(announcements)) {
+                    announcements = newAn; announcementIndex = 0; startAnnouncementRotation();
+                }
+            }
+            if (data.schoolStatus) {
+                const s = data.schoolStatus;
+                document.getElementById('school-status-title').textContent = s.title.toUpperCase();
+                document.getElementById('prog-title').textContent = s.type === 'BREAK' ? 'ПЕРЕРВА' : 'УРОК';
+                document.getElementById('prog-time').textContent = `${s.start} – ${s.end}`;
+                document.getElementById('global-progress-bar').style.width = (s.progress || 0) + '%';
+                document.getElementById('countdown-label').textContent = (s.type === 'BREAK' || s.type === 'BEFORE') ? 'До уроку' : 'До дзвінка';
+            }
+            if (data.rows) {
+                if (JSON.stringify(data.rows) !== window.lastRows) {
+                    window.lastRows = JSON.stringify(data.rows); allRows = data.rows; renderTable();
+                }
+            }
+            if (data.countdown) document.getElementById('countdown-text').textContent = data.countdown;
+            
+            const overlay = document.getElementById('emergency-overlay');
+            if (data.alertType && data.alertType !== 'NONE') {
+                overlay.style.display = 'flex';
+                document.getElementById('em-title').textContent = data.alertType === 'AIR_RAID' ? 'ПОВІТРЯНА ТРИВОГА' : 'УВАГА';
+            } else overlay.style.display = 'none';
+        }
+
+        function startAnnouncementRotation() {
+            if (announcementTimer) clearInterval(announcementTimer);
+            showNextAn(); if (announcements.length > 1) announcementTimer = setInterval(showNextAn, 8000);
+        }
+        function showNextAn() {
+            const el = document.getElementById('announcement-text');
+            if (announcements.length === 0) return;
+            el.classList.add('fade-out');
+            setTimeout(() => {
+                el.textContent = announcements[announcementIndex];
+                el.classList.remove('fade-out');
+                announcementIndex = (announcementIndex + 1) % announcements.length;
+            }, 500);
+        }
+
+        function renderTable() {
+            if (paginationTimeout) clearTimeout(paginationTimeout);
+            const container = document.querySelector('.table-card');
+            const thead = document.querySelector('thead');
+            const rowsPerPage = Math.max(1, Math.floor((container.clientHeight - thead.offsetHeight) / 80));
+
+            const body = document.getElementById('schedule-body');
+            body.innerHTML = '';
+            const totalPages = Math.ceil(allRows.length / rowsPerPage);
+            if (currentPage >= totalPages && totalPages > 0) currentPage = 0;
+            const rows = allRows.slice(currentPage * rowsPerPage, (currentPage + 1) * rowsPerPage);
+
+            rows.forEach((row, i) => {
+                const tr = document.createElement('tr');
+                tr.className = 'row-fade-in';
+                tr.style.animationDelay = `${i * 0.05}s`;
+                if (row.isReplacement) tr.classList.add('status-replacement');
+                if (row.statusClass === 'current') tr.classList.add('status-current');
+
+                let sClass = row.statusClass || 'normal';
+                let sText = sClass === 'current' ? 'Зараз' : sClass === 'upcoming' ? 'Скоро' : row.isReplacement ? 'Заміна' : 'Ок';
+                
+                let teacherHtml = `<span>${row.teacher}</span>`;
+                if (row.isReplacement) {
+                    teacherHtml = `<div class="teacher-replacement"><span class="original">${row.originalTeacher}</span><span class="new">${row.teacher}</span></div>`;
+                }
+
+                tr.innerHTML = `
+                    <td><b>${row.className}</b></td>
+                    <td>${row.subject}</td>
+                    <td>${teacherHtml}</td>
+                    <td>${row.room}</td>
+                    <td><div class="status-badge badge-${sClass}">${sText}</div></td>
+                `;
+                body.appendChild(tr);
+            });
+
+            if (allRows.length > rowsPerPage) {
+                paginationTimeout = setTimeout(() => {
+                    currentPage = (currentPage + 1) % totalPages; renderTable();
+                }, 10000);
+            }
+        }
+        connectWS();
+    </script>
+</body>
+</html>

@@ -36,7 +36,6 @@ public class DashboardView {
     private final SignalService signalService;
     private final AcademicService academicService;
     private final DashboardDataModel dataModel;
-    private DashboardTimeline timeline;
 
     private Label currentTimeLabel;
     private Label relayStatusLabel;
@@ -60,9 +59,10 @@ public class DashboardView {
     private Label nextLessonTimeLabel;
     private Label nextLessonSubjectLabel;
 
+    private Label mediaValue;
+    private Button stopMediaBtn;
     private Label activeScheduleValue;
     private Label topActiveScheduleLabel;
-    private HBox scheduleFlowContainer;
 
     private int currentVolumeValue;
     private Label volStatusLabel;
@@ -89,9 +89,9 @@ public class DashboardView {
         nextBellTypeLabel = new Label();
 
         GridPane grid = new GridPane();
-        grid.setHgap(25);
-        grid.setVgap(25);
-        grid.setPadding(new Insets(30));
+        grid.setHgap(20);
+        grid.setVgap(20);
+        grid.setPadding(new Insets(25));
         grid.setStyle(DEPTH_1);
         
         ColumnConstraints col1 = new ColumnConstraints(); col1.setPercentWidth(55);
@@ -139,7 +139,7 @@ public class DashboardView {
 
         // --- MIDDLE ROW ---
         VBox heroCard = new VBox(25);
-        heroCard.setPadding(new Insets(35));
+        heroCard.setPadding(new Insets(30));
         heroCard.setStyle(SOFT_CARD);
         heroCard.setCache(true);
         heroCard.setCacheHint(CacheHint.SPEED);
@@ -159,7 +159,7 @@ public class DashboardView {
         
         VBox sessionIcon = new VBox(createSVGIcon(ICON_BOOK, Color.web(COLOR_PRIMARY), 48));
         sessionIcon.setAlignment(Pos.CENTER);
-        sessionIcon.setPrefSize(94, 94);
+        sessionIcon.setPrefSize(84, 84);
         sessionIcon.setStyle(ICON_BADGE_STYLE);
 
         VBox sessionText = new VBox(6);
@@ -197,7 +197,7 @@ public class DashboardView {
         VBox progressArea = new VBox(12);
         curLessonProgress = new ProgressBar(0);
         curLessonProgress.setMaxWidth(Double.MAX_VALUE);
-        curLessonProgress.setPrefHeight(22); 
+        curLessonProgress.setPrefHeight(20); 
         curLessonProgress.getStylesheets().add("data:text/css," + MODERN_PROGRESS_STYLE.replace(" ", "%20"));
         
         HBox progressLabels = new HBox();
@@ -210,16 +210,11 @@ public class DashboardView {
         progressLabels.getChildren().addAll(curLessonTimeLabel, pSpacer, curLessonProgressText);
         progressArea.getChildren().addAll(progressLabels, curLessonProgress);
 
-        scheduleFlowContainer = new HBox(40); 
-        scheduleFlowContainer.setAlignment(Pos.CENTER);
-        scheduleFlowContainer.setPadding(new Insets(20, 0, 10, 0));
-        timeline = new DashboardTimeline(scheduleFlowContainer);
-        
-        heroCard.getChildren().addAll(heroHeader, currentSessionInfo, progressArea, scheduleFlowContainer);
+        heroCard.getChildren().addAll(heroHeader, currentSessionInfo, progressArea);
         grid.add(heroCard, 0, 1);
 
         VBox nextEventCard = new VBox(25);
-        nextEventCard.setPadding(new Insets(35));
+        nextEventCard.setPadding(new Insets(30));
         nextEventCard.setStyle(SOFT_CARD);
         nextEventCard.setCache(true);
         nextEventCard.setCacheHint(CacheHint.SPEED);
@@ -227,23 +222,23 @@ public class DashboardView {
         Label nextHeader = new Label("НАСТУПНА ПОДІЯ");
         nextHeader.setStyle(HEADER_STYLE);
         
-        VBox nextContent = new VBox(18);
+        VBox nextContent = new VBox(15);
         nextContent.setAlignment(Pos.CENTER);
         
-        VBox nextIconCircle = new VBox(createSVGIcon(ICON_CLOCK, Color.web(COLOR_SUCCESS), 44));
+        VBox nextIconCircle = new VBox(createSVGIcon(ICON_CLOCK, Color.web(COLOR_SUCCESS), 40));
         nextIconCircle.setAlignment(Pos.CENTER);
-        nextIconCircle.setPrefSize(84, 84);
-        nextIconCircle.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + "); -fx-background-radius: 22;");
+        nextIconCircle.setPrefSize(74, 74);
+        nextIconCircle.setStyle("-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + "); -fx-background-radius: 20;");
         
         nextLessonNumLabel = new Label("--");
-        nextLessonNumLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
+        nextLessonNumLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         
         VBox nextInfoText = new VBox(4);
         nextInfoText.setAlignment(Pos.CENTER);
         nextLessonSubjectLabel = new Label("Очікування...");
-        nextLessonSubjectLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
+        nextLessonSubjectLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         nextLessonTimeLabel = new Label("--:-- – --:--");
-        nextLessonTimeLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_SLATE + ";");
+        nextLessonTimeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_SLATE + ";");
         nextInfoText.getChildren().addAll(nextLessonSubjectLabel, nextLessonTimeLabel);
         
         nextLessonStatusBadge = new Label("ПЕРЕРВА");
@@ -254,7 +249,7 @@ public class DashboardView {
         nextEventCard.getChildren().addAll(nextHeader, nextContent);
         grid.add(nextEventCard, 1, 1);
 
-        HBox actionsBox = new HBox(25);
+        HBox actionsBox = new HBox(20);
         airRaidBtn = createActionButton("ПОВІТРЯНА ТРИВОГА", "Активація режиму загальної небезпеки", ICON_AIR_RAID, GRADIENT_WARNING);
         airRaidBtn.setOnAction(e -> {
             airRaidBtn.setDisable(true);
@@ -281,7 +276,7 @@ public class DashboardView {
         
         VBox quickActionsCard = new VBox(20, new Label("ШВИДКІ ДІЇ"), actionsBox);
         ((Label)quickActionsCard.getChildren().get(0)).setStyle(HEADER_STYLE);
-        quickActionsCard.setPadding(new Insets(30));
+        quickActionsCard.setPadding(new Insets(25));
         quickActionsCard.setStyle(SOFT_CARD);
         quickActionsCard.setCache(true);
         quickActionsCard.setCacheHint(CacheHint.SPEED);
@@ -291,11 +286,12 @@ public class DashboardView {
         infoRow.setAlignment(Pos.CENTER_LEFT);
         
         activeScheduleValue = new Label(config.getSelectedScheduleName() != null ? config.getSelectedScheduleName() : "Не вибрано");
+        applyInfoValueStyle(activeScheduleValue, COLOR_NAVY);
         VBox schCard = createSmallInfoCard("АКТИВНИЙ РОЗКЛАД", activeScheduleValue, "Змінити", () -> mainApp.showEditorTab(0), ICON_CALENDAR, COLOR_BLUE_LIGHT, COLOR_PRIMARY, false, 0, null);
         
-        currentVolumeValue = config.getSystemVolume();
+        currentVolumeValue = normalizeVolume(config.getSystemVolume());
         volStatusLabel = new Label(currentVolumeValue + "%");
-        volStatusLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + ";");
+        applyInfoValueStyle(volStatusLabel, COLOR_NAVY);
         
         volumePresetBox = new HBox(5);
         volumePresetBox.setAlignment(Pos.CENTER_LEFT);
@@ -320,16 +316,56 @@ public class DashboardView {
         VBox volContent = new VBox(5, volStatusLabel, volumePresetBox);
         VBox volCard = createSmallInfoCard("СИСТЕМНА ГУЧНІСТЬ", volContent, null, null, ICON_VOLUME, COLOR_GREEN_LIGHT, COLOR_SUCCESS, false, 0, null);
         
-        VBox brCard = createSmallInfoCard("ТРАНСЛЯЦІЯ ДАШБОРДУ", new Label(config.isBroadcastEnabled() ? "Увімкнено" : "Вимкнено"), "Відкрити в браузері", () -> mainApp.getHostServices().showDocument("http://localhost:" + (config.getBroadcastPort())), ICON_MONITOR, COLOR_PURPLE_LIGHT, COLOR_INDIGO_SOFT, false, 0, null);
+        Label brStatusLabel = new Label(config.isBroadcastEnabled() ? "Увімкнено" : "Вимкнено");
+        applyInfoValueStyle(brStatusLabel, COLOR_NAVY);
+        VBox brCard = createSmallInfoCard("ТРАНСЛЯЦІЯ ДАШБОРДУ", brStatusLabel, "Відкрити в браузері", () -> mainApp.getHostServices().showDocument("http://localhost:" + (config.getBroadcastPort())), ICON_MONITOR, COLOR_PURPLE_LIGHT, COLOR_INDIGO_SOFT, false, 0, null);
         
-        infoRow.getChildren().addAll(schCard, volCard, brCard);
+        mediaValue = new Label("Очікування...");
+        applyInfoValueStyle(mediaValue, COLOR_NAVY);
+        
+        stopMediaBtn = new Button();
+        stopMediaBtn.setGraphic(createSVGIcon(ICON_STOP, Color.WHITE, 12));
+        stopMediaBtn.setStyle("-fx-background-color: " + COLOR_SLATE_STRONG + "; -fx-background-radius: 6; -fx-padding: 4 8; -fx-cursor: hand;");
+        stopMediaBtn.setVisible(false);
+        stopMediaBtn.setManaged(false);
+        stopMediaBtn.setOnMouseEntered(e -> stopMediaBtn.setStyle("-fx-background-color: " + COLOR_DANGER + "; -fx-background-radius: 6; -fx-padding: 4 8; -fx-cursor: hand;"));
+        stopMediaBtn.setOnMouseExited(e -> stopMediaBtn.setStyle("-fx-background-color: " + COLOR_SLATE_STRONG + "; -fx-background-radius: 6; -fx-padding: 4 8; -fx-cursor: hand;"));
+        stopMediaBtn.setOnAction(e -> {
+            mainApp.getAudioService().stopAll();
+            update(LocalTime.now());
+        });
+
+        HBox mediaBox = new HBox(10, mediaValue, stopMediaBtn);
+        mediaBox.setAlignment(Pos.CENTER_LEFT);
+        
+        VBox mediaCard = createSmallInfoCard("МЕДІА-ЕФІР", mediaBox, "Управління", () -> mainApp.showNotifications(), ICON_AIRPLAY, COLOR_TANGERINE_LIGHT, COLOR_TANGERINE, false, 0, null);
+        
+        infoRow.getChildren().addAll(schCard, volCard, brCard, mediaCard);
+        for (Node n : infoRow.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
         grid.add(infoRow, 0, 3, 2, 1);
 
         ScrollPane mainScroll = new ScrollPane(grid);
-        mainScroll.setFitToWidth(true); mainScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        mainScroll.setFitToWidth(true); 
+        mainScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        mainScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        mainScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
         
         update(LocalTime.now());
         return mainScroll;
+    }
+
+    private void applyInfoValueStyle(Label label, String color) {
+        label.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: " + color + ";");
+        label.setWrapText(true);
+        label.setMaxWidth(200);
+    }
+
+    private int normalizeVolume(int value) {
+        if (value <= 12) return 0;
+        if (value <= 37) return 25;
+        if (value <= 62) return 50;
+        if (value <= 87) return 75;
+        return 100;
     }
 
     private void updateVolumeStyle() {
@@ -394,6 +430,31 @@ public class DashboardView {
         
         countdownLabel.setText(countdown);
         nextBellTypeLabel.setText(nextType);
+        
+        if (mediaValue != null) {
+            String currentTrack = mainApp.getAudioService().getCurrentPlayingTrack();
+            if (currentTrack != null) {
+                mediaValue.setText("ЗАРАЗ: " + currentTrack.toUpperCase());
+                applyInfoValueStyle(mediaValue, COLOR_TANGERINE);
+                if (stopMediaBtn != null) {
+                    stopMediaBtn.setVisible(true);
+                    stopMediaBtn.setManaged(true);
+                }
+            } else {
+                com.schoolbell.model.MediaEvent nextEvent = mainApp.getMediaSchedulerService().getNextEvent();
+                if (nextEvent != null) {
+                    mediaValue.setText(nextEvent.time() + " — " + nextEvent.name().toUpperCase());
+                } else {
+                    mediaValue.setText("ПОДІЙ НЕ ЗАПЛАНОВАНО");
+                }
+                applyInfoValueStyle(mediaValue, COLOR_NAVY);
+                if (stopMediaBtn != null) {
+                    stopMediaBtn.setVisible(false);
+                    stopMediaBtn.setManaged(false);
+                }
+            }
+        }
+
         updateActionButtons();
         updateDashboardComponents(now);
     }
@@ -428,7 +489,7 @@ public class DashboardView {
                 .filter(ds -> ds.getName().equals(scheduleName))
                 .findFirst().orElse(null);
         
-        if (activeDs == null || scheduleFlowContainer == null) return;
+        if (activeDs == null) return;
         List<DaySchedule.LessonInfo> lessons = activeDs.getLessons();
         if (lessons.isEmpty()) return;
 
@@ -453,7 +514,6 @@ public class DashboardView {
         }
 
         if (curLessonIdx != lastLessonIdx || isBreak != lastIsBreak || !Objects.equals(scheduleName, lastScheduleName)) {
-            timeline.rebuild(activeDs, curLessonIdx, isBreak, now);
             lastLessonIdx = curLessonIdx;
             lastIsBreak = isBreak;
             lastScheduleName = scheduleName;
@@ -538,10 +598,6 @@ public class DashboardView {
 
     public Map<String, Object> getExtendedDashboardData(LocalTime now) {
         return dataModel.getExtendedDashboardData(now);
-    }
-
-    public void clearFlow() {
-        if (timeline != null) timeline.clear();
     }
 
     public void refreshActiveScheduleLabel() {

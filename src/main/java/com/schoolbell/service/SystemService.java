@@ -31,7 +31,7 @@ public class SystemService {
      * Shows a file chooser and copies the database file to the selected location.
      */
     public boolean createDatabaseBackup(Stage owner) {
-        File dbFile = new File("school_bell.db");
+        File dbFile = new File(PathService.getDatabasePath());
         if (!dbFile.exists()) {
             logger.error("Database file not found for backup: " + dbFile.getAbsolutePath());
             return false;
@@ -247,7 +247,7 @@ public class SystemService {
             dialog.display();
 
             if (dialog.isConfirmed()) {
-                File dbFile = new File("school_bell.db");
+                File dbFile = new File(PathService.getDatabasePath());
                 try {
                     // Overwrite the current database file
                     Files.copy(backupFile.toPath(), dbFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
