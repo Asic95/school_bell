@@ -182,4 +182,27 @@ public class DatabaseManager {
             logger.error("Failed to delete media event: " + id, e);
         }
     }
+
+    /**
+     * Cleans up old data:
+     * - Substitutions older than 45 days (by 'date' column)
+     * - Announcements older than 45 days (by 'end_date' column)
+     */
+    public static void cleanupOldData() {
+        String cleanupSubstitutions = "DELETE FROM substitutions WHERE date < date('now', '-45 days')";
+        String cleanupAnnouncements = "DELETE FROM announcements WHERE end_date < date('now', '-45 days')";
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+            
+            int subsCount = stmt.executeUpdate(cleanupSubstitutions);
+            int annCount = stmt.executeUpdate(cleanupAnnouncements);
+            
+            if (subsCount > 0 || annCount > 0) {
+                logger.info("Database cleanup completed. Removed {} old substitutions and {} old announcements.", subsCount, annCount);
+            }
+        } catch (SQLException e) {
+            logger.error("Failed to cleanup old data from database", e);
+        }
+    }
 }

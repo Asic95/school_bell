@@ -3,15 +3,12 @@ package com.schoolbell.ui.editor;
 import com.schoolbell.MainApp;
 import com.schoolbell.model.DaySchedule;
 import com.schoolbell.ui.ConfirmationDialog;
-import com.schoolbell.ui.ConfirmationDialog;
 import com.schoolbell.ui.TextInputModalDialog;
 import com.schoolbell.ui.ToastService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -40,9 +37,33 @@ public class BellsEditorTab {
     private final MainApp mainApp;
     private Runnable refreshBells;
     private final List<LessonRow> lessonRows = new ArrayList<>();
+    private String currentScheduleName;
 
     public BellsEditorTab(MainApp mainApp) {
         this.mainApp = mainApp;
+    }
+
+    private void save() {
+        if (currentScheduleName == null) return;
+        DaySchedule ds = mainApp.getInternalSchedules().stream()
+                .filter(d -> d.getName().equals(currentScheduleName)).findFirst().orElse(null);
+        if (ds == null) return;
+        List<DaySchedule.LessonInfo> list = new ArrayList<>();
+        for (LessonRow row : lessonRows) {
+            try {
+                int sh = Integer.parseInt(row.startHour.getValue());
+                int sm = Integer.parseInt(row.startMinute.getValue());
+                int eh = Integer.parseInt(row.endHour.getValue());
+                int em = Integer.parseInt(row.endMinute.getValue());
+                int br = Integer.parseInt(row.breakField.getText().trim());
+                list.add(new DaySchedule.LessonInfo(LocalTime.of(sh, sm), LocalTime.of(eh, em), br));
+            } catch (Exception e) {
+                // Skip invalid rows during auto-save
+            }
+        }
+        ds.setLessons(list);
+        mainApp.getScheduleService().saveInternalSchedules(mainApp.getInternalSchedules());
+        mainApp.reloadSchedule(); // Refresh bell queue immediately
     }
 
     public Node createContent() {
@@ -50,14 +71,13 @@ public class BellsEditorTab {
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
-        Button saveBtn = createPrimaryActionButton("Зберегти зміни", ICON_SAVE);
         HBox header = createPageHeader(
             "РОЗКЛАД ДЗВІНКІВ",
             "Налаштування дзвінків",
             "Створюйте та редагуйте розклади уроків для вашого закладу.",
             ICON_BELL,
             COLOR_SKY,
-            saveBtn
+            null
         );
 
         HBox contentLayout = new HBox(28); 
@@ -110,7 +130,6 @@ public class BellsEditorTab {
         selectorBox.getChildren().addAll(selectorLabel, selector);
 
         Button addBtn = createPrimaryActionButton("ДОДАТИ", ICON_PLUS);
-        addBtn.setStyle(addBtn.getStyle().replace(COLOR_PRIMARY, COLOR_PURPLE));
 
         Button renameBtn = new Button("ПЕРЕЙМЕНУВАТИ");
         renameBtn.setGraphic(createSVGIcon(ICON_EDIT, Color.web(COLOR_SLATE), 16));
@@ -168,7 +187,35 @@ public class BellsEditorTab {
         VBox rows = new VBox(8);
         VBox.setVgrow(rows, Priority.ALWAYS);
 
-        HBox editorBody = new HBox(14, rows);
+        Button addLessonRowBtn = new Button("ДОДАТИ НОВИЙ УРОК");
+        addLessonRowBtn.setGraphic(createSVGIcon(ICON_PLUS, Color.web(COLOR_PRIMARY), 18));
+        addLessonRowBtn.setGraphicTextGap(12);
+        addLessonRowBtn.setStyle("-fx-background-color: white; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-width: 1.5; -fx-border-style: dashed; -fx-border-radius: 18; -fx-padding: 15; -fx-font-weight: 800; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-cursor: hand;");
+        addLessonRowBtn.setMaxWidth(Double.MAX_VALUE);
+        addLessonRowBtn.setOnMouseEntered(e -> addLessonRowBtn.setStyle(addLessonRowBtn.getStyle().replace("white", COLOR_SURFACE_SKY)));
+        addLessonRowBtn.setOnMouseExited(e -> addLessonRowBtn.setStyle(addLessonRowBtn.getStyle().replace(COLOR_SURFACE_SKY, "white")));
+
+        addLessonRowBtn.setOnAction(e -> {
+            int newIdx = lessonRows.size();
+            String[] tones = {COLOR_LAVENDER, COLOR_BLUE_BRIGHT, COLOR_TURQUOISE, COLOR_GOLDEN_ORANGE, COLOR_MAGENTA_SOFT, COLOR_BLUE_VIVID, COLOR_GREEN};
+            
+            LocalTime lastEnd = LocalTime.of(8, 0);
+            if (!lessonRows.isEmpty()) {
+                LessonRow last = lessonRows.get(lessonRows.size() - 1);
+                lastEnd = LocalTime.of(Integer.parseInt(last.startHour.getValue()), Integer.parseInt(last.startMinute.getValue())).plusMinutes(45 + Integer.parseInt(last.breakField.getText().trim()));
+            }
+            
+            DaySchedule.LessonInfo li = new DaySchedule.LessonInfo(lastEnd, lastEnd.plusMinutes(45), 10);
+            LessonRow lr = createLessonRow(newIdx, tones[newIdx % tones.length], li, rows, lessonRows);
+            lessonRows.add(lr);
+            rows.getChildren().add(lr.root);
+            save();
+        });
+
+        VBox editorContainer = new VBox(15, rows, addLessonRowBtn);
+        HBox.setHgrow(editorContainer, Priority.ALWAYS);
+
+        HBox editorBody = new HBox(14, editorContainer);
         HBox.setHgrow(rows, Priority.ALWAYS);
 
         editorCard.getChildren().addAll(sectionHead, editorBody);
@@ -271,27 +318,9 @@ public class BellsEditorTab {
             dialog.display();
         });
 
-        Runnable saveAction = () -> {
-            DaySchedule ds = mainApp.getInternalSchedules().stream()
-                    .filter(d -> d.getName().equals(selector.getValue())).findFirst().orElse(null);
-            if (ds == null) return;
-            List<DaySchedule.LessonInfo> list = new ArrayList<>();
-            for (LessonRow row : lessonRows) {
-                int sh = Integer.parseInt(row.startHour.getValue());
-                int sm = Integer.parseInt(row.startMinute.getValue());
-                int eh = Integer.parseInt(row.endHour.getValue());
-                int em = Integer.parseInt(row.endMinute.getValue());
-                int br = Integer.parseInt(row.breakField.getText().trim());
-                list.add(new DaySchedule.LessonInfo(LocalTime.of(sh, sm), LocalTime.of(eh, em), br));
-            }
-            ds.setLessons(list);
-            mainApp.getScheduleService().saveInternalSchedules(mainApp.getInternalSchedules());
-            ToastService.showSuccess("Зміни в розкладі успішно збережено!");
-        };
-        saveBtn.setOnAction(e -> saveAction.run());
-
         selector.valueProperty().addListener((obs, oldV, newV) -> {
             if (newV == null) return;
+            currentScheduleName = newV;
             
             boolean isActive = newV.equals(mainApp.getConfigService().getSelectedScheduleName());
             activateBtn.setDisable(isActive);
@@ -306,7 +335,7 @@ public class BellsEditorTab {
 
             String[] tones = {COLOR_LAVENDER, COLOR_BLUE_BRIGHT, COLOR_TURQUOISE, COLOR_GOLDEN_ORANGE, COLOR_MAGENTA_SOFT, COLOR_BLUE_VIVID, COLOR_GREEN};
             for (int i = 0; i < ds.getLessons().size(); i++) {
-                LessonRow row = createLessonRow(i, tones[i % tones.length], ds.getLessons().get(i));
+                LessonRow row = createLessonRow(i, tones[i % tones.length], ds.getLessons().get(i), rows, lessonRows);
                 lessonRows.add(row);
                 rows.getChildren().add(row.root);
             }
@@ -331,17 +360,41 @@ public class BellsEditorTab {
         return scroll;
     }
 
-    private LessonRow createLessonRow(int index, String tone, DaySchedule.LessonInfo info) {
+    private LessonRow createLessonRow(int index, String tone, DaySchedule.LessonInfo info, VBox rows, List<LessonRow> lessonRows) {
         ComboBox<String> sh = createTimeCombo(24, info.start != null ? info.start.getHour() : 0);
         ComboBox<String> sm = createTimeCombo(60, info.start != null ? info.start.getMinute() : 0);
         ComboBox<String> eh = createTimeCombo(24, info.end != null ? info.end.getHour() : 0);
         ComboBox<String> em = createTimeCombo(60, info.end != null ? info.end.getMinute() : 0);
         TextField breakF = new TextField(String.valueOf(info.breakAfterMinutes));
 
+        // Auto-save listeners
+        sh.setOnAction(e -> save());
+        sm.setOnAction(e -> save());
+        eh.setOnAction(e -> save());
+        em.setOnAction(e -> save());
+        breakF.focusedProperty().addListener((obs, ov, nv) -> { if (!nv) save(); });
+
         breakF.setPrefSize(90, 45);
         breakF.setStyle(PREMIUM_FIELD_STYLE + "-fx-font-size: 15px; -fx-padding: 0 12; -fx-alignment: CENTER;");
 
-        HBox lessonBox = lessonBox(index, tone);
+        StackPane badge = new StackPane();
+        badge.setMinSize(44, 44);
+        badge.setPrefSize(44, 44);
+        badge.setMaxSize(44, 44);
+        badge.setStyle("-fx-background-color: " + tone + "12; -fx-background-radius: 12; -fx-border-color: " + tone + "30; -fx-border-width: 1.5; -fx-border-radius: 12;");
+        Label numLabel = new Label(String.format("%02d", index + 1));
+        numLabel.setStyle("-fx-text-fill: " + tone + "; -fx-font-weight: 900; -fx-font-size: 15px;");
+        badge.getChildren().add(numLabel);
+
+        Label lessonTextLabel = new Label((index + 1) + " УРОК");
+        lessonTextLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + "; -fx-letter-spacing: 0.5px;");
+        
+        String openBook = "M19,2H14C12.9,2 12,2.9 12,4C12,2.9 11.1,2 10,2H5C3.9,2 3,2.9 3,4V20C3,18.9 3.9,18 5,18H10C11.1,18 12,18.9 12,20C12,18.9 12.9,18 14,18H19C20.1,18 21,18.9 21,20V4C21,2.9 20.1,2 19,2Z";
+        HBox lessonBox = new HBox(12, badge, createSVGIcon(openBook, Color.web(tone), 22), lessonTextLabel);
+        lessonBox.setAlignment(Pos.CENTER_LEFT);
+        lessonBox.setPrefWidth(160);
+        lessonBox.setMinWidth(160);
+
         VBox startBox = labeledTimeBox("ПОЧАТОК", sh, sm);
         VBox endBox = labeledTimeBox("КІНЕЦЬ", eh, em);
         VBox breakBox = breakLabeledBox(breakF);
@@ -349,29 +402,43 @@ public class BellsEditorTab {
         HBox.setHgrow(startBox, Priority.ALWAYS);
         HBox.setHgrow(endBox, Priority.ALWAYS);
         HBox.setHgrow(breakBox, Priority.ALWAYS);
-        startBox.setMaxWidth(Double.MAX_VALUE);
-        endBox.setMaxWidth(Double.MAX_VALUE);
-        breakBox.setMaxWidth(Double.MAX_VALUE);
 
         Label dash = new Label("—");
         dash.setStyle("-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_MUTED + "; -fx-padding: 14 4 0 4;");
 
-        HBox row = new HBox(15, lessonBox, startBox, dash, endBox, breakBox);
+        Button delBtn = com.schoolbell.ui.CardFactory.createCardActionButton(ICON_TRASH, COLOR_DANGER_LIGHT, COLOR_DANGER);
+        
+        HBox row = new HBox(15, lessonBox, startBox, dash, endBox, breakBox, delBtn);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(14, 20, 14, 20));
-        row.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-background-radius: 18;" +
-                "-fx-border-color: " + COLOR_BORDER_SOFT + ";" +
-                "-fx-border-width: 1;" +
-                "-fx-border-radius: 18;" +
-                "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_03 + ", 8, 0, 0, 2);"
-        );
+        row.setStyle("-fx-background-color: white; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-width: 1; -fx-border-radius: 18; -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_03 + ", 8, 0, 0, 2);");
 
         row.setOnMouseEntered(e -> row.setStyle(row.getStyle() + "-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-border-color: " + tone + "40;"));
         row.setOnMouseExited(e -> row.setStyle(row.getStyle().replace("-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-border-color: " + tone + "40;", "")));
 
-        return new LessonRow(row, sh, sm, eh, em, breakF);
+        delBtn.setOnAction(e -> {
+            lessonRows.removeIf(lr -> lr.root == row);
+            rows.getChildren().remove(row);
+            reindexRows(lessonRows);
+            save();
+        });
+
+        return new LessonRow(row, badge, numLabel, lessonTextLabel, sh, sm, eh, em, breakF);
+    }
+
+    private void reindexRows(List<LessonRow> lessonRows) {
+        String[] tones = {COLOR_LAVENDER, COLOR_BLUE_BRIGHT, COLOR_TURQUOISE, COLOR_GOLDEN_ORANGE, COLOR_MAGENTA_SOFT, COLOR_BLUE_VIVID, COLOR_GREEN};
+        for (int i = 0; i < lessonRows.size(); i++) {
+            LessonRow lr = lessonRows.get(i);
+            String tone = tones[i % tones.length];
+            lr.numLabel.setText(String.format("%02d", i + 1));
+            lr.numLabel.setStyle("-fx-text-fill: " + tone + "; -fx-font-weight: 900; -fx-font-size: 15px;");
+            lr.badge.setStyle("-fx-background-color: " + tone + "12; -fx-background-radius: 12; -fx-border-color: " + tone + "30; -fx-border-width: 1.5; -fx-border-radius: 12;");
+            lr.lessonTextLabel.setText((i + 1) + " УРОК");
+            
+            final String fTone = tone;
+            lr.root.setOnMouseEntered(e -> lr.root.setStyle(lr.root.getStyle().split("-fx-background-color:")[0] + "-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-border-color: " + fTone + "40;"));
+        }
     }
 
     private HBox lessonBox(int index, String tone) {
@@ -426,6 +493,9 @@ public class BellsEditorTab {
 
     private record LessonRow(
             HBox root,
+            StackPane badge,
+            Label numLabel,
+            Label lessonTextLabel,
             ComboBox<String> startHour,
             ComboBox<String> startMinute,
             ComboBox<String> endHour,

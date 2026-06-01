@@ -42,6 +42,7 @@ public class NotificationsView {
         this.mainApp = mainApp;
         this.config = mainApp.getConfigService();
         this.alertsPanel = new EmergencyAlertsPanel(mainApp);
+        this.alertsPanel.setOnChanged(this::save); // Support auto-save
         this.mediaPanel = new MediaSchedulerPanel(mainApp);
     }
 
@@ -80,17 +81,13 @@ public class NotificationsView {
     }
 
     private HBox buildHeader() {
-        Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ЗМІНИ", ICON_NOTIFICATIONS);
-        saveBtn.setStyle(PREMIUM_BTN_STYLE);
-        saveBtn.setOnAction(e -> save());
-
         return ControlFactory.createPageHeader(
             "ПОВІДОМЛЕННЯ ТА ЗВУК",
             "Сигнали та сповіщення",
             "Керування екстреними сигналами, фоновою музикою та вибором аудіопристроїв.",
             ICON_NOTIFICATIONS,
             COLOR_INDIGO,
-            saveBtn
+            null // Removed saveBtn
         );
     }
 
@@ -117,6 +114,7 @@ public class NotificationsView {
                 }
             }
         } catch (Exception ignored) {}
+        deviceCombo.setOnAction(e -> save());
 
         VBox iconWrap = new VBox(createSVGIcon(ICON_VOLUME, Color.web(COLOR_PRIMARY), 24));
         iconWrap.setAlignment(Pos.CENTER);
@@ -161,6 +159,7 @@ public class NotificationsView {
                 updateVolumeStyle();
                 mainApp.getAudioService().setVolume(preset);
                 mainApp.getSystemService().setWindowsSystemVolume(preset);
+                save();
             });
             volumePresetBox.getChildren().add(button);
         }

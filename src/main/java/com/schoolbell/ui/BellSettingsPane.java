@@ -32,6 +32,22 @@ public class BellSettingsPane extends StackPane {
     private final IntegerProperty emergencyDuration = new SimpleIntegerProperty();
     private final IntegerProperty earlyMin = new SimpleIntegerProperty();
     private final IntegerProperty earlySec = new SimpleIntegerProperty();
+    private Runnable onSettingsChanged;
+
+    public void setOnSettingsChanged(Runnable callback) {
+        this.onSettingsChanged = callback;
+        
+        javafx.beans.value.ChangeListener<Number> listener = (obs, ov, nv) -> {
+            if (onSettingsChanged != null) onSettingsChanged.run();
+        };
+        
+        regularDuration.addListener(listener);
+        airRaidRingDuration.addListener(listener);
+        airRaidPauseDuration.addListener(listener);
+        emergencyDuration.addListener(listener);
+        earlyMin.addListener(listener);
+        earlySec.addListener(listener);
+    }
 
     public BellSettingsPane() {
         this(false);

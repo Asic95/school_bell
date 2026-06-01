@@ -74,14 +74,14 @@ public class AppNavigation {
 
         Node oldNode = contentArea.getChildren().get(0);
         
-        // Skip transition if it's the same node type/instance (optional improvement)
+        // Skip transition if it's the same node type/instance
         if (oldNode == newNode) return;
 
         javafx.animation.FadeTransition fadeOut = new javafx.animation.FadeTransition(javafx.util.Duration.millis(120), oldNode);
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);
         fadeOut.setOnFinished(e -> {
-            newNode.setOpacity(0.0); // Crucial fix: set opacity to 0 before adding to scene
+            newNode.setOpacity(0.0);
             contentArea.getChildren().setAll(newNode);
             
             javafx.animation.FadeTransition fadeIn = new javafx.animation.FadeTransition(javafx.util.Duration.millis(180), newNode);

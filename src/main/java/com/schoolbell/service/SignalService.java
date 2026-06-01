@@ -22,10 +22,58 @@ public class SignalService {
     private Consumer<String> logConsumer;
     private LocalTime lastEarlyBellMinute = null;
 
+    // Playlist state for folder-based audio
+    private java.util.List<java.io.File> playlist = new java.util.ArrayList<>();
+    private int currentPlaylistIndex = 0;
+    private String lastPlaylistPath = "";
+
     public SignalService(RelayController relayController, AudioService audioService, ConfigService configService) {
         this.relayController = relayController;
         this.audioService = audioService;
         this.configService = configService;
+    }
+
+    /**
+     * Resolves a configuration path (file or folder) to a specific audio file path.
+     * If it's a folder, it shuffles the contents and maintains a playlist index.
+     */
+    private String resolveAudioPath(String configPath) {
+        if (configPath == null || configPath.isBlank()) return null;
+        java.io.File target = new java.io.File(configPath);
+        if (!target.exists()) return configPath;
+
+        if (target.isDirectory()) {
+            // Re-initialize playlist if the path changed or playlist is empty
+            if (!configPath.equals(lastPlaylistPath) || playlist.isEmpty()) {
+                lastPlaylistPath = configPath;
+                playlist.clear();
+                java.io.File[] files = target.listFiles((dir, name) -> {
+                    String lower = name.toLowerCase();
+                    return lower.endsWith(".mp3") || lower.endsWith(".wav") || lower.endsWith(".m4a");
+                });
+                
+                if (files != null && files.length > 0) {
+                    playlist.addAll(java.util.Arrays.asList(files));
+                    java.util.Collections.shuffle(playlist);
+                    currentPlaylistIndex = 0;
+                }
+            }
+
+            if (playlist.isEmpty()) return null;
+
+            // Get current file and increment index
+            java.io.File nextFile = playlist.get(currentPlaylistIndex);
+            currentPlaylistIndex = (currentPlaylistIndex + 1) % playlist.size();
+            
+            // If we've looped back to the start, re-shuffle for variety
+            if (currentPlaylistIndex == 0) {
+                java.util.Collections.shuffle(playlist);
+            }
+            
+            return nextFile.getAbsolutePath();
+        }
+
+        return configPath;
     }
 
     public void setLogConsumer(Consumer<String> logConsumer) {
@@ -62,7 +110,7 @@ public class SignalService {
                 }
                 if (configService.isAudioAirRaidEnabled()) {
                     Thread.sleep(1500);
-                    audioService.playAudioFile(configService.getAudioAirRaidPath());
+                    audioService.playAudioFile(resolveAudioPath(configService.getAudioAirRaidPath()));
                 }
                 currentAlertType = "AIR_RAID";
                 addLog("Сигнал тривоги завершено. Режим ТРИВОГИ активовано.", "SUCCESS");
@@ -92,7 +140,7 @@ public class SignalService {
                     String clearPath = configService.getAudioAirRaidClearPath();
                     if (clearPath != null && !clearPath.isBlank()) {
                         Thread.sleep(1500);
-                        audioService.playAudioFile(clearPath);
+                        audioService.playAudioFile(resolveAudioPath(clearPath));
                     }
                 }
                 
@@ -118,7 +166,7 @@ public class SignalService {
                 relayController.turnOff();
                 if (configService.isAudioEmergencyEnabled()) {
                     Thread.sleep(1500);
-                    audioService.playAudioFile(configService.getAudioEmergencyPath());
+                    audioService.playAudioFile(resolveAudioPath(configService.getAudioEmergencyPath()));
                 }
                 currentAlertType = "EMERGENCY";
                 addLog("Сигнал НС завершено. Режим НАДЗВИЧАЙНОЇ СИТУАЦІЇ активовано.", "SUCCESS");
@@ -150,6 +198,21 @@ public class SignalService {
                 isActionInProgress = false;
             }
         }).start();
+    }
+
+    /**
+     * Plays the automation error sound (e.g. when API fails).
+     * This sound plays even if other actions are in progress, 
+     * but only if a path is configured.
+     */
+    public void playAutomationError() {
+        String errorPath = configService.getAudioAirRaidErrorPath();
+        if (errorPath != null && !errorPath.isBlank()) {
+            String resolved = resolveAudioPath(errorPath);
+            if (resolved != null) {
+                audioService.playAudioFile(resolved);
+            }
+        }
     }
 
     public void testRelay() {
@@ -185,11 +248,16 @@ public class SignalService {
     }
 
     public void checkAndTriggerBell(LocalTime now, List<BellEntry> schedule) {
+        // Block all scheduled bells if an emergency alert is active
+        if ("AIR_RAID".equals(currentAlertType) || "EMERGENCY".equals(currentAlertType)) {
+            return;
+        }
+
         if (now.getHour() == 9 && now.getMinute() == 0 && now.getSecond() == 0) {
             if (configService.isAudioSilenceEnabled()) {
                 new Thread(() -> {
                     currentAlertType = "SILENCE";
-                    audioService.playAudioFile(configService.getAudioSilencePath());
+                    audioService.playAudioFile(resolveAudioPath(configService.getAudioSilencePath()));
                     try {
                         Thread.sleep(65000); // 65 seconds
                     } catch (InterruptedException ignored) {

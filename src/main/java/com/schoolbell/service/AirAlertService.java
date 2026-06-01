@@ -182,12 +182,9 @@ public class AirAlertService {
             }
 
             // Announce error via audio every 5 minutes if data is stale/missing
-            if (configService.isAudioAirRaidEnabled() && LocalDateTime.now().isAfter(lastErrorAnnouncement.plusMinutes(5))) {
-                String errorPath = configService.getAudioAirRaidErrorPath();
-                if (errorPath != null && !errorPath.isBlank()) {
-                    mainApp.getAudioService().playAudioFile(errorPath);
-                    lastErrorAnnouncement = LocalDateTime.now();
-                }
+            if (LocalDateTime.now().isAfter(lastErrorAnnouncement.plusMinutes(5))) {
+                signalService.playAutomationError();
+                lastErrorAnnouncement = LocalDateTime.now();
             }
         }
     }
