@@ -58,6 +58,15 @@ public class EmergencyAlertsPanel {
     private ToggleButton siAudioTg;
     private TextField siAudioPath;
     private ToggleButton siVisualTg;
+    private Runnable onChanged;
+
+    public void setOnChanged(Runnable onChanged) {
+        this.onChanged = onChanged;
+    }
+
+    private void trigger() {
+        if (onChanged != null) onChanged.run();
+    }
 
     public EmergencyAlertsPanel(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -74,24 +83,46 @@ public class EmergencyAlertsPanel {
         Label subtitle = new Label("Налаштуйте параметри сповіщень та оберіть звукові файли для кожного сценарію.");
         subtitle.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");
 
+        arAudioTg = createToggleSwitch(config.isAudioAirRaidEnabled());
+        arAudioPath = hiddenField(config.getAudioAirRaidPath());
+        arVisualTg = createToggleSwitch(config.isVisualAirRaidEnabled());
+        
+        emAudioTg = createToggleSwitch(config.isAudioEmergencyEnabled());
+        emAudioPath = hiddenField(config.getAudioEmergencyPath());
+        emVisualTg = createToggleSwitch(config.isVisualEmergencyEnabled());
+        
+        siAudioTg = createToggleSwitch(config.isAudioSilenceEnabled());
+        siAudioPath = hiddenField(config.getAudioSilencePath());
+        siVisualTg = createToggleSwitch(config.isVisualSilenceEnabled());
+
+        setupAutoSaveListeners();
+
         VBox list = new VBox(18);
         list.getChildren().addAll(
                 createAlertCard("Повітряна тривога", "Аудіо • Екран", ICON_AIR_RAID, COLOR_WARNING_AMBER, COLOR_AMBER_LIGHT, "AIR_RAID",
-                        arAudioTg = createToggleSwitch(config.isAudioAirRaidEnabled()),
-                        arAudioPath = hiddenField(config.getAudioAirRaidPath()),
-                        arVisualTg = createToggleSwitch(config.isVisualAirRaidEnabled())),
+                        arAudioTg, arAudioPath, arVisualTg),
                 createAlertCard("Екстрена ситуація", "Аудіо • Екран", ICON_LIFEBUOY, COLOR_ALERT_RED, COLOR_ALERT_RED_LIGHT, "EMERGENCY",
-                        emAudioTg = createToggleSwitch(config.isAudioEmergencyEnabled()),
-                        emAudioPath = hiddenField(config.getAudioEmergencyPath()),
-                        emVisualTg = createToggleSwitch(config.isVisualEmergencyEnabled())),
+                        emAudioTg, emAudioPath, emVisualTg),
                 createAlertCard("Хвилина мовчання", "Аудіо • Екран", ICON_CLOCK, COLOR_ALERT_BLUE, COLOR_ALERT_BLUE_LIGHT, "SILENCE",
-                        siAudioTg = createToggleSwitch(config.isAudioSilenceEnabled()),
-                        siAudioPath = hiddenField(config.getAudioSilencePath()),
-                        siVisualTg = createToggleSwitch(config.isVisualSilenceEnabled()))
+                        siAudioTg, siAudioPath, siVisualTg)
         );
 
         section.getChildren().addAll(title, subtitle, list);
         return section;
+    }
+
+    private void setupAutoSaveListeners() {
+        arAudioTg.selectedProperty().addListener((o, ov, nv) -> trigger());
+        arVisualTg.selectedProperty().addListener((o, ov, nv) -> trigger());
+        arAudioPath.textProperty().addListener((o, ov, nv) -> trigger());
+
+        emAudioTg.selectedProperty().addListener((o, ov, nv) -> trigger());
+        emVisualTg.selectedProperty().addListener((o, ov, nv) -> trigger());
+        emAudioPath.textProperty().addListener((o, ov, nv) -> trigger());
+
+        siAudioTg.selectedProperty().addListener((o, ov, nv) -> trigger());
+        siVisualTg.selectedProperty().addListener((o, ov, nv) -> trigger());
+        siAudioPath.textProperty().addListener((o, ov, nv) -> trigger());
     }
 
     private TextField hiddenField(String value) {
@@ -178,7 +209,10 @@ public class EmergencyAlertsPanel {
         javafx.scene.control.SeparatorMenuItem sep = new javafx.scene.control.SeparatorMenuItem();
 
         MenuItem pick = new MenuItem("Налаштувати звуки");
-        pick.setOnAction(e -> new SignalAudioEditorDialog(mainApp, alertType).show());
+        pick.setOnAction(e -> {
+            new SignalAudioEditorDialog(mainApp, alertType).showAndWait();
+            refreshPathsFromConfig();
+        });
 
         more.getItems().addAll(testAudio, testVisual, sep, pick);
 
@@ -187,6 +221,12 @@ public class EmergencyAlertsPanel {
 
         applyStatusStyle(status, audioToggle, visualToggle);
         return card;
+    }
+
+    private void refreshPathsFromConfig() {
+        arAudioPath.setText(config.getAudioAirRaidPath());
+        emAudioPath.setText(config.getAudioEmergencyPath());
+        siAudioPath.setText(config.getAudioSilencePath());
     }
 
     private VBox createAudioConfigButton(String alertType, TextField pathField) {
@@ -220,7 +260,10 @@ public class EmergencyAlertsPanel {
         row.getChildren().add(meta);
         card.getChildren().addAll(label, row);
 
-        card.setOnMouseClicked(e -> new SignalAudioEditorDialog(mainApp, alertType).show());
+        card.setOnMouseClicked(e -> {
+            new SignalAudioEditorDialog(mainApp, alertType).showAndWait();
+            refreshPathsFromConfig();
+        });
         card.setOnMouseEntered(e -> card.setStyle(card.getStyle() + "-fx-background-color: " + COLOR_SURFACE_SOFT + ";"));
         card.setOnMouseExited(e -> card.setStyle(card.getStyle().replace("-fx-background-color: " + COLOR_SURFACE_SOFT + ";", "")));
 
@@ -314,5 +357,17 @@ public class EmergencyAlertsPanel {
         config.setAudioSilenceEnabled(siAudioTg.isSelected());
         config.setAudioSilencePath(siAudioPath.getText());
         config.setVisualSilenceEnabled(siVisualTg.isSelected());
+    }
+
+    public boolean hasChanges() {
+        return arAudioTg.isSelected() != config.isAudioAirRaidEnabled() ||
+               !arAudioPath.getText().equals(config.getAudioAirRaidPath() == null ? "" : config.getAudioAirRaidPath()) ||
+               arVisualTg.isSelected() != config.isVisualAirRaidEnabled() ||
+               emAudioTg.isSelected() != config.isAudioEmergencyEnabled() ||
+               !emAudioPath.getText().equals(config.getAudioEmergencyPath() == null ? "" : config.getAudioEmergencyPath()) ||
+               emVisualTg.isSelected() != config.isVisualEmergencyEnabled() ||
+               siAudioTg.isSelected() != config.isAudioSilenceEnabled() ||
+               !siAudioPath.getText().equals(config.getAudioSilencePath() == null ? "" : config.getAudioSilencePath()) ||
+               siVisualTg.isSelected() != config.isVisualSilenceEnabled();
     }
 }

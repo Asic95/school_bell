@@ -66,7 +66,9 @@ public class SystemView {
         regionCombo.setOnAction(e -> {
             districtCombo.getItems().clear();
             districtCombo.getItems().addAll(mainApp.getAirAlertService().getDistricts(regionCombo.getValue()));
+            save();
         });
+        districtCombo.setOnAction(e -> save());
 
         bellSettingsPane = new BellSettingsPane(
                 config.getRegularBellDuration(),
@@ -77,10 +79,17 @@ public class SystemView {
                 config.getEarlyBellSeconds(),
                 true
         );
+        bellSettingsPane.setOnSettingsChanged(this::save);
 
         journalPane = new SystemJournalPane(mainApp);
         
-        simulationTg.selectedProperty().addListener((obs, old, nv) -> updateJournalVisibility(nv));
+        simulationTg.selectedProperty().addListener((obs, old, nv) -> {
+            updateJournalVisibility(nv);
+            save();
+        });
+        autostartTg.selectedProperty().addListener((obs, old, nv) -> save());
+        trayTg.selectedProperty().addListener((obs, old, nv) -> save());
+        airRaidTg.selectedProperty().addListener((obs, old, nv) -> save());
     }
 
     public Node build() {
@@ -89,17 +98,13 @@ public class SystemView {
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
-        Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ВСЕ", ICON_SAVE);
-        saveBtn.setStyle(PREMIUM_BTN_STYLE);
-        saveBtn.setOnAction(e -> save());
-
         HBox header = createPageHeader(
             "КОНФІГУРАЦІЯ",
             "Системні налаштування",
             "Глобальні параметри роботи програми, дизайн та поведінка системи.",
             ICON_SETTINGS,
             COLOR_TEXT,
-            saveBtn
+            null // Removed saveBtn
         );
 
         mainCol = new VBox(25);

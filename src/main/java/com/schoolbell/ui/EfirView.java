@@ -36,7 +36,7 @@ public class EfirView {
     private final MainApp mainApp;
     private final ConfigService config;
     private final AnnouncementService announcementService;
-    
+
     private final VBox announcementsContainer;
     private final VBox deviceListContainer;
     private final Label uptimeLabel;
@@ -76,7 +76,7 @@ public class EfirView {
         this.portField = ControlFactory.createStyledField(String.valueOf(config.getBroadcastPort()));
         
         this.themeCombo = new ComboBox<>();
-        this.themeCombo.getItems().addAll("classic", "modern", "modern_full", "neo", "cyber", "soft");
+        this.themeCombo.getItems().addAll("classic", "modern", "modern_full", "panorama", "neo", "cyber", "soft");
         this.themeCombo.setValue(config.getDashboardTheme());
         this.themeCombo.setStyle(PREMIUM_SELECT_STYLE);
         this.themeCombo.setPrefWidth(200);
@@ -87,8 +87,39 @@ public class EfirView {
         cityNameField.setPromptText("Місто");
         portField.setPrefWidth(120);
 
+        setupAutoSaveListeners();
         setupAutoRefresh();
         updateFirewallStatusLabel();
+    }
+
+    private void setupAutoSaveListeners() {
+        schoolNameField.focusedProperty().addListener((obs, ov, nv) -> { if (!nv) save(); });
+        cityNameField.focusedProperty().addListener((obs, ov, nv) -> { if (!nv) save(); });
+        portField.focusedProperty().addListener((obs, ov, nv) -> { if (!nv) save(); });
+        themeCombo.setOnAction(e -> save());
+    }
+
+    private void save() {
+        try {
+            config.setSchoolName(schoolNameField.getText());
+            config.setCityName(cityNameField.getText());
+            config.setBroadcastPort(Integer.parseInt(portField.getText()));
+            config.setDashboardTheme(themeCombo.getValue());
+            
+            mainApp.saveConfig();
+            if (config.isBroadcastEnabled()) {
+                mainApp.startBroadcastServers();
+            } else {
+                mainApp.stopBroadcastServers();
+            }
+            updateFirewallStatusLabel();
+            if (addrLabel != null) {
+                addrLabel.setText("http://" + getLocalIp() + ":" + config.getBroadcastPort());
+            }
+            ToastService.showSuccess("Налаштування ефіру оновлено");
+        } catch (Exception ex) {
+            // Silently ignore invalid port numbers etc
+        }
     }
 
     private void setupAutoRefresh() {
@@ -105,39 +136,13 @@ public class EfirView {
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
-        // --- STANDARD HEADER ---
-        Button saveBtn = createPrimaryActionButton("ЗБЕРЕГТИ ЗМІНИ", ICON_SAVE);
-        saveBtn.setStyle(PREMIUM_BTN_STYLE);
-        saveBtn.setOnAction(e -> {
-            try {
-                config.setSchoolName(schoolNameField.getText());
-                config.setCityName(cityNameField.getText());
-                config.setBroadcastPort(Integer.parseInt(portField.getText()));
-                config.setDashboardTheme(themeCombo.getValue());
-                
-                mainApp.saveConfig();
-                if (config.isBroadcastEnabled()) {
-                    mainApp.startBroadcastServers();
-                } else {
-                    mainApp.stopBroadcastServers();
-                }
-                ToastService.showSuccess("Налаштування ефіру збережено");
-                updateFirewallStatusLabel();
-                if (addrLabel != null) {
-                    addrLabel.setText("http://" + getLocalIp() + ":" + config.getBroadcastPort());
-                }
-            } catch (Exception ex) {
-                ToastService.showError("Помилка збереження: " + ex.getMessage());
-            }
-        });
-
         HBox header = createPageHeader(
             "ЦЕНТР КЕРУВАННЯ ЕФІРОМ",
             "Керування ефіром",
             "Контроль трансляції, планування оголошень та моніторинг підключених пристроїв.",
             ICON_BROADCAST,
             COLOR_INDIGO,
-            saveBtn
+            null
         );
 
         // --- TOP STATUS BAR ---
@@ -307,6 +312,8 @@ public class EfirView {
         String baseColor = active ? COLOR_SUCCESS : COLOR_DANGER;
         String text = active ? "АКТИВНИЙ" : "ВИМКНЕНО";
         
+        if (liveStatusDotCore == null) return;
+
         Color fxColor = Color.web(baseColor);
         liveStatusDotCore.setFill(fxColor);
         liveStatusDotGlow.setFill(fxColor);

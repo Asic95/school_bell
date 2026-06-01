@@ -46,6 +46,16 @@ public class MediaSchedulerService {
     }
 
     private void checkEvents() {
+        // Block all scheduled media events if an emergency alert is active
+        String alertType = mainApp.getSignalService().getCurrentAlertType();
+        if ("AIR_RAID".equals(alertType) || "EMERGENCY".equals(alertType)) {
+            // ONLY stop if it's break music. Don't touch the emergency alert sound!
+            if (isPlayingOnBreak) {
+                stopBreakMusic();
+            }
+            return;
+        }
+
         LocalTime now = LocalTime.now();
         LocalDate today = LocalDate.now();
         int dayOfWeek = today.getDayOfWeek().getValue(); // 1-7

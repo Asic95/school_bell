@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Bell Dashboard - Panorama</title>
+    <style>
+        :root {
+            --bg: #08111f;
+            --panel: rgba(18, 28, 43, 0.86);
+            --panel-strong: rgba(23, 37, 56, 0.94);
+            --line: rgba(255, 255, 255, 0.11);
+            --text: #f8fafc;
+            --muted: #9aa8bd;
+            --blue: #38bdf8;
+            --green: #22c55e;
+            --amber: #f59e0b;
+            --red: #ef4444;
+            --violet: #8b5cf6;
+            --cyan-soft: rgba(56, 189, 248, 0.13);
+            --red-soft: rgba(239, 68, 68, 0.14);
+            --amber-soft: rgba(245, 158, 11, 0.14);
+            --green-soft: rgba(34, 197, 94, 0.13);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            overflow: hidden;
+            color: var(--text);
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            background:
+                linear-gradient(115deg, rgba(56, 189, 248, 0.13), transparent 34%),
+                linear-gradient(305deg, rgba(34, 197, 94, 0.10), transparent 35%),
+                linear-gradient(180deg, #07101d 0%, #0b1626 48%, #080f1b 100%);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 70px 70px;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.72), transparent 88%);
+        }
+
+        .shell {
+            height: 100vh;
+            display: grid;
+            grid-template-rows: clamp(74px, 10vh, 112px) 1fr clamp(78px, 10vh, 116px);
+            gap: clamp(14px, 1.8vw, 26px);
+            padding: clamp(16px, 2.1vw, 34px);
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            display: grid;
+            grid-template-columns: minmax(250px, 1fr) auto minmax(250px, 1fr);
+            align-items: center;
+            gap: 22px;
+            min-width: 0;
+        }
+
+        .brand, .status-strip, .clock-card, .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+            backdrop-filter: blur(18px);
+        }
+
+        .brand {
+            height: 100%;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: clamp(12px, 1.4vw, 20px);
+            padding: 0 clamp(16px, 2vw, 28px);
+            min-width: 0;
+        }
+
+        .brand svg {
+            width: clamp(42px, 4.2vw, 66px);
+            height: clamp(42px, 4.2vw, 66px);
+            flex: 0 0 auto;
+            stroke: var(--blue);
+            filter: drop-shadow(0 0 18px rgba(56, 189, 248, 0.28));
+        }
+
+        .brand-text {
+            min-width: 0;
+        }
+
+        #school-name {
+            font-size: clamp(22px, 2.1vw, 40px);
+            font-weight: 900;
+            line-height: 1.05;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #city-name {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: clamp(13px, 1.1vw, 20px);
+            font-weight: 750;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .clock-card {
+            height: 100%;
+            min-width: clamp(260px, 25vw, 430px);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #clock {
+            font-size: clamp(46px, 5.8vw, 92px);
+            line-height: 0.9;
+            font-weight: 950;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0;
+            text-shadow: 0 0 28px rgba(56, 189, 248, 0.26);
+        }
+
+        #header-date {
+            margin-top: 8px;
+            color: var(--blue);
+            font-size: clamp(11px, 1vw, 16px);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .status-strip {
+            height: 100%;
+            border-radius: 20px;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            gap: clamp(12px, 1.4vw, 18px);
+            padding: 0 clamp(16px, 2vw, 28px);
+            min-width: 0;
+        }
+
+        .conn-dot {
+            width: clamp(16px, 1.35vw, 24px);
+            height: clamp(16px, 1.35vw, 24px);
+            border-radius: 999px;
+            background: var(--red);
+            box-shadow: 0 0 24px var(--red);
+        }
+
+        .status-copy {
+            min-width: 0;
+        }
+
+        #conn-label {
+            font-size: clamp(13px, 1.1vw, 18px);
+            font-weight: 900;
+            color: var(--red);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #global-status-title {
+            margin-top: 7px;
+            font-size: clamp(18px, 1.8vw, 32px);
+            line-height: 1.05;
+            font-weight: 950;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        main {
+            min-height: 0;
+            display: grid;
+            grid-template-columns: minmax(340px, 0.82fr) minmax(520px, 1.18fr);
+            gap: clamp(14px, 1.8vw, 26px);
+        }
+
+        .focus-panel {
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            gap: clamp(14px, 1.6vw, 24px);
+            padding: clamp(18px, 2.2vw, 34px);
+            border-radius: 28px;
+            min-height: 0;
+        }
+
+        .eyebrow {
+            color: var(--blue);
+            font-size: clamp(12px, 1vw, 16px);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .now-card {
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: clamp(14px, 2vh, 24px);
+        }
+
+        .lesson-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: clamp(86px, 8vw, 132px);
+            height: clamp(86px, 8vw, 132px);
+            border-radius: 26px;
+            background: linear-gradient(145deg, rgba(56,189,248,0.26), rgba(139,92,246,0.18));
+            border: 1px solid rgba(56,189,248,0.35);
+            font-size: clamp(42px, 5vw, 84px);
+            font-weight: 950;
+            color: white;
+            box-shadow: inset 0 0 30px rgba(255,255,255,0.05), 0 22px 45px rgba(0,0,0,0.26);
+        }
+
+        #now-subject {
+            font-size: clamp(38px, 5.5vw, 92px);
+            line-height: 0.96;
+            font-weight: 950;
+            overflow-wrap: anywhere;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: clamp(10px, 1vw, 16px);
+        }
+
+        .meta {
+            min-width: 0;
+            padding: clamp(12px, 1.3vw, 18px);
+            border-radius: 18px;
+            background: rgba(255,255,255,0.055);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .meta span {
+            display: block;
+            color: var(--muted);
+            font-size: clamp(11px, 0.9vw, 14px);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+        }
+
+        .meta strong {
+            display: block;
+            margin-top: 7px;
+            font-size: clamp(20px, 2vw, 36px);
+            line-height: 1.05;
+            font-weight: 900;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .progress-block {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 16px;
+            padding-top: 4px;
+        }
+
+        #countdown-label {
+            color: var(--muted);
+            font-size: clamp(12px, 1vw, 16px);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+        }
+
+        #countdown-text {
+            color: var(--amber);
+            font-size: clamp(26px, 2.8vw, 52px);
+            font-weight: 950;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .progress-track {
+            height: clamp(12px, 1.2vw, 18px);
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--green), var(--blue), var(--violet));
+            transition: width 800ms linear;
+        }
+
+        .day-panel {
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            gap: clamp(14px, 1.6vw, 24px);
+            padding: clamp(18px, 2.2vw, 34px);
+            border-radius: 28px;
+            min-height: 0;
+        }
+
+        .panel-heading {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: start;
+            gap: 18px;
+            min-width: 0;
+        }
+
+        .live-card {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            gap: clamp(18px, 2vw, 30px);
+            padding: clamp(16px, 1.8vw, 28px);
+            border-radius: 24px;
+            background: rgba(255,255,255,0.055);
+            border: 1px solid rgba(255,255,255,0.09);
+            min-width: 0;
+        }
+
+        .countdown-ring {
+            width: clamp(132px, 12vw, 210px);
+            height: clamp(132px, 12vw, 210px);
+            position: relative;
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+        }
+
+        .countdown-ring svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .ring-bg {
+            stroke: rgba(255,255,255,0.10);
+            stroke-width: 10;
+            fill: none;
+        }
+
+        #progress-ring {
+            stroke: var(--blue);
+            stroke-width: 10;
+            stroke-linecap: round;
+            fill: none;
+            stroke-dasharray: 339.292;
+            stroke-dashoffset: 339.292;
+            transition: stroke-dashoffset 800ms linear, stroke 300ms ease;
+            filter: drop-shadow(0 0 14px rgba(56,189,248,0.45));
+        }
+
+        .ring-content {
+            width: 74%;
+            height: 74%;
+            border-radius: 999px;
+            display: grid;
+            place-content: center;
+            padding: 10px;
+            background: rgba(8, 17, 31, 0.88);
+            box-shadow: inset 0 0 28px rgba(0,0,0,0.28);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ring-content #countdown-text {
+            color: white;
+            font-size: clamp(22px, 2.05vw, 38px);
+            line-height: 1;
+            font-weight: 950;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .ring-content #countdown-label {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: clamp(10px, 0.78vw, 13px);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .live-copy {
+            min-width: 0;
+        }
+
+        #day-phase {
+            font-size: clamp(28px, 3.2vw, 58px);
+            line-height: 1;
+            font-weight: 950;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: clamp(10px, 1vw, 16px);
+            align-self: end;
+        }
+
+        .quick-stat {
+            min-width: 0;
+            padding: clamp(13px, 1.3vw, 20px);
+            border-radius: 18px;
+            background: rgba(255,255,255,0.055);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .quick-stat span {
+            display: block;
+            color: var(--muted);
+            font-size: clamp(11px, 0.9vw, 14px);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+        }
+
+        .quick-stat strong {
+            display: block;
+            margin-top: 8px;
+            font-size: clamp(24px, 2.4vw, 44px);
+            line-height: 1.05;
+            font-weight: 950;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .schedule-panel {
+            border-radius: 28px;
+            min-height: 0;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+        }
+
+        .schedule-head {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 18px;
+            align-items: center;
+            padding: clamp(16px, 1.8vw, 26px) clamp(18px, 2vw, 30px);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .schedule-title {
+            font-size: clamp(24px, 2.2vw, 40px);
+            font-weight: 950;
+            letter-spacing: 0;
+        }
+
+        #page-indicator {
+            color: var(--muted);
+            font-size: clamp(12px, 1vw, 16px);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1.6px;
+            white-space: nowrap;
+        }
+
+        .rows {
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .schedule-row {
+            display: grid;
+            grid-template-columns: minmax(72px, 0.48fr) minmax(120px, 0.9fr) minmax(180px, 1.35fr) minmax(70px, 0.45fr) minmax(120px, 0.68fr);
+            align-items: center;
+            gap: clamp(10px, 1vw, 18px);
+            min-height: var(--row-height, 76px);
+            padding: 0 clamp(18px, 2vw, 30px);
+            border-bottom: 1px solid rgba(255,255,255,0.065);
+            animation: rowIn 360ms ease-out both;
+        }
+
+        @keyframes rowIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .schedule-row.header-row {
+            min-height: 44px;
+            background: rgba(0,0,0,0.2);
+            color: var(--muted);
+            font-size: clamp(11px, 0.85vw, 14px);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .schedule-row.current {
+            background: var(--cyan-soft);
+            box-shadow: inset 5px 0 0 var(--blue);
+        }
+
+        .schedule-row.upcoming {
+            background: var(--amber-soft);
+            box-shadow: inset 5px 0 0 var(--amber);
+        }
+
+        .schedule-row.replacement {
+            background: var(--red-soft);
+            box-shadow: inset 5px 0 0 var(--red);
+        }
+
+        .cell {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: clamp(18px, 1.45vw, 28px);
+            font-weight: 780;
+        }
+
+        .class-cell {
+            color: var(--blue);
+            font-size: clamp(22px, 1.8vw, 34px);
+            font-weight: 950;
+        }
+
+        .teacher-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .teacher-stack .original {
+            color: var(--muted);
+            font-size: clamp(12px, 0.95vw, 17px);
+            text-decoration: line-through;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .teacher-stack .new {
+            color: #fecaca;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            max-width: 100%;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: clamp(11px, 0.9vw, 15px);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .badge.normal { background: var(--green-soft); color: #86efac; border: 1px solid rgba(34,197,94,0.22); }
+        .badge.current { background: rgba(56,189,248,0.2); color: #bae6fd; border: 1px solid rgba(56,189,248,0.28); }
+        .badge.upcoming { background: rgba(245,158,11,0.19); color: #fcd34d; border: 1px solid rgba(245,158,11,0.28); }
+        .badge.replacement { background: rgba(239,68,68,0.22); color: #fecaca; border: 1px solid rgba(239,68,68,0.32); }
+
+        .next-strip {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 16px;
+            align-items: center;
+            min-height: 68px;
+            padding: 12px clamp(18px, 2vw, 30px);
+            border-top: 1px solid var(--line);
+            background: rgba(0,0,0,0.18);
+        }
+
+        .next-label {
+            color: var(--amber);
+            font-size: clamp(12px, 1vw, 16px);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            white-space: nowrap;
+        }
+
+        #next-summary {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: clamp(18px, 1.5vw, 28px);
+            font-weight: 850;
+        }
+
+        #status-time {
+            color: var(--muted);
+            font-size: clamp(13px, 1.1vw, 18px);
+            font-weight: 850;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        footer {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: clamp(14px, 1.6vw, 24px);
+            align-items: center;
+            min-width: 0;
+            padding: 0 clamp(18px, 2vw, 30px);
+            border-radius: 24px;
+            background: linear-gradient(90deg, rgba(139,92,246,0.92), rgba(14,165,233,0.78));
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+            overflow: hidden;
+        }
+
+        .announcement-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: clamp(13px, 1.1vw, 18px);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+            white-space: nowrap;
+        }
+
+        .announcement-label svg {
+            width: clamp(24px, 2vw, 36px);
+            height: clamp(24px, 2vw, 36px);
+            flex: 0 0 auto;
+        }
+
+        #announcement-text {
+            min-width: 0;
+            font-size: clamp(22px, 2vw, 40px);
+            line-height: 1.1;
+            font-weight: 850;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 1;
+            transition: opacity 420ms ease;
+        }
+
+        #announcement-text.fade-out {
+            opacity: 0;
+        }
+
+        #emergency-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 6vw;
+            text-align: center;
+            color: white;
+            backdrop-filter: blur(16px);
+        }
+
+        #emergency-overlay.air-raid { background: rgba(185, 28, 28, 0.96); animation: alertPulse 1.6s ease-in-out infinite; }
+        #emergency-overlay.emergency { background: rgba(180, 83, 9, 0.96); animation: alertPulse 2s ease-in-out infinite; }
+        #emergency-overlay.silence { background: rgba(3, 7, 18, 0.98); }
+
+        @keyframes alertPulse {
+            0%, 100% { filter: brightness(0.98); }
+            50% { filter: brightness(1.12); }
+        }
+
+        .em-box {
+            width: min(1220px, 92vw);
+            padding: clamp(34px, 5vw, 86px);
+            border-radius: 34px;
+            border: 5px solid rgba(255,255,255,0.32);
+            background: rgba(0,0,0,0.24);
+            box-shadow: 0 36px 90px rgba(0,0,0,0.38);
+        }
+
+        #em-icon {
+            display: block;
+            font-size: clamp(90px, 11vw, 190px);
+            line-height: 1;
+            margin-bottom: clamp(18px, 2vw, 36px);
+        }
+
+        #em-title {
+            font-size: clamp(54px, 8vw, 150px);
+            line-height: 0.95;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0;
+        }
+
+        #em-desc {
+            margin-top: clamp(18px, 2vw, 34px);
+            font-size: clamp(28px, 3.7vw, 72px);
+            line-height: 1.08;
+            font-weight: 850;
+        }
+
+        @media (max-aspect-ratio: 4 / 3), (max-width: 1150px) {
+            .shell {
+                grid-template-rows: auto 1fr auto;
+                gap: 14px;
+                padding: 14px;
+            }
+
+            header {
+                grid-template-columns: 1fr auto;
+            }
+
+            .status-strip {
+                grid-column: 1 / -1;
+                min-height: 70px;
+            }
+
+            main {
+                grid-template-columns: 1fr;
+                grid-template-rows: minmax(240px, 0.7fr) minmax(420px, 1.3fr);
+            }
+
+            .focus-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            header {
+                grid-template-columns: 1fr;
+            }
+
+            .clock-card {
+                min-width: 0;
+            }
+
+            .schedule-row {
+                grid-template-columns: 0.55fr 1.2fr 1.2fr 0.55fr;
+            }
+
+            .schedule-row .status-cell,
+            .schedule-row.header-row .status-cell {
+                display: none;
+            }
+
+            footer {
+                grid-template-columns: 1fr;
+                gap: 4px;
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <header>
+            <section class="brand">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/>
+                    <path d="M22 10v6"/>
+                    <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>
+                </svg>
+                <div class="brand-text">
+                    <h1 id="school-name">Школа</h1>
+                    <div id="city-name">Місто</div>
+                </div>
+            </section>
+
+            <section class="clock-card">
+                <div id="clock">00:00</div>
+                <div id="header-date">сьогодні</div>
+            </section>
+
+            <section class="status-strip">
+                <div class="conn-dot" id="conn-dot"></div>
+                <div class="status-copy">
+                    <div id="conn-label">Офлайн</div>
+                    <div id="global-status-title">Очікування даних</div>
+                </div>
+            </section>
+        </header>
+
+        <main>
+            <section class="panel day-panel">
+                <div class="panel-heading">
+                    <div>
+                        <div class="eyebrow">Пульс дня</div>
+                    </div>
+                </div>
+
+                <div class="live-card">
+                    <div class="countdown-ring">
+                        <svg viewBox="0 0 120 120" aria-hidden="true">
+                            <circle class="ring-bg" cx="60" cy="60" r="54"></circle>
+                            <circle id="progress-ring" cx="60" cy="60" r="54"></circle>
+                        </svg>
+                        <div class="ring-content">
+                            <div id="countdown-text">--:--</div>
+                            <div id="countdown-label">До дзвінка</div>
+                        </div>
+                    </div>
+                    <div class="live-copy">
+                        <div id="day-phase">Очікування даних</div>
+                        <div id="status-time">--:-- - --:--</div>
+                    </div>
+                </div>
+
+                <div class="quick-grid">
+                    <div class="quick-stat">
+                        <span>Уроків сьогодні</span>
+                        <strong id="lessons-count">0</strong>
+                    </div>
+                    <div class="quick-stat">
+                        <span>Заміни</span>
+                        <strong id="replacement-count">0</strong>
+                    </div>
+                </div>
+
+            </section>
+
+            <section class="panel schedule-panel">
+                <div class="schedule-head">
+                    <div>
+                        <div class="eyebrow">Розклад на сьогодні</div>
+                        <div class="schedule-title" id="schedule-title">Уроки</div>
+                    </div>
+                    <div id="page-indicator">Сторінка 1</div>
+                </div>
+
+                <div class="rows" id="schedule-rows">
+                    <div class="schedule-row header-row">
+                        <div>Клас</div>
+                        <div>Предмет</div>
+                        <div>Вчитель</div>
+                        <div>Каб.</div>
+                        <div class="status-cell">Статус</div>
+                    </div>
+                </div>
+
+                <div class="next-strip">
+                    <div class="next-label">Далі</div>
+                    <div id="next-summary">Очікування наступного уроку</div>
+                    <div id="active-rows-count">0 уроків</div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="announcement-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m3 11 18-5v12L3 14v-3z"/>
+                    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+                </svg>
+                Оголошення
+            </div>
+            <div id="announcement-text">Вітаємо у системі School Bell!</div>
+        </footer>
+    </div>
+
+    <div id="emergency-overlay">
+        <div class="em-box">
+            <span id="em-icon">!</span>
+            <h1 id="em-title">УВАГА</h1>
+            <p id="em-desc">Дотримуйтеся інструкцій</p>
+        </div>
+    </div>
+
+    <script>
+        let socket;
+        let allRows = [];
+        let currentPage = 0;
+        let paginationTimeout = null;
+        let announcements = [];
+        let announcementIndex = 0;
+        let announcementTimer = null;
+
+        function safeText(value, fallback = "") {
+            return value === undefined || value === null || value === "" ? fallback : String(value);
+        }
+
+        function setProgress(value) {
+            const progress = Math.max(0, Math.min(100, value || 0));
+            const ring = document.getElementById("progress-ring");
+            const circumference = 339.292;
+            ring.style.strokeDashoffset = String(circumference - (circumference * progress / 100));
+            ring.style.stroke = progress >= 85 ? "#22c55e" : progress >= 55 ? "#38bdf8" : "#8b5cf6";
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById("clock").textContent = now.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit", hour12: false });
+            document.getElementById("header-date").textContent = now.toLocaleDateString("uk-UA", { weekday: "long", day: "numeric", month: "long" });
+        }
+
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                if ("wakeLock" in navigator) {
+                    wakeLock = await navigator.wakeLock.request("screen");
+                }
+            } catch (err) {
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
+
+        document.addEventListener("visibilitychange", async () => {
+            if (wakeLock !== null && document.visibilityState === "visible") {
+                await requestWakeLock();
+            }
+        });
+
+        setInterval(updateClock, 1000);
+        updateClock();
+        requestWakeLock();
+
+        function connectWS() {
+            const currentPort = parseInt(window.location.port) || 80;
+            const wsUrl = `ws://${window.location.hostname}:${currentPort + 2}`;
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                const dot = document.getElementById("conn-dot");
+                dot.style.background = "#22c55e";
+                dot.style.boxShadow = "0 0 24px #22c55e";
+                const label = document.getElementById("conn-label");
+                label.textContent = "Онлайн";
+                label.style.color = "#22c55e";
+            };
+
+            socket.onmessage = event => {
+                handleUpdate(JSON.parse(event.data));
+            };
+
+            socket.onclose = () => {
+                const dot = document.getElementById("conn-dot");
+                dot.style.background = "#ef4444";
+                dot.style.boxShadow = "0 0 24px #ef4444";
+                const label = document.getElementById("conn-label");
+                label.textContent = "Офлайн";
+                label.style.color = "#ef4444";
+                setTimeout(connectWS, 5000);
+            };
+        }
+
+        function handleUpdate(data) {
+            if (data.schoolName) document.getElementById("school-name").textContent = data.schoolName;
+            if (data.cityName) document.getElementById("city-name").textContent = data.cityName;
+
+            if (data.announcement !== undefined) {
+                const raw = data.announcement || "Вітаємо у системі School Bell!";
+                const nextAnnouncements = raw.split("|||").map(s => s.trim()).filter(Boolean);
+                if (JSON.stringify(nextAnnouncements) !== JSON.stringify(announcements)) {
+                    announcements = nextAnnouncements;
+                    announcementIndex = 0;
+                    startAnnouncementRotation();
+                }
+            }
+
+            updateAlert(data.alertType);
+
+            if (data.schoolStatus) {
+                const s = data.schoolStatus;
+                document.getElementById("global-status-title").textContent = safeText(s.title, "Навчальний день");
+                document.getElementById("day-phase").textContent = safeText(s.title, "Навчальний день");
+                document.getElementById("status-time").textContent = `${safeText(s.start, "--:--")} - ${safeText(s.end, "--:--")}`;
+                setProgress(s.progress);
+                document.getElementById("countdown-label").textContent = (s.type === "BREAK" || s.type === "BEFORE") ? "До уроку" : "До дзвінка";
+            }
+
+            if (data.countdown) {
+                document.getElementById("countdown-text").textContent = data.countdown;
+            }
+
+            if (data.rows) {
+                const nextRows = JSON.stringify(data.rows);
+                if (window.lastRowsData !== nextRows) {
+                    window.lastRowsData = nextRows;
+                    allRows = data.rows;
+                    currentPage = 0;
+                    renderRows();
+                } else {
+                    updateFocus();
+                }
+            }
+        }
+
+        function updateAlert(alertType) {
+            const overlay = document.getElementById("emergency-overlay");
+            if (alertType === "AIR_RAID") {
+                overlay.className = "air-raid";
+                overlay.style.display = "flex";
+                document.getElementById("em-icon").textContent = "!";
+                document.getElementById("em-title").textContent = "ПОВІТРЯНА ТРИВОГА";
+                document.getElementById("em-desc").textContent = "УСІМ В УКРИТТЯ";
+            } else if (alertType === "EMERGENCY") {
+                overlay.className = "emergency";
+                overlay.style.display = "flex";
+                document.getElementById("em-icon").textContent = "!";
+                document.getElementById("em-title").textContent = "НАДЗВИЧАЙНА СИТУАЦІЯ";
+                document.getElementById("em-desc").textContent = "ДІЙТЕ ЗГІДНО ІНСТРУКЦІЇ";
+            } else if (alertType === "SILENCE") {
+                overlay.className = "silence";
+                overlay.style.display = "flex";
+                document.getElementById("em-icon").textContent = "•";
+                document.getElementById("em-title").textContent = "ХВИЛИНА МОВЧАННЯ";
+                document.getElementById("em-desc").textContent = "ВШАНУЙМО ПАМ'ЯТЬ ЗАГИБЛИХ ГЕРОЇВ";
+            } else {
+                overlay.className = "";
+                overlay.style.display = "none";
+            }
+        }
+
+        function startAnnouncementRotation() {
+            if (announcementTimer) clearInterval(announcementTimer);
+            showNextAnnouncement();
+            if (announcements.length > 1) {
+                announcementTimer = setInterval(showNextAnnouncement, 8000);
+            }
+        }
+
+        function showNextAnnouncement() {
+            const el = document.getElementById("announcement-text");
+            if (announcements.length === 0) {
+                el.textContent = "";
+                return;
+            }
+
+            el.classList.add("fade-out");
+            setTimeout(() => {
+                el.textContent = announcements[announcementIndex];
+                el.classList.remove("fade-out");
+                announcementIndex = (announcementIndex + 1) % announcements.length;
+            }, 420);
+        }
+
+        function statusInfo(row) {
+            if (row.isReplacement) return { key: "replacement", text: "Заміна" };
+            if (row.statusClass === "current") return { key: "current", text: "Зараз" };
+            if (row.statusClass === "upcoming") return { key: "upcoming", text: "Скоро" };
+            return { key: "normal", text: "Ок" };
+        }
+
+        function updateFocus() {
+            const replacementCount = allRows.filter(row => row.isReplacement).length;
+            const currentRows = allRows.filter(row => row.statusClass === "current");
+            const upcomingRows = allRows.filter(row => row.statusClass === "upcoming");
+            const replacementRows = allRows.filter(row => row.isReplacement);
+            document.getElementById("replacement-count").textContent = replacementCount;
+            document.getElementById("lessons-count").textContent = allRows.length;
+            document.getElementById("active-rows-count").textContent = formatLessonsCount(allRows.length);
+
+            const current = currentRows[0];
+            const upcoming = upcomingRows[0];
+            const fallback = allRows[0];
+            const featured = current || upcoming || fallback;
+            const next = upcoming || allRows.find(row => row !== featured) || featured;
+
+            if (!featured) {
+                document.getElementById("next-summary").textContent = "Немає наступних уроків";
+                return;
+            }
+
+            if (next) {
+                document.getElementById("next-summary").textContent = `${safeText(next.className, "--")} - ${safeText(next.subject, "Урок")} · ${safeText(next.teacher, "--")}`;
+            }
+
+        }
+
+        function renderRows() {
+            if (paginationTimeout) clearTimeout(paginationTimeout);
+
+            const host = document.getElementById("schedule-rows");
+            const headerHeight = 44;
+            const availableHeight = Math.max(150, host.clientHeight - headerHeight);
+            const rowHeight = Math.max(58, Math.min(88, Math.floor(availableHeight / 7)));
+            const rowsPerPage = Math.max(3, Math.floor(availableHeight / rowHeight));
+            const totalPages = Math.max(1, Math.ceil(allRows.length / rowsPerPage));
+
+            if (currentPage >= totalPages) currentPage = 0;
+
+            host.style.setProperty("--row-height", `${rowHeight}px`);
+            host.innerHTML = `
+                <div class="schedule-row header-row">
+                    <div>Клас</div>
+                    <div>Предмет</div>
+                    <div>Вчитель</div>
+                    <div>Каб.</div>
+                    <div class="status-cell">Статус</div>
+                </div>
+            `;
+
+            const start = currentPage * rowsPerPage;
+            const pageRows = allRows.slice(start, start + rowsPerPage);
+
+            pageRows.forEach((row, index) => {
+                const info = statusInfo(row);
+                const item = document.createElement("div");
+                item.className = `schedule-row ${info.key}`;
+                item.style.animationDelay = `${index * 45}ms`;
+
+                const teacherHtml = row.isReplacement
+                    ? `<div class="teacher-stack"><span class="original">${safeText(row.originalTeacher, "")}</span><span class="new">${safeText(row.teacher, "--")}</span></div>`
+                    : `<div class="cell">${safeText(row.teacher, "--")}</div>`;
+
+                item.innerHTML = `
+                    <div class="cell class-cell">${safeText(row.className, "--")}</div>
+                    <div class="cell">${safeText(row.subject, "--")}</div>
+                    ${teacherHtml}
+                    <div class="cell">${safeText(row.room, "--")}</div>
+                    <div class="status-cell"><span class="badge ${info.key}">${info.text}</span></div>
+                `;
+                host.appendChild(item);
+            });
+
+            document.getElementById("page-indicator").textContent = totalPages > 1 ? `Сторінка ${currentPage + 1} / ${totalPages}` : "Усі уроки";
+            document.getElementById("schedule-title").textContent = pageRows.length ? `${formatLessonsCount(allRows.length)}` : "Уроків немає";
+            updateFocus();
+
+            if (totalPages > 1) {
+                paginationTimeout = setTimeout(() => {
+                    currentPage = (currentPage + 1) % totalPages;
+                    renderRows();
+                }, 10000);
+            }
+        }
+
+        function formatLessonsCount(count) {
+            const mod10 = count % 10;
+            const mod100 = count % 100;
+            if (mod100 >= 11 && mod100 <= 14) return `${count} уроків`;
+            if (mod10 === 1) return `${count} урок`;
+            if (mod10 >= 2 && mod10 <= 4) return `${count} уроки`;
+            return `${count} уроків`;
+        }
+
+        window.addEventListener("resize", () => {
+            if (allRows.length) renderRows();
+        });
+
+        connectWS();
+    </script>
+</body>
+</html>

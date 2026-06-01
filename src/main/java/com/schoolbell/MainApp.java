@@ -214,6 +214,22 @@ public class MainApp extends Application {
         
         primaryStage.show();
 
+        // Tray Support - Move after show() to prevent race conditions with taskbar icon on startup
+        new TrayManager(this, primaryStage).init();
+
+        // Force refresh icons after a small delay to ensure Taskbar picks them up (fixes generic icon on boot)
+        scheduler.schedule(() -> Platform.runLater(() -> {
+            try {
+                InputStream iconStream = getClass().getResourceAsStream("/icon.png");
+                if (iconStream != null) {
+                    Image icon = new Image(iconStream);
+                    primaryStage.getIcons().setAll(icon);
+                }
+            } catch (Exception e) {
+                logger.warn("Failed to refresh icon: " + e.getMessage());
+            }
+        }), 1500, TimeUnit.MILLISECONDS);
+
         // Initialize Views
         dashboardView = new DashboardView(this);
         schoolView = new SchoolView(this);
@@ -231,6 +247,10 @@ public class MainApp extends Application {
         refreshScheduleOptions();
         startScheduler();
         refreshCaches();
+        
+        // Schedule database cleanup (once every 24 hours)
+        scheduler.scheduleAtFixedRate(DatabaseManager::cleanupOldData, 1, 24, TimeUnit.HOURS);
+
         logger.info("System ready.");
     }
 

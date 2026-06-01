@@ -66,7 +66,6 @@ public class SubstitutionsEditorTab {
         addBtn.setOnAction(e -> new SubstitutionEditorDialog(mainApp, null, LocalDate.now(), refreshSubstitutions).display());
 
         Button reportBtn = createPrimaryActionButton("ЗВІТ", ICON_SAVE);
-        reportBtn.setStyle(reportBtn.getStyle().replace(COLOR_PRIMARY, COLOR_PURPLE));
         reportBtn.setOnAction(e -> new SubstitutionReportDialog(mainApp, reportService).display());
 
         TextField searchField = new TextField();
@@ -127,15 +126,39 @@ public class SubstitutionsEditorTab {
             List<SubstitutionEntry> allSubs = mainApp.getAcademicService().getAllSubstitutions();
             LocalDate today = LocalDate.now();
 
+            // Pre-fetch data for faster filtering
+            List<Teacher> allTeachers = mainApp.getStaffService().getAllTeachers();
+            List<SchoolClass> allClasses = mainApp.getAcademicService().getAllClasses();
+            
             List<SubstitutionEntry> filtered = allSubs.stream()
                 .filter(sub -> showArchived ? sub.date().isBefore(today) : !sub.date().isBefore(today))
                 .filter(sub -> {
                     if (searchText.isEmpty()) return true;
-                    Teacher t = mainApp.getStaffService().getAllTeachers().stream().filter(tea -> tea.id() == sub.teacherId()).findFirst().orElse(null);
-                    SchoolClass cls = mainApp.getAcademicService().getAllClasses().stream().filter(c -> c.id() == sub.classId()).findFirst().orElse(null);
-                    String teacherName = t != null ? t.name().toLowerCase() : "";
+                    
+                    // New teacher (substitutor)
+                    Teacher nt = allTeachers.stream().filter(tea -> tea.id() == sub.teacherId()).findFirst().orElse(null);
+                    String ntName = nt != null ? nt.name().toLowerCase() : "";
+                    
+                    // Class
+                    SchoolClass cls = allClasses.stream().filter(c -> c.id() == sub.classId()).findFirst().orElse(null);
                     String className = cls != null ? cls.name().toLowerCase() : "";
-                    return teacherName.contains(searchText) || className.contains(searchText);
+                    
+                    // Original teacher (being replaced)
+                    int dayOfWeek = sub.date().getDayOfWeek().getValue();
+                    List<ScheduleEntry> classSchedule = mainApp.getAcademicService().getScheduleForClass(sub.classId());
+                    ScheduleEntry original = classSchedule.stream()
+                            .filter(e -> e.dayOfWeek() == dayOfWeek && e.lessonNumber() == sub.lessonNumber())
+                            .findFirst().orElse(null);
+                    
+                    String otName = "";
+                    if (original != null) {
+                        Teacher ot = allTeachers.stream().filter(tea -> tea.id() == original.teacherId()).findFirst().orElse(null);
+                        otName = ot != null ? ot.name().toLowerCase() : "";
+                    }
+
+                    return ntName.contains(searchText) || 
+                           className.contains(searchText) || 
+                           otName.contains(searchText);
                 })
                 .sorted((a, b) -> showArchived ? b.date().compareTo(a.date()) : a.date().compareTo(b.date()))
                 .collect(Collectors.toList());

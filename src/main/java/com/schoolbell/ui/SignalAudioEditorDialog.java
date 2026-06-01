@@ -73,7 +73,6 @@ public class SignalAudioEditorDialog extends BasePremiumDialog {
         } else {
             config.setAudioSilencePath(pathStart.getText());
         }
-        ToastService.showSuccess("Налаштування звуків збережено");
         return true;
     }
 
@@ -125,7 +124,7 @@ public class SignalAudioEditorDialog extends BasePremiumDialog {
         pickBtn.setOnAction(e -> {
             FileChooser chooser = new FileChooser();
             chooser.setTitle("Оберіть " + labelText);
-            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Аудіо", "*.mp3", "*.wav"));
+            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Аудіо (WAV)", "*.wav"));
             File file = chooser.showOpenDialog(this);
             if (file != null) {
                 field.setText(file.getAbsolutePath());

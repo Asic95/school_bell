@@ -31,8 +31,8 @@ public class AudioService {
                     return;
                 }
                 
-                Mixer.Info selectedMixerInfo = null;
                 String deviceName = configService.getSelectedAudioDeviceName();
+                Mixer.Info selectedMixerInfo = null;
                 if (!"Системний за замовчуванням".equals(deviceName)) {
                     for (Mixer.Info info : AudioSystem.getMixerInfo()) {
                         if (info.getName().equals(deviceName)) {
@@ -42,28 +42,48 @@ public class AudioService {
                     }
                 }
 
+                // Use faster fade or no fade for alert/error sounds
+                boolean isAlert = path.toLowerCase().contains("error") || path.toLowerCase().contains("alert");
+                int fadeDuration = isAlert ? 0 : FADE_DURATION_MS;
+
+                // IF WAV and custom device is selected, use Direct Line (Reliable, Low Latency)
                 if (path.toLowerCase().endsWith(".wav") && selectedMixerInfo != null) {
-                    playWavDirect(file, selectedMixerInfo);
+                    logger.info("Playing (WAV Direct) on device: {}", deviceName);
+                    playWavDirect(file, selectedMixerInfo, fadeDuration);
                     return;
                 }
 
+                // Fallback to JavaFX MediaPlayer (System Default only, supports MP3/WAV/M4A)
+                final Mixer.Info mixerForLambda = selectedMixerInfo;
                 Platform.runLater(() -> {
                     try {
                         javafx.scene.media.Media media = new javafx.scene.media.Media(file.toURI().toString());
-                        stopCurrentPlayerImmediate(); // Stop any existing
+                        stopCurrentPlayerImmediate(); 
                         
                         currentPlayingTrack = file.getName();
+                        if (mixerForLambda != null) {
+                            logger.warn("Custom device '{}' ignored for MP3/M4A. Use .wav for full support. Falling back to System Default.", deviceName);
+                        } else {
+                            logger.info("Playing (MediaPlayer) on System Default: {}", file.getName());
+                        }
+
                         currentPlayer = new MediaPlayer(media);
-                        currentPlayer.setVolume(0.0); // Start silent
+                        double targetVolume = configService.getSystemVolume() / 100.0;
+
+                        if (fadeDuration > 0) {
+                            currentPlayer.setVolume(0.0);
+                            currentPlayer.play();
+                            fadeMediaPlayer(targetVolume, fadeDuration);
+                        } else {
+                            currentPlayer.setVolume(targetVolume);
+                            currentPlayer.play();
+                        }
                         
                         currentPlayer.setOnEndOfMedia(() -> {
                             currentPlayingTrack = null;
                             currentPlayer = null;
                         });
                         
-                        currentPlayer.play();
-                        fadeMediaPlayer(configService.getSystemVolume() / 100.0, FADE_DURATION_MS);
-                        logger.info("Playing (System with Fade-in): {}", file.getName());
                     } catch (Exception e) {
                         logger.error("Media player failed for {}: {}", file.getName(), e.getMessage());
                         currentPlayingTrack = null;
@@ -76,10 +96,11 @@ public class AudioService {
         }).start();
     }
 
-    private void playWavDirect(File file, Mixer.Info mixerInfo) {
+    private void playWavDirect(File file, Mixer.Info mixerInfo, int fadeMs) {
         try (AudioInputStream ais = AudioSystem.getAudioInputStream(file)) {
             Mixer mixer = AudioSystem.getMixer(mixerInfo);
             DataLine.Info info = new DataLine.Info(SourceDataLine.class, ais.getFormat());
+            
             try (SourceDataLine line = (SourceDataLine) mixer.getLine(info)) {
                 line.open(ais.getFormat());
                 currentPlayingTrack = file.getName();
@@ -94,15 +115,18 @@ public class AudioService {
                 int read;
                 long totalPlayed = 0;
                 float targetVol = configService.getSystemVolume() / 100.0f;
-                float fadeDurationSec = FADE_DURATION_MS / 1000.0f;
+                float fadeDurationSec = fadeMs / 1000.0f;
                 
                 while ((read = ais.read(buffer)) != -1) {
-                    if (currentPlayingTrack == null) break; // Interrupted
+                    if (currentPlayingTrack == null) break; 
                     
-                    // Fade-in logic for direct line
                     if (gainControl != null) {
-                        float fadePoint = Math.min(1.0f, totalPlayed / (ais.getFormat().getFrameRate() * fadeDurationSec)); 
-                        applyGain(gainControl, targetVol * fadePoint);
+                        if (fadeMs > 0 && fadeDurationSec > 0) {
+                            float fadePoint = Math.min(1.0f, totalPlayed / (ais.getFormat().getFrameRate() * fadeDurationSec)); 
+                            applyGain(gainControl, targetVol * fadePoint);
+                        } else {
+                            applyGain(gainControl, targetVol);
+                        }
                     }
                     
                     line.write(buffer, 0, read);
@@ -110,7 +134,6 @@ public class AudioService {
                 }
                 line.drain();
                 currentPlayingTrack = null;
-                logger.info("Played (WAV): {}", file.getName());
             }
         } catch (Exception ex) {
             logger.error("WAV playback error: {}", ex.getMessage());

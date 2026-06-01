@@ -287,18 +287,22 @@ public class DashboardView {
         
         activeScheduleValue = new Label(config.getSelectedScheduleName() != null ? config.getSelectedScheduleName() : "Не вибрано");
         applyInfoValueStyle(activeScheduleValue, COLOR_NAVY);
-        VBox schCard = createSmallInfoCard("АКТИВНИЙ РОЗКЛАД", activeScheduleValue, "Змінити", () -> mainApp.showEditorTab(0), ICON_CALENDAR, COLOR_BLUE_LIGHT, COLOR_PRIMARY, false, 0, null);
+        VBox schCard = createSmallInfoCard("АКТИВНИЙ РОЗКЛАД", activeScheduleValue, "Змінити", () -> new ScheduleQuickSelectorDialog(mainApp).display(), ICON_CALENDAR, COLOR_BLUE_LIGHT, COLOR_PRIMARY, false, 0, null);
         
         currentVolumeValue = normalizeVolume(config.getSystemVolume());
         volStatusLabel = new Label(currentVolumeValue + "%");
         applyInfoValueStyle(volStatusLabel, COLOR_NAVY);
         
-        volumePresetBox = new HBox(5);
+        volumePresetBox = new HBox(0); // Seamless segmented look
         volumePresetBox.setAlignment(Pos.CENTER_LEFT);
+        volumePresetBox.setMaxWidth(Region.USE_PREF_SIZE); // Prevent stretching
+        volumePresetBox.setStyle(PREMIUM_TOGGLE_CONTAINER + "-fx-padding: 2;");
+        
         int[] presets = {0, 25, 50, 75, 100};
         for (int p : presets) {
-            Button pb = new Button(p == 0 ? "0" : p + "");
-            pb.setPrefSize(35, 30);
+            Button pb = new Button(p + "");
+            pb.setPrefHeight(28);
+            pb.setMinWidth(38);
             pb.setUserData(p);
             pb.setOnAction(e -> {
                 currentVolumeValue = p;
@@ -323,22 +327,7 @@ public class DashboardView {
         mediaValue = new Label("Очікування...");
         applyInfoValueStyle(mediaValue, COLOR_NAVY);
         
-        stopMediaBtn = new Button();
-        stopMediaBtn.setGraphic(createSVGIcon(ICON_STOP, Color.WHITE, 12));
-        stopMediaBtn.setStyle("-fx-background-color: " + COLOR_SLATE_STRONG + "; -fx-background-radius: 6; -fx-padding: 4 8; -fx-cursor: hand;");
-        stopMediaBtn.setVisible(false);
-        stopMediaBtn.setManaged(false);
-        stopMediaBtn.setOnMouseEntered(e -> stopMediaBtn.setStyle("-fx-background-color: " + COLOR_DANGER + "; -fx-background-radius: 6; -fx-padding: 4 8; -fx-cursor: hand;"));
-        stopMediaBtn.setOnMouseExited(e -> stopMediaBtn.setStyle("-fx-background-color: " + COLOR_SLATE_STRONG + "; -fx-background-radius: 6; -fx-padding: 4 8; -fx-cursor: hand;"));
-        stopMediaBtn.setOnAction(e -> {
-            mainApp.getAudioService().stopAll();
-            update(LocalTime.now());
-        });
-
-        HBox mediaBox = new HBox(10, mediaValue, stopMediaBtn);
-        mediaBox.setAlignment(Pos.CENTER_LEFT);
-        
-        VBox mediaCard = createSmallInfoCard("МЕДІА-ЕФІР", mediaBox, "Управління", () -> mainApp.showNotifications(), ICON_AIRPLAY, COLOR_TANGERINE_LIGHT, COLOR_TANGERINE, false, 0, null);
+        VBox mediaCard = createSmallInfoCard("МЕДІА-ЕФІР", mediaValue, "Управління", () -> new MediaQuickControlDialog(mainApp).display(), ICON_AIRPLAY, COLOR_TANGERINE_LIGHT, COLOR_TANGERINE, false, 0, null);
         
         infoRow.getChildren().addAll(schCard, volCard, brCard, mediaCard);
         for (Node n : infoRow.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
@@ -374,9 +363,13 @@ public class DashboardView {
             if (n instanceof Button b) {
                 int val = (int) b.getUserData();
                 if (val == currentVolumeValue) {
-                    b.setStyle("-fx-background-color: " + COLOR_SUCCESS + "; -fx-text-fill: white; -fx-font-weight: 900; -fx-background-radius: 8; -fx-font-size: 10px; -fx-padding: 0;");
+                    b.setStyle(PREMIUM_TOGGLE_ACTIVE);
+                    b.setOnMouseEntered(null);
+                    b.setOnMouseExited(null);
                 } else {
-                    b.setStyle("-fx-background-color: " + COLOR_SURFACE_SUBTLE + "; -fx-text-fill: " + COLOR_NEUTRAL + "; -fx-font-weight: bold; -fx-background-radius: 8; -fx-font-size: 10px; -fx-padding: 0; -fx-cursor: hand;");
+                    b.setStyle(PREMIUM_TOGGLE_INACTIVE);
+                    b.setOnMouseEntered(e -> b.setStyle(PREMIUM_TOGGLE_INACTIVE + "-fx-background-color: " + TR_WHITE_08 + ";"));
+                    b.setOnMouseExited(e -> b.setStyle(PREMIUM_TOGGLE_INACTIVE));
                 }
             }
         }
