@@ -9,6 +9,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
+import java.util.List;
+
 import static com.schoolbell.ui.CardFactory.createCardActionButton;
 import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
@@ -18,6 +20,7 @@ import static com.schoolbell.ui.UIStyles.*;
 public class ClassesEditorTab {
     private final MainApp mainApp;
     private Runnable refreshClasses;
+    private String searchText = "";
 
     public ClassesEditorTab(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -37,12 +40,25 @@ public class ClassesEditorTab {
             null
         );
 
+        TextField searchField = new TextField();
+        searchField.setPromptText("Пошук класу...");
+        searchField.setStyle(PREMIUM_FIELD_STYLE);
+        searchField.setPrefWidth(350);
+        searchField.textProperty().addListener((o, ov, nv) -> {
+            this.searchText = nv.toLowerCase().trim();
+            refreshClasses.run();
+        });
+
         TextField addField = createStyledField("");
         addField.setPromptText("Назва класу (напр. 5-А)...");
-        addField.setPrefWidth(550);
+        addField.setPrefWidth(400);
 
         Button addBtn = createPrimaryActionButton("ДОДАТИ КЛАС", ICON_PLUS);
         addBtn.setStyle(PREMIUM_BTN_STYLE);
+
+        HBox actionsRow = new HBox(15, addField, addBtn, new Region(), searchField);
+        HBox.setHgrow(actionsRow.getChildren().get(2), Priority.ALWAYS);
+        actionsRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox cardsArea = new VBox();
         VBox.setVgrow(cardsArea, Priority.ALWAYS);
@@ -52,11 +68,19 @@ public class ClassesEditorTab {
 
         refreshClasses = () -> {
             cardsArea.getChildren().clear();
-            java.util.List<SchoolClass> classes = mainApp.getAcademicService().getAllClasses();
+            List<SchoolClass> allClasses = mainApp.getAcademicService().getAllClasses();
             
+            List<SchoolClass> classes = allClasses.stream()
+                .filter(c -> searchText.isEmpty() || c.name().toLowerCase().contains(searchText))
+                .toList();
+
             if (classes.isEmpty()) {
                 cardsArea.setAlignment(Pos.CENTER);
-                cardsArea.getChildren().add(createEmptyState(ICON_INFO, "Список класів порожній", "Введіть назву (напр. 5-А) та натисніть кнопку, щоб додати перший клас"));
+                if (allClasses.isEmpty()) {
+                    cardsArea.getChildren().add(createEmptyState(ICON_INFO, "Список класів порожній", "Введіть назву (напр. 5-А) та натисніть кнопку, щоб додати перший клас"));
+                } else {
+                    cardsArea.getChildren().add(createEmptyState(ICON_SEARCH, "Класів не знайдено", "Спробуйте змінити запит"));
+                }
             } else {
                 cardsArea.setAlignment(Pos.TOP_LEFT);
                 cardsArea.getChildren().add(listContainer);
@@ -132,7 +156,7 @@ public class ClassesEditorTab {
             }
         });
 
-        VBox contentLayout = new VBox(25, header, new HBox(15, addField, addBtn), cardsArea);
+        VBox contentLayout = new VBox(25, header, actionsRow, cardsArea);
         contentLayout.setPadding(new Insets(30));
         contentLayout.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
 

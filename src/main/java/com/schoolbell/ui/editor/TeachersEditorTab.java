@@ -22,6 +22,7 @@ import static com.schoolbell.ui.UIStyles.*;
 public class TeachersEditorTab {
     private final MainApp mainApp;
     private Runnable refreshTeachers;
+    private String searchText = "";
 
     public TeachersEditorTab(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -41,12 +42,25 @@ public class TeachersEditorTab {
             null
         );
 
+        TextField searchField = new TextField();
+        searchField.setPromptText("Пошук вчителя або предмета...");
+        searchField.setStyle(PREMIUM_FIELD_STYLE);
+        searchField.setPrefWidth(350);
+        searchField.textProperty().addListener((o, ov, nv) -> {
+            this.searchText = nv.toLowerCase().trim();
+            refreshTeachers.run();
+        });
+
         TextField addField = createStyledField("");
         addField.setPromptText("Введіть ПІБ вчителя...");
-        addField.setPrefWidth(550);
+        addField.setPrefWidth(400);
 
         Button addBtn = createPrimaryActionButton("ДОДАТИ ВЧИТЕЛЯ", ICON_PLUS);
         addBtn.setStyle(PREMIUM_BTN_STYLE);
+
+        HBox actionsRow = new HBox(15, addField, addBtn, new Region(), searchField);
+        HBox.setHgrow(actionsRow.getChildren().get(2), Priority.ALWAYS);
+        actionsRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox cardsArea = new VBox();
         VBox.setVgrow(cardsArea, Priority.ALWAYS);
@@ -57,11 +71,25 @@ public class TeachersEditorTab {
         refreshTeachers = () -> {
             cardsArea.getChildren().clear();
             List<Subject> allSubs = mainApp.getStaffService().getAllSubjects();
-            List<Teacher> teachers = mainApp.getStaffService().getAllTeachers();
+            List<Teacher> allTeachers = mainApp.getStaffService().getAllTeachers();
             
+            List<Teacher> teachers = allTeachers.stream()
+                .filter(t -> {
+                    if (searchText.isEmpty()) return true;
+                    boolean matchesName = t.name().toLowerCase().contains(searchText);
+                    boolean matchesSubject = mainApp.getStaffService().getSubjectsForTeacher(t.id()).stream()
+                        .anyMatch(s -> s.name().toLowerCase().contains(searchText));
+                    return matchesName || matchesSubject;
+                })
+                .toList();
+
             if (teachers.isEmpty()) {
                 cardsArea.setAlignment(Pos.CENTER);
-                cardsArea.getChildren().add(createEmptyState(ICON_INFO, "Список вчителів порожній", "Введіть ім'я та натисніть кнопку, щоб додати першого вчителя"));
+                if (allTeachers.isEmpty()) {
+                    cardsArea.getChildren().add(createEmptyState(ICON_INFO, "Список вчителів порожній", "Введіть ім'я та натисніть кнопку, щоб додати першого вчителя"));
+                } else {
+                    cardsArea.getChildren().add(createEmptyState(ICON_SEARCH, "Вчителів не знайдено", "Спробуйте змінити параметри пошуку"));
+                }
             } else {
                 cardsArea.setAlignment(Pos.TOP_LEFT);
                 cardsArea.getChildren().add(cardsContainer);
@@ -150,7 +178,7 @@ public class TeachersEditorTab {
             }
         });
 
-        content.getChildren().addAll(header, new HBox(15, addField, addBtn), cardsArea);
+        content.getChildren().addAll(header, actionsRow, cardsArea);
         refreshTeachers.run();
 
         ScrollPane mainScroll = new ScrollPane(content);

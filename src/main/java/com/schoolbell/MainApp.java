@@ -46,7 +46,7 @@ public class MainApp extends Application {
     private static final String APP_TITLE = "SchoolBell v1.0";
 
     // Services
-    private final RelayController relayController = new RelayController();
+    private RelayController relayController;
     private final ScheduleService scheduleService = new ScheduleService();
     private final AcademicService academicService = new AcademicService();
     private final StaffService staffService = new StaffService();
@@ -98,7 +98,7 @@ public class MainApp extends Application {
         // Initialize Services
         configService = new ConfigService();
         configService.loadConfig();
-        relayController.setMainApp(this);
+        relayController = new RelayController(this);
         audioService = new AudioService(configService);
         signalService = new SignalService(relayController, audioService, configService);
         signalService.setLogConsumer(msg -> journal.addLog(msg, "INFO"));
@@ -241,8 +241,6 @@ public class MainApp extends Application {
 
         navigation.showDashboard();
 
-        relayController.scanDevices();
-        relayController.connect();
         internalSchedules = scheduleService.loadInternalSchedules();
         refreshScheduleOptions();
         startScheduler();

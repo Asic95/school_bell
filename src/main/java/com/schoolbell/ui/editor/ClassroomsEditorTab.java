@@ -9,6 +9,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
+import java.util.List;
+
 import static com.schoolbell.ui.CardFactory.createCardActionButton;
 import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
@@ -18,6 +20,7 @@ import static com.schoolbell.ui.UIStyles.*;
 public class ClassroomsEditorTab {
     private final MainApp mainApp;
     private Runnable refreshClassrooms;
+    private String searchText = "";
 
     public ClassroomsEditorTab(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -37,12 +40,25 @@ public class ClassroomsEditorTab {
             null
         );
 
+        TextField searchField = new TextField();
+        searchField.setPromptText("Пошук кабінету...");
+        searchField.setStyle(PREMIUM_FIELD_STYLE);
+        searchField.setPrefWidth(350);
+        searchField.textProperty().addListener((o, ov, nv) -> {
+            this.searchText = nv.toLowerCase().trim();
+            refreshClassrooms.run();
+        });
+
         TextField addField = createStyledField("");
-        addField.setPromptText("Введіть назву або номер кабінету (наприклад, Каб. 301)...");
-        addField.setPrefWidth(550);
+        addField.setPromptText("Введіть назву або номер кабінету (напр. 301)...");
+        addField.setPrefWidth(400);
 
         Button addBtn = createPrimaryActionButton("ДОДАТИ КАБІНЕТ", ICON_PLUS);
         addBtn.setStyle(PREMIUM_BTN_STYLE);
+
+        HBox actionsRow = new HBox(15, addField, addBtn, new Region(), searchField);
+        HBox.setHgrow(actionsRow.getChildren().get(2), Priority.ALWAYS);
+        actionsRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox cardsArea = new VBox();
         VBox.setVgrow(cardsArea, Priority.ALWAYS);
@@ -52,11 +68,19 @@ public class ClassroomsEditorTab {
 
         refreshClassrooms = () -> {
             cardsArea.getChildren().clear();
-            java.util.List<Classroom> classrooms = mainApp.getAcademicService().getAllClassrooms();
+            List<Classroom> allClassrooms = mainApp.getAcademicService().getAllClassrooms();
             
+            List<Classroom> classrooms = allClassrooms.stream()
+                .filter(c -> searchText.isEmpty() || c.name().toLowerCase().contains(searchText))
+                .toList();
+
             if (classrooms.isEmpty()) {
                 cardsArea.setAlignment(Pos.CENTER);
-                cardsArea.getChildren().add(createEmptyState(ICON_INFO, "Список кабінетів порожній", "Використовуйте поле вище, щоб додати перший кабінет"));
+                if (allClassrooms.isEmpty()) {
+                    cardsArea.getChildren().add(createEmptyState(ICON_INFO, "Список кабінетів порожній", "Використовуйте поле вище, щоб додати перший кабінет"));
+                } else {
+                    cardsArea.getChildren().add(createEmptyState(ICON_SEARCH, "Кабінетів не знайдено", "Спробуйте змінити запит"));
+                }
             } else {
                 cardsArea.setAlignment(Pos.TOP_LEFT);
                 cardsArea.getChildren().add(classroomsContainer);
@@ -135,7 +159,7 @@ public class ClassroomsEditorTab {
             }
         });
 
-        VBox contentLayout = new VBox(25, header, new HBox(15, addField, addBtn), cardsArea);
+        VBox contentLayout = new VBox(25, header, actionsRow, cardsArea);
         contentLayout.setPadding(new Insets(30));
         contentLayout.setStyle("-fx-background-color: " + COLOR_SURFACE_CANVAS + ";");
 

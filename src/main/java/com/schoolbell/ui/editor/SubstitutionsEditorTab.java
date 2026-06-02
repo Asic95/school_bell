@@ -130,8 +130,11 @@ public class SubstitutionsEditorTab {
             List<Teacher> allTeachers = mainApp.getStaffService().getAllTeachers();
             List<SchoolClass> allClasses = mainApp.getAcademicService().getAllClasses();
             
-            List<SubstitutionEntry> filtered = allSubs.stream()
+            List<SubstitutionEntry> baseList = allSubs.stream()
                 .filter(sub -> showArchived ? sub.date().isBefore(today) : !sub.date().isBefore(today))
+                .toList();
+
+            List<SubstitutionEntry> filtered = baseList.stream()
                 .filter(sub -> {
                     if (searchText.isEmpty()) return true;
                     
@@ -164,10 +167,14 @@ public class SubstitutionsEditorTab {
                 .collect(Collectors.toList());
 
             if (filtered.isEmpty()) {
-                String title = showArchived ? "Архів замін порожній" : "Немає активних замін";
-                String sub = showArchived ? "Тут з'являтимуться заміни, термін дії яких минув." : "Натисніть 'НОВА ЗАМІНА', щоб внести оперативні зміни в розклад.";
                 contentList.setAlignment(Pos.CENTER);
-                contentList.getChildren().add(createEmptyState(ICON_INFO, title, sub));
+                if (!searchText.isEmpty() && !baseList.isEmpty()) {
+                    contentList.getChildren().add(createEmptyState(ICON_SEARCH, "Замін не знайдено", "Спробуйте змінити параметри пошуку"));
+                } else {
+                    String title = showArchived ? "Архів замін порожній" : "Немає активних замін";
+                    String sub = showArchived ? "Тут з'являтимуться заміни, термін дії яких минув." : "Натисніть 'НОВА ЗАМІНА', щоб внести оперативні зміни в розклад.";
+                    contentList.getChildren().add(createEmptyState(ICON_INFO, title, sub));
+                }
             } else {
                 contentList.setAlignment(Pos.TOP_LEFT);
                 LocalDate lastDate = null;
