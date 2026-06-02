@@ -34,11 +34,6 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-media</artifactId>
-            <version>${javafx.version}</version>
-        </dependency>
 
         <!-- Logging -->
         <dependency>
@@ -73,6 +68,35 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.10.1</version>
+        </dependency>
+
+        <!-- MP3 Decoding Support -->
+        <dependency>
+            <groupId>javazoom</groupId>
+            <artifactId>jlayer</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.soundlibs</groupId>
+            <artifactId>mp3spi</artifactId>
+            <version>1.9.5.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.soundlibs</groupId>
+            <artifactId>tritonus-share</artifactId>
+            <version>0.3.7.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tianscar.javasound</groupId>
+            <artifactId>javasound-aac</artifactId>
+            <version>0.9.8</version>
+        </dependency>
+
+        <!-- mDNS Discovery -->
+        <dependency>
+            <groupId>org.jmdns</groupId>
+            <artifactId>jmdns</artifactId>
+            <version>3.5.9</version>
         </dependency>
 
         <!-- PDF Table Extraction -->

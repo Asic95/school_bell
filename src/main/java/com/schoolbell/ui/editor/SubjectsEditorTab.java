@@ -9,6 +9,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
+import java.util.List;
+
 import static com.schoolbell.ui.CardFactory.createCardActionButton;
 import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
@@ -18,6 +20,7 @@ import static com.schoolbell.ui.UIStyles.*;
 public class SubjectsEditorTab {
     private final MainApp mainApp;
     private Runnable refreshSubjects;
+    private String searchText = "";
 
     public SubjectsEditorTab(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -37,12 +40,25 @@ public class SubjectsEditorTab {
             null
         );
 
+        TextField searchField = new TextField();
+        searchField.setPromptText("Пошук предмета...");
+        searchField.setStyle(PREMIUM_FIELD_STYLE);
+        searchField.setPrefWidth(350);
+        searchField.textProperty().addListener((o, ov, nv) -> {
+            this.searchText = nv.toLowerCase().trim();
+            refreshSubjects.run();
+        });
+
         TextField addField = createStyledField("");
         addField.setPromptText("Введіть назву предмета...");
-        addField.setPrefWidth(550);
+        addField.setPrefWidth(400);
 
         Button addBtn = createPrimaryActionButton("ДОДАТИ ПРЕДМЕТ", ICON_PLUS);
         addBtn.setStyle(PREMIUM_BTN_STYLE);
+
+        HBox actionsRow = new HBox(15, addField, addBtn, new Region(), searchField);
+        HBox.setHgrow(actionsRow.getChildren().get(2), Priority.ALWAYS);
+        actionsRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox cardsArea = new VBox();
         VBox.setVgrow(cardsArea, Priority.ALWAYS);
@@ -52,11 +68,19 @@ public class SubjectsEditorTab {
 
         refreshSubjects = () -> {
             cardsArea.getChildren().clear();
-            java.util.List<Subject> subjects = mainApp.getStaffService().getAllSubjects();
+            List<Subject> allSubjects = mainApp.getStaffService().getAllSubjects();
+            
+            List<Subject> subjects = allSubjects.stream()
+                .filter(s -> searchText.isEmpty() || s.name().toLowerCase().contains(searchText))
+                .toList();
             
             if (subjects.isEmpty()) {
                 cardsArea.setAlignment(Pos.CENTER);
-                cardsArea.getChildren().add(createEmptyState(ICON_INFO, "Список предметів порожній", "Введіть назву та натисніть кнопку, щоб додати перший предмет"));
+                if (allSubjects.isEmpty()) {
+                    cardsArea.getChildren().add(createEmptyState(ICON_INFO, "Список предметів порожній", "Введіть назву та натисніть кнопку, щоб додати перший предмет"));
+                } else {
+                    cardsArea.getChildren().add(createEmptyState(ICON_SEARCH, "Предметів не знайдено", "Спробуйте змінити назву в пошуку"));
+                }
             } else {
                 cardsArea.setAlignment(Pos.TOP_LEFT);
                 cardsArea.getChildren().add(subjectsContainer);
@@ -131,7 +155,7 @@ public class SubjectsEditorTab {
                 refreshSubjects.run();
             }
         });
-        content.getChildren().addAll(header, new HBox(15, addField, addBtn), cardsArea);
+        content.getChildren().addAll(header, actionsRow, cardsArea);
         refreshSubjects.run();
 
         ScrollPane mainScroll = new ScrollPane(content);

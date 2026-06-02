@@ -184,15 +184,22 @@ public class MediaSchedulerService {
         if (event.isFolder()) {
             File folder = new File(path);
             if (folder.exists() && folder.isDirectory()) {
-                File[] files = folder.listFiles((dir, name) -> 
-                    name.toLowerCase().endsWith(".mp3") || name.toLowerCase().endsWith(".wav"));
+                File[] files = folder.listFiles((dir, name) -> {
+                    String n = name.toLowerCase();
+                    return n.endsWith(".mp3") || n.endsWith(".wav") || n.endsWith(".m4a") || n.endsWith(".aac");
+                });
                 if (files != null && files.length > 0) {
-                    path = files[random.nextInt(files.length)].getAbsolutePath();
+                    List<File> playlist = new ArrayList<>(List.of(files));
+                    // Shuffle for variety
+                    java.util.Collections.shuffle(playlist);
+                    logger.info("Starting media event (Folder): {} -> {} tracks", event.name(), playlist.size());
+                    audioService.playPlaylist(playlist, true); // Loop playlist for folders
+                    return;
                 }
             }
         }
         
-        logger.info("Starting media event: {} -> {}", event.name(), path);
+        logger.info("Starting media event (File): {} -> {}", event.name(), path);
         audioService.playAudioFile(path);
     }
 

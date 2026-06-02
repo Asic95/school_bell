@@ -6,22 +6,18 @@ import com.schoolbell.service.SystemService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ToggleButton;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
+import java.util.List;
+
 import static com.schoolbell.ui.CardFactory.createHelpCard;
 import static com.schoolbell.ui.CardFactory.createSideHelpPanel;
-import static com.schoolbell.ui.ControlFactory.createPageHeader;
-import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
-import static com.schoolbell.ui.ControlFactory.createToggleSwitch;
+import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
@@ -104,12 +100,12 @@ public class SystemView {
             "Глобальні параметри роботи програми, дизайн та поведінка системи.",
             ICON_SETTINGS,
             COLOR_TEXT,
-            null // Removed saveBtn
+            null
         );
 
         mainCol = new VBox(25);
         HBox.setHgrow(mainCol, Priority.ALWAYS);
-        mainCol.getChildren().addAll(buildOperationCard(), buildSignalCard());
+        mainCol.getChildren().addAll(buildOperationCard(), buildRelayCard(), buildSignalCard());
         
         updateJournalVisibility(simulationTg.isSelected());
 
@@ -123,7 +119,7 @@ public class SystemView {
 
         scroll.setContent(root);
         scroll.setFitToWidth(true);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
         return scroll;
     }
 
@@ -148,7 +144,6 @@ public class SystemView {
         rows.getChildren().add(createToggleRow("Режим симуляції",
                 "Робота без фізичного підключення до реле (тільки логування)", ICON_FLASK, COLOR_WARNING, simulationTg));
 
-        // --- BACKUP & RESTORE ROW (General System Maintenance) ---
         String btnStyle = "-fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 12; -fx-cursor: hand;";
         
         Button backupBtn = createPrimaryActionButton("СТВОРИТИ КОПІЮ", ICON_SAVE);
@@ -159,8 +154,6 @@ public class SystemView {
                 ToastService.showSuccess("Резервну копію успішно створено!");
             }
         });
-        backupBtn.setOnMouseEntered(e -> backupBtn.setStyle(backupBtn.getStyle() + "-fx-background-color: linear-gradient(to right, " + COLOR_INDIGO_DARK + ", " + COLOR_PRIMARY_DARK + ");"));
-        backupBtn.setOnMouseExited(e -> backupBtn.setStyle(PREMIUM_BTN_STYLE + btnStyle));
 
         Button restoreBtn = new Button("ВІДНОВИТИ");
         restoreBtn.setGraphic(createSVGIcon(ICON_REFRESH, Color.web(COLOR_PRIMARY), 14));
@@ -172,8 +165,6 @@ public class SystemView {
                 new RestoreSuccessDialog((javafx.stage.Stage) mainCol.getScene().getWindow()).display();
             }
         });
-        restoreBtn.setOnMouseEntered(e -> restoreBtn.setStyle(secondaryStyle + btnStyle + "-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-border-color: " + COLOR_PRIMARY + ";"));
-        restoreBtn.setOnMouseExited(e -> restoreBtn.setStyle(secondaryStyle + btnStyle));
 
         HBox btnBox = new HBox(12, restoreBtn, backupBtn);
         rows.getChildren().add(createActionRow("Резервне копіювання та відновлення", "Збережіть налаштування у файл або відновіть їх із копії", ICON_SAVE, COLOR_INDIGO, btnBox));
@@ -181,7 +172,6 @@ public class SystemView {
         rows.getChildren().add(createToggleRow("Автоматизація повітряної тривоги",
                 "Пошук та автоматичне оповіщення про повітряну тривогу", ICON_SETTINGS, COLOR_TANGERINE, airRaidTg));
         
-        // Region Selection
         VBox regionBox = new VBox(8);
         Label regionLbl = new Label("ОБЕРІТЬ РЕГІОН:");
         regionLbl.setStyle(HEADER_STYLE);
@@ -217,6 +207,134 @@ public class SystemView {
         refreshVisibility.run();
 
         rows.getChildren().addAll(regionBox, districtBox);
+        card.getChildren().add(rows);
+        return card;
+    }
+
+    private VBox buildRelayCard() {
+        VBox card = createCard("КЕРУВАННЯ ПРИСТРОЄМ ВИКОНАННЯ", ICON_CHIP, COLOR_INDIGO);
+        VBox rows = new VBox(20);
+
+        // --- MODERN PREMIUM TOGGLE ---
+        HBox toggleContainer = new HBox();
+        toggleContainer.setStyle(PREMIUM_TOGGLE_CONTAINER);
+        toggleContainer.setMaxWidth(400);
+
+        Button usbBtn = new Button("USB HID (КАБЕЛЬ)");
+        Button shellyBtn = new Button("WI-FI (SHELLY)");
+        
+        HBox.setHgrow(usbBtn, Priority.ALWAYS);
+        HBox.setHgrow(shellyBtn, Priority.ALWAYS);
+        usbBtn.setMaxWidth(Double.MAX_VALUE);
+        shellyBtn.setMaxWidth(Double.MAX_VALUE);
+
+        Runnable updateToggleStyles = () -> {
+            boolean isShelly = "SHELLY".equals(config.getRelayType());
+            usbBtn.setStyle(isShelly ? PREMIUM_TOGGLE_INACTIVE : PREMIUM_TOGGLE_ACTIVE);
+            shellyBtn.setStyle(isShelly ? PREMIUM_TOGGLE_ACTIVE : PREMIUM_TOGGLE_INACTIVE);
+        };
+
+        usbBtn.setOnAction(e -> {
+            mainApp.getRelayController().switchDevice("USB", "", "");
+            mainApp.saveConfig();
+            updateToggleStyles.run();
+            ToastService.showSuccess("Перемкнуто на USB");
+        });
+
+        shellyBtn.setOnAction(e -> {
+            mainApp.getRelayController().switchDevice("SHELLY", config.getShellyIp(), config.getShellyName());
+            mainApp.saveConfig();
+            updateToggleStyles.run();
+            ToastService.showSuccess("Перемкнуто на WI-FI");
+        });
+
+        updateToggleStyles.run();
+        toggleContainer.getChildren().addAll(usbBtn, shellyBtn);
+        
+        VBox shellySetup = new VBox(15);
+        shellySetup.setPadding(new Insets(10, 0, 0, 0));
+        
+        ComboBox<com.schoolbell.hardware.ShellyRelayDevice> shellyCombo = new ComboBox<>();
+        shellyCombo.setStyle(PREMIUM_SELECT_STYLE);
+        shellyCombo.setPromptText("Оберіть знайдений Shelly...");
+        shellyCombo.setMaxWidth(Double.MAX_VALUE);
+        
+        // Fix: Explicit size and style to prevent jumping/scaling
+        Button scanBtn = createPrimaryActionButton("ПОШУК РЕЛЕ", ICON_SEARCH);
+        scanBtn.setStyle(PREMIUM_BTN_STYLE + "-fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 12; -fx-min-width: 160;");
+        
+        Label statusLbl = new Label(mainApp.getRelayController().getConnectionDetails());
+        statusLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 600;");
+
+        scanBtn.setOnAction(e -> {
+            scanBtn.setDisable(true);
+            scanBtn.setText("ШУКАЮ...");
+            mainApp.getRelayController().getDiscoveryService().startScan(5000, () -> {
+                javafx.application.Platform.runLater(() -> {
+                    scanBtn.setDisable(false);
+                    scanBtn.setText("ПОШУК РЕЛЕ");
+                    List<com.schoolbell.hardware.ShellyRelayDevice> devices = mainApp.getRelayController().getDiscoveryService().getDiscoveredDevices();
+                    shellyCombo.getItems().setAll(devices);
+                    if (!devices.isEmpty()) {
+                        ToastService.showSuccess("Знайдено пристроїв: " + devices.size());
+                    } else {
+                        ToastService.showError("Shelly не знайдено.");
+                    }
+                });
+            });
+        });
+
+        shellyCombo.setOnAction(e -> {
+            com.schoolbell.hardware.ShellyRelayDevice sel = shellyCombo.getValue();
+            if (sel != null) {
+                mainApp.getRelayController().switchDevice("SHELLY", sel.getIp(), sel.getDisplayName());
+                mainApp.saveConfig();
+                statusLbl.setText(mainApp.getRelayController().getConnectionDetails());
+                ToastService.showSuccess("Shelly підключено!");
+            }
+        });
+
+        usbBtn.setOnAction(e -> {
+            mainApp.getRelayController().switchDevice("USB", "", "");
+            mainApp.saveConfig();
+            updateToggleStyles.run();
+            shellySetup.setVisible(false);
+            shellySetup.setManaged(false);
+            statusLbl.setText(mainApp.getRelayController().getConnectionDetails());
+            ToastService.showSuccess("Перемкнуто на USB");
+        });
+
+        shellyBtn.setOnAction(e -> {
+            mainApp.getRelayController().switchDevice("SHELLY", config.getShellyIp(), config.getShellyName());
+            mainApp.saveConfig();
+            updateToggleStyles.run();
+            shellySetup.setVisible(true);
+            shellySetup.setManaged(true);
+            statusLbl.setText(mainApp.getRelayController().getConnectionDetails());
+            ToastService.showSuccess("Перемкнуто на WI-FI");
+        });
+
+        shellySetup.setVisible("SHELLY".equals(config.getRelayType()));
+        shellySetup.setManaged(shellySetup.isVisible());
+
+        shellySetup.getChildren().addAll(
+            new Label("АВТОМАТИЧНЕ ВИЯВЛЕННЯ SHELLY:"),
+            new HBox(12, scanBtn, shellyCombo),
+            new Label("Пристрій має бути в одній Wi-Fi мережі.")
+        );
+        shellySetup.getChildren().get(0).setStyle(HEADER_STYLE);
+        shellySetup.getChildren().get(2).setStyle("-fx-font-size: 11px; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-style: italic;");
+
+        rows.getChildren().addAll(
+            new Label("СПОСІБ ПІДКЛЮЧЕННЯ:"),
+            toggleContainer,
+            shellySetup,
+            new Region() {{ setMinHeight(5); }},
+            new HBox(10, createSVGIcon(ICON_INFO, Color.web(COLOR_PRIMARY), 16), statusLbl)
+        );
+        rows.getChildren().get(0).setStyle(HEADER_STYLE);
+        ((HBox)rows.getChildren().get(4)).setAlignment(Pos.CENTER_LEFT);
+
         card.getChildren().add(rows);
         return card;
     }

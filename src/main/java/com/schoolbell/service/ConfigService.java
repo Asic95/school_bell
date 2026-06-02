@@ -44,6 +44,11 @@ public class ConfigService {
     private boolean isAutostartEnabled = false;
     private boolean isMinimizeToTray = false;
     private String dashboardTheme = "classic";
+    
+    // Relay settings
+    private String relayType = "USB"; // "USB", "SHELLY"
+    private String shellyIp = "";
+    private String shellyName = "";
 
     public void loadConfig() {
         selectedScheduleName = DatabaseManager.getSetting("selectedSchedule", null);
@@ -79,6 +84,11 @@ public class ConfigService {
         isAutostartEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("system.autostart", "false"));
         isMinimizeToTray = Boolean.parseBoolean(DatabaseManager.getSetting("system.tray", "false"));
         dashboardTheme = DatabaseManager.getSetting("system.dashboardTheme", "classic");
+        
+        relayType = DatabaseManager.getSetting("relay.type", "USB");
+        shellyIp = DatabaseManager.getSetting("relay.shellyIp", "");
+        shellyName = DatabaseManager.getSetting("relay.shellyName", "");
+        
         logger.info("Configuration loaded from database.");
     }
 
@@ -115,6 +125,11 @@ public class ConfigService {
         DatabaseManager.saveSetting("airAutomation.region", selectedRegionId != null ? selectedRegionId : "");
         DatabaseManager.saveSetting("airAutomation.district", selectedDistrictId != null ? selectedDistrictId : "");
         DatabaseManager.saveSetting("system.dashboardTheme", dashboardTheme);
+
+        DatabaseManager.saveSetting("relay.type", relayType);
+        DatabaseManager.saveSetting("relay.shellyIp", shellyIp);
+        DatabaseManager.saveSetting("relay.shellyName", shellyName);
+        
         logger.info("Configuration saved to database.");
     }
 
@@ -181,6 +196,13 @@ public class ConfigService {
     public void setAirRaidAutomationEnabled(boolean enabled) { this.isAirRaidAutomationEnabled = enabled; }
     public String getSelectedRegionId() { return selectedRegionId; }
     public void setSelectedRegionId(String regionId) { this.selectedRegionId = regionId; }
+    public String getRelayType() { return relayType; }
+    public void setRelayType(String relayType) { this.relayType = relayType; }
+    public String getShellyIp() { return shellyIp; }
+    public void setShellyIp(String ip) { this.shellyIp = ip; }
+    public String getShellyName() { return shellyName; }
+    public void setShellyName(String name) { this.shellyName = name; }
+
     public String getSelectedDistrictId() { return selectedDistrictId; }
     public void setSelectedDistrictId(String districtId) { this.selectedDistrictId = districtId; }
     public void setDashboardTheme(String dashboardTheme) { this.dashboardTheme = dashboardTheme; }
