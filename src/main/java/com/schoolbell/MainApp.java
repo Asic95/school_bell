@@ -43,7 +43,8 @@ import static com.schoolbell.ui.UIStyles.*;
 
 public class MainApp extends Application {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
-    public static final String VERSION = "1.0.1";
+    public static final String VERSION = "1.1.0";
+
     private static final String APP_TITLE = "SchoolBell v" + VERSION;
 
     // Services

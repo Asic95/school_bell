@@ -1,6 +1,6 @@
 ; Inno Setup Script for SchoolBell
 #define AppName "SchoolBell"
-#define AppVersion "1.0.0"
+#define AppVersion "1.1.0"
 #define AppPublisher "SchoolBell Team"
 #define AppExeName "SchoolBell.exe"
 #define DistDir "dist\SchoolBell"
@@ -21,6 +21,8 @@ WizardStyle=modern
 SetupIconFile=icon.ico
 UninstallDisplayIcon={app}\{#AppExeName}
 LanguageDetectionMethod=none
+CloseApplications=yes
+AppMutex=SchoolBell_App_Instance
 
 [Languages]
 Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
@@ -38,3 +40,10 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: deskto
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#AppExeName}"; Flags: nowait; Check: IsSilent
+
+[Code]
+function IsSilent: Boolean;
+begin
+  Result := WizardSilent;
+end;

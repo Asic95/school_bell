@@ -2,11 +2,11 @@ $ErrorActionPreference = "Stop"
 
 # Configuration
 $NAME = "SchoolBell"
-$VERSION = "1.0.0"
+$VERSION = "1.1.0"
 $VENDOR = "SchoolBell Team"
 $DESC = "School Bell Management System"
 $MAIN_CLASS = "com.schoolbell.Launcher"
-$MAIN_JAR = "untitled-1.0-SNAPSHOT.jar"
+$MAIN_JAR = "untitled-1.1.0.jar"
 $ICON = "icon.ico"
 
 # Paths
@@ -60,7 +60,3 @@ if (Test-Path $ISCC) {
 }
 
 Write-Host "`n✅ BUILD COMPLETE!" -ForegroundColor Green
-
-if ($Host.Name -eq "ConsoleHost") {
-    Read-Host "Press Enter to exit"
-}
