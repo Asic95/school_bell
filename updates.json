@@ -1,9 +1,9 @@
 {
     "latest_version":  "1.1.0",
     "critical":  false,
-    "checksum":  "33b20bbbfec43c047e80fe721b30be1a922f5aee0291af35dfb0ede420411151",
+    "checksum":  "ed2101710dcd99fd348682ae3f0017a3933fceedd5ca01c5c8660001336555de",
     "changelog":  [
-                      "Premium OTA Test: High-speed downloads, Indigo Progress Bar, and Silent Auto-Restart."
+                      "Fix: Update system synchronization and premium progress bar styling."
                   ],
     "download_url":  "https://github.com/Asic95/school_bell/releases/download/v1.1.0/SchoolBell_Setup_v1.1.0.exe",
     "release_date":  "2026-06-03"

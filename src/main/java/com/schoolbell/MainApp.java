@@ -102,6 +102,7 @@ public class MainApp extends Application {
         configService = new ConfigService();
         configService.loadConfig();
         updateService = new UpdateService();
+        updateService.setJournalConsumer(msg -> addLog(msg, "INFO"));
         relayController = new RelayController(this);
         audioService = new AudioService(configService);
         signalService = new SignalService(relayController, audioService, configService);
@@ -128,6 +129,7 @@ public class MainApp extends Application {
 
         // Tray Support
         new TrayManager(this, primaryStage).init();
+
         primaryStage.setOnCloseRequest(event -> {
             if (configService.isMinimizeToTray()) {
                 event.consume();
@@ -138,88 +140,6 @@ public class MainApp extends Application {
                 System.exit(0);
             }
         });
-
-        // --- SIDEBAR ---
-        sidebar = new VBox(10);
-        sidebar.setPrefWidth(200);
-        sidebar.setMinWidth(200);
-        sidebar.setMaxWidth(200);
-        sidebar.setStyle(SIDEBAR_STYLE);
-        sidebar.setAlignment(Pos.TOP_CENTER);
-
-        // Logo Section
-        VBox logoBox = new VBox(createSVGIcon(ICON_BELL, Color.WHITE, 30));
-        logoBox.setAlignment(Pos.CENTER);
-        logoBox.setPrefSize(60, 60);
-        logoBox.setMaxSize(60, 60);
-        logoBox.setStyle("-fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 16;");
-
-        VBox logoContainer = new VBox(logoBox);
-        logoContainer.setPadding(new Insets(20, 0, 40, 0));
-        logoContainer.setAlignment(Pos.CENTER);
-        sidebar.getChildren().add(logoContainer);
-
-        Region spacer = new Region(); VBox.setVgrow(spacer, Priority.ALWAYS);
-        
-        // System Status Indicator at bottom
-        sidebarStatusDot = new Circle(4, Color.web(COLOR_SUCCESS));
-        sidebarStatusDot.setCache(true);
-        sidebarStatusDot.setCacheHint(javafx.scene.CacheHint.SPEED);
-
-        Label statusText = new Label("Онлайн");
-        statusText.setStyle("-fx-text-fill: white; -fx-font-size: 11px;");
-        sidebarStatusTime = new Label("00:00:00");
-        sidebarStatusTime.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
-        VBox statusInfo = new VBox(5, new HBox(10, sidebarStatusDot, statusText), sidebarStatusTime);
-        statusInfo.setStyle(SIDEBAR_STATUS_STYLE);
-        statusInfo.setCache(true);
-        statusInfo.setCacheHint(javafx.scene.CacheHint.SPEED);
-
-        Timeline pulseIndicator = new Timeline(
-            new KeyFrame(Duration.ZERO, new KeyValue(sidebarStatusDot.opacityProperty(), 1.0)),
-            new KeyFrame(Duration.seconds(0.8), new KeyValue(sidebarStatusDot.opacityProperty(), 0.3)),
-            new KeyFrame(Duration.seconds(1.6), new KeyValue(sidebarStatusDot.opacityProperty(), 1.0))
-        );
-        pulseIndicator.setCycleCount(Animation.INDEFINITE);
-        pulseIndicator.play();
-
-        // --- CONTENT AREA ---
-        contentArea = new StackPane();
-        contentArea.setStyle(DEPTH_1);
-        HBox.setHgrow(contentArea, Priority.ALWAYS);
-
-        // Initialize Navigation
-        navigation = new AppNavigation(this, sidebar, contentArea);
-        navigation.init();
-        
-        sidebar.getChildren().add(spacer);
-        sidebar.getChildren().add(statusInfo);
-
-        HBox mainLayout = new HBox(sidebar, contentArea);
-        StackPane root = new StackPane(mainLayout);
-
-        // Initialize Toast System
-        ToastService.setup(root);
-
-        VBox windowWrapper = new VBox();
-        windowWrapper.getChildren().addAll(new TitleBar(primaryStage, this, APP_TITLE), root);
-        VBox.setVgrow(root, Priority.ALWAYS);
-
-        Scene scene = new Scene(windowWrapper, 1400, 950);
-        scene.setFill(Color.TRANSPARENT);
-        primaryStage.setScene(scene);
-        
-        // Use visual bounds to maximize without covering taskbar
-        javafx.geometry.Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-        primaryStage.setX(bounds.getMinX());
-        primaryStage.setY(bounds.getMinY());
-        primaryStage.setWidth(bounds.getWidth());
-        primaryStage.setHeight(bounds.getHeight());
-        
-        primaryStage.show();
-
-        // Tray Support - Move after show() to prevent race conditions with taskbar icon on startup
-        new TrayManager(this, primaryStage).init();
 
         // Force refresh icons after a small delay to ensure Taskbar picks them up (fixes generic icon on boot)
         scheduler.schedule(() -> Platform.runLater(() -> {

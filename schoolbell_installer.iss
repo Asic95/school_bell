@@ -19,10 +19,10 @@ Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 SetupIconFile=icon.ico
+AppMutex=SchoolBell_App_Instance
 UninstallDisplayIcon={app}\{#AppExeName}
 LanguageDetectionMethod=none
 CloseApplications=yes
-AppMutex=SchoolBell_App_Instance
 
 [Languages]
 Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
