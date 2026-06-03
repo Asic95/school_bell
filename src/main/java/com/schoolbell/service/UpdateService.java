@@ -26,6 +26,18 @@ public class UpdateService {
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
     private static final Gson gson = new Gson();
+    private Consumer<String> journalConsumer;
+
+    public void setJournalConsumer(Consumer<String> consumer) {
+        this.journalConsumer = consumer;
+    }
+
+    private void logToJournal(String message) {
+        logger.info(message);
+        if (journalConsumer != null) {
+            journalConsumer.accept(message);
+        }
+    }
 
     public record UpdateManifest(
             @SerializedName("latest_version") String latestVersion,
@@ -39,20 +51,32 @@ public class UpdateService {
     public CompletableFuture<UpdateManifest> checkForUpdates() {
         return CompletableFuture.supplyAsync(() -> {
             try {
+                logToJournal("Перевірка оновлень за адресою: " + MANIFEST_URL);
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(MANIFEST_URL))
                         .GET()
                         .build();
 
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                
                 if (response.statusCode() == 200) {
                     UpdateManifest manifest = gson.fromJson(response.body(), UpdateManifest.class);
-                    if (isNewerVersion(manifest.latestVersion())) {
+                    String currentVersion = MainApp.VERSION;
+                    String latestVersion = manifest.latestVersion();
+                    
+                    logToJournal("Поточна версія: " + currentVersion + ", Доступна: " + latestVersion);
+                    
+                    if (isNewerVersion(latestVersion)) {
+                        logToJournal("Виявлено нову версію! Потрібне оновлення.");
                         return manifest;
+                    } else {
+                        logToJournal("У вас встановлена остання версія системи.");
                     }
+                } else {
+                    logToJournal("Помилка отримання маніфесту. Код сервера: " + response.statusCode());
                 }
             } catch (Exception e) {
-                logger.error("Failed to check for updates: {}", e.getMessage());
+                logToJournal("Помилка під час перевірки оновлень: " + e.getMessage());
             }
             return null;
         });

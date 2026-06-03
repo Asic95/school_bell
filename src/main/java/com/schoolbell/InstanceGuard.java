@@ -18,6 +18,9 @@ public class InstanceGuard {
     private static final String COMMAND = "SHOW_SCHOOL_BELL";
 
     public static boolean isAnotherInstanceRunning() {
+        if (System.getProperty("dev") != null) {
+            return false;
+        }
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress("localhost", PORT), 200);
             try (OutputStream out = socket.getOutputStream()) {

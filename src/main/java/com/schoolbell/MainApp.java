@@ -43,8 +43,7 @@ import static com.schoolbell.ui.UIStyles.*;
 
 public class MainApp extends Application {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
-    public static final String VERSION = "1.1.0";
-
+    public static final String VERSION = "1.0.0";
     private static final String APP_TITLE = "SchoolBell v" + VERSION;
 
     // Services
@@ -93,31 +92,14 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        logger.info("Starting SchoolBell v{}", VERSION);
         java.util.Locale.setDefault(Locale.of("uk", "UA"));
         this.primaryStage = primaryStage;
+        
+        // 1. Basic Stage Setup
         primaryStage.initStyle(StageStyle.TRANSPARENT);
-        DatabaseManager.initialize();
-
-        // Initialize Services
-        configService = new ConfigService();
-        configService.loadConfig();
-        updateService = new UpdateService();
-        updateService.setJournalConsumer(msg -> addLog(msg, "INFO"));
-        relayController = new RelayController(this);
-        audioService = new AudioService(configService);
-        signalService = new SignalService(relayController, audioService, configService);
-        signalService.setLogConsumer(msg -> journal.addLog(msg, "INFO"));
-        systemService = new SystemService(configService);
-        mediaSchedulerService = new MediaSchedulerService(this);
-        airAlertService = new AirAlertService(this, configService, signalService, scheduler);
-        if (configService.isAirRaidAutomationEnabled()) {
-            airAlertService.start();
-        }
-
-        startBroadcastServers();
-        InstanceGuard.startListener(primaryStage);
-
         primaryStage.setTitle(APP_TITLE);
+        
         try {
             InputStream iconStream = getClass().getResourceAsStream("/icon.png");
             if (iconStream != null) {
@@ -127,9 +109,91 @@ public class MainApp extends Application {
             logger.warn("Could not load application icon: " + e.getMessage());
         }
 
-        // Tray Support
-        new TrayManager(this, primaryStage).init();
+        // 2. Initialize Core Services (Lightweight)
+        DatabaseManager.initialize();
+        configService = new ConfigService();
+        configService.loadConfig();
+        updateService = new UpdateService();
+        updateService.setJournalConsumer(msg -> addLog(msg, "INFO"));
+        
+        // 3. Setup Instance Guard early
+        InstanceGuard.startListener(primaryStage);
 
+        // 4. Build UI Structure (Heavy)
+        sidebar = new VBox(10);
+        sidebar.setPrefWidth(200);
+        sidebar.setMinWidth(200);
+        sidebar.setMaxWidth(200);
+        sidebar.setStyle(SIDEBAR_STYLE);
+        sidebar.setAlignment(Pos.TOP_CENTER);
+
+        // Logo
+        VBox logoBox = new VBox(createSVGIcon(ICON_BELL, Color.WHITE, 30));
+        logoBox.setAlignment(Pos.CENTER);
+        logoBox.setPrefSize(60, 60);
+        logoBox.setMaxSize(60, 60);
+        logoBox.setStyle("-fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 16;");
+        VBox logoContainer = new VBox(logoBox);
+        logoContainer.setPadding(new Insets(20, 0, 40, 0));
+        logoContainer.setAlignment(Pos.CENTER);
+        sidebar.getChildren().add(logoContainer);
+
+        Region spacer = new Region(); VBox.setVgrow(spacer, Priority.ALWAYS);
+        sidebarStatusDot = new Circle(4, Color.web(COLOR_SUCCESS));
+        sidebarStatusTime = new Label("00:00:00");
+        sidebarStatusTime.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
+        VBox statusInfo = new VBox(5, new HBox(10, sidebarStatusDot, new Label("Онлайн")), sidebarStatusTime);
+        statusInfo.setStyle(SIDEBAR_STATUS_STYLE);
+        
+        contentArea = new StackPane();
+        contentArea.setStyle(DEPTH_1);
+        HBox.setHgrow(contentArea, Priority.ALWAYS);
+
+        navigation = new AppNavigation(this, sidebar, contentArea);
+        navigation.init();
+        
+        sidebar.getChildren().addAll(spacer, statusInfo);
+        
+        HBox mainLayout = new HBox(sidebar, contentArea);
+        StackPane root = new StackPane(mainLayout);
+        ToastService.setup(root);
+
+        VBox windowWrapper = new VBox(new TitleBar(primaryStage, this, APP_TITLE), root);
+        VBox.setVgrow(root, Priority.ALWAYS);
+
+        Scene scene = new Scene(windowWrapper, 1400, 950);
+        scene.setFill(Color.TRANSPARENT);
+        primaryStage.setScene(scene);
+
+        // 5. Initialize Hardware & Background Services
+        relayController = new RelayController(this);
+        audioService = new AudioService(configService);
+        signalService = new SignalService(relayController, audioService, configService);
+        signalService.setLogConsumer(msg -> journal.addLog(msg, "INFO"));
+        systemService = new SystemService(configService);
+        mediaSchedulerService = new MediaSchedulerService(this);
+        airAlertService = new AirAlertService(this, configService, signalService, scheduler);
+        
+        if (configService.isAirRaidAutomationEnabled()) {
+            airAlertService.start();
+        }
+
+        dashboardView = new DashboardView(this);
+        schoolView = new SchoolView(this);
+        scheduleView = new ScheduleView(this);
+        efirView = new EfirView(this);
+        notificationsView = new NotificationsView(this);
+        systemView = new SystemView(this);
+        importView = new ImportView(this);
+
+        // 6. Final Window Configuration & Show
+        javafx.geometry.Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        primaryStage.setX(bounds.getMinX());
+        primaryStage.setY(bounds.getMinY());
+        primaryStage.setWidth(bounds.getWidth());
+        primaryStage.setHeight(bounds.getHeight());
+
+        // Handle Close Request
         primaryStage.setOnCloseRequest(event -> {
             if (configService.isMinimizeToTray()) {
                 event.consume();
@@ -141,43 +205,24 @@ public class MainApp extends Application {
             }
         });
 
-        // Force refresh icons after a small delay to ensure Taskbar picks them up (fixes generic icon on boot)
-        scheduler.schedule(() -> Platform.runLater(() -> {
-            try {
-                InputStream iconStream = getClass().getResourceAsStream("/icon.png");
-                if (iconStream != null) {
-                    Image icon = new Image(iconStream);
-                    primaryStage.getIcons().setAll(icon);
-                }
-            } catch (Exception e) {
-                logger.warn("Failed to refresh icon: " + e.getMessage());
-            }
-        }), 1500, TimeUnit.MILLISECONDS);
-
-        // Initialize Views
-        dashboardView = new DashboardView(this);
-        schoolView = new SchoolView(this);
-        scheduleView = new ScheduleView(this);
-        efirView = new EfirView(this);
-        notificationsView = new NotificationsView(this);
-        systemView = new SystemView(this);
-        importView = new ImportView(this);
-
+        primaryStage.show();
         navigation.showDashboard();
-
+        
+        // 7. Post-Show Tasks
+        new TrayManager(this, primaryStage).init();
+        
+        startBroadcastServers();
         internalSchedules = scheduleService.loadInternalSchedules();
         refreshScheduleOptions();
         startScheduler();
         refreshCaches();
-        
-        // Schedule database cleanup (once every 24 hours)
-        scheduler.scheduleAtFixedRate(DatabaseManager::cleanupOldData, 1, 24, TimeUnit.HOURS);
 
-        // Check for updates
-        scheduler.schedule(this::checkForUpdates, 5, TimeUnit.SECONDS);
+        // Background maintenance
+        scheduler.scheduleAtFixedRate(DatabaseManager::cleanupOldData, 1, 24, TimeUnit.HOURS);
+        scheduler.schedule(this::checkForUpdates, 10, TimeUnit.SECONDS);
         scheduler.scheduleAtFixedRate(this::checkForUpdates, 24, 24, TimeUnit.HOURS);
 
-        logger.info("System ready.");
+        logger.info("System fully initialized and ready.");
     }
 
     private void checkForUpdates() {
@@ -238,15 +283,13 @@ public class MainApp extends Application {
             java.time.LocalDate today = java.time.LocalDate.now();
             signalService.checkAndTriggerBell(now, schedule);
             Platform.runLater(() -> {
-                dashboardView.update(now);
+                if (dashboardView != null) dashboardView.update(now);
                 if (sidebarStatusTime != null) sidebarStatusTime.setText(now.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")));
-                if (relayController.isConnected()) {
-                    if (sidebarStatusDot != null) sidebarStatusDot.setFill(Color.web(COLOR_SUCCESS));
-                } else {
-                    if (sidebarStatusDot != null) sidebarStatusDot.setFill(Color.web(COLOR_DANGER));
+                if (relayController != null && sidebarStatusDot != null) {
+                    sidebarStatusDot.setFill(relayController.isConnected() ? Color.web(COLOR_SUCCESS) : Color.web(COLOR_DANGER));
                 }
                 
-                if (broadcastService != null && broadcastService.isBroadcasting()) {
+                if (broadcastService != null && broadcastService.isBroadcasting() && dashboardView != null) {
                     Map<String, Object> data = dashboardView.getExtendedDashboardData(now);
                     String activeAnnouncement = announcementService.getActiveAnnouncementText(today, now);
                     data.put("announcement", activeAnnouncement != null ? activeAnnouncement : "");
@@ -262,7 +305,7 @@ public class MainApp extends Application {
         internalSchedules.stream().filter(ds -> ds.getName().equals(name)).findFirst().ifPresent(ds -> {
             schedule = scheduleService.convertToBellEntries(ds);
             Platform.runLater(() -> {
-                dashboardView.refreshActiveScheduleLabel();
+                if (dashboardView != null) dashboardView.refreshActiveScheduleLabel();
             });
             logger.info("Schedule reloaded: " + name);
         });
@@ -379,7 +422,7 @@ public class MainApp extends Application {
     }
 
     @Override public void stop() { 
-        relayController.close(); 
+        if (relayController != null) relayController.close(); 
         scheduler.shutdown(); 
         stopBroadcastServers();
         if (audioService != null) audioService.stopAll();
