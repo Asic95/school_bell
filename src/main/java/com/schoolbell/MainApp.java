@@ -43,7 +43,8 @@ import static com.schoolbell.ui.UIStyles.*;
 
 public class MainApp extends Application {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
-    private static final String APP_TITLE = "SchoolBell v1.0";
+    public static final String VERSION = "1.0.1";
+    private static final String APP_TITLE = "SchoolBell v" + VERSION;
 
     // Services
     private RelayController relayController;
@@ -58,6 +59,7 @@ public class MainApp extends Application {
     private MediaSchedulerService mediaSchedulerService;
     private BroadcastService broadcastService;
     private AirAlertService airAlertService;
+    private UpdateService updateService;
     private HttpServer httpServer;
 
     // Controllers
@@ -98,6 +100,7 @@ public class MainApp extends Application {
         // Initialize Services
         configService = new ConfigService();
         configService.loadConfig();
+        updateService = new UpdateService();
         relayController = new RelayController(this);
         audioService = new AudioService(configService);
         signalService = new SignalService(relayController, audioService, configService);
@@ -249,7 +252,41 @@ public class MainApp extends Application {
         // Schedule database cleanup (once every 24 hours)
         scheduler.scheduleAtFixedRate(DatabaseManager::cleanupOldData, 1, 24, TimeUnit.HOURS);
 
+        // Check for updates
+        scheduler.schedule(this::checkForUpdates, 5, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::checkForUpdates, 24, 24, TimeUnit.HOURS);
+
         logger.info("System ready.");
+    }
+
+    private void checkForUpdates() {
+        updateService.checkForUpdates().thenAccept(manifest -> {
+            if (manifest != null) {
+                Platform.runLater(() -> {
+                    new UpdateAvailableDialog(primaryStage, updateService, manifest).show();
+                    logger.info("Update available: {}", manifest.latestVersion());
+                });
+            }
+        });
+    }
+
+    public void checkForUpdatesManual(Runnable onFinish) {
+        updateService.checkForUpdates().thenAccept(manifest -> {
+            Platform.runLater(() -> {
+                if (manifest != null) {
+                    new UpdateAvailableDialog(primaryStage, updateService, manifest).show();
+                } else {
+                    ToastService.showInfo("У вас встановлена актуальна версія.");
+                }
+                if (onFinish != null) onFinish.run();
+            });
+        }).exceptionally(ex -> {
+            Platform.runLater(() -> {
+                ToastService.showError("Помилка перевірки оновлень.");
+                if (onFinish != null) onFinish.run();
+            });
+            return null;
+        });
     }
 
     public void addLog(String message, String level) { journal.addLog(message, level); }

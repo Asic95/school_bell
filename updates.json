@@ -1,0 +1,10 @@
+{
+    "latest_version":  "1.0.1",
+    "critical":  false,
+    "checksum":  "c0bb70908001097aea18489a40d111b0de4d00d22a2810b317adf13513cdd16d",
+    "changelog":  [
+                      "Test release: Checking automation system"
+                  ],
+    "download_url":  "https://github.com/Asic95/school_bell/releases/download/v1.0.1/SchoolBell_Setup_v1.0.1.exe",
+    "release_date":  "2026-06-03"
+}
