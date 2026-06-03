@@ -17,6 +17,10 @@ import javafx.stage.Stage;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+
 public class UpdateAvailableDialog extends BasePremiumDialog {
     private final UpdateService updateService;
     private final UpdateManifest manifest;
@@ -27,7 +31,7 @@ public class UpdateAvailableDialog extends BasePremiumDialog {
         super(owner,
                 "ОНОВЛЕННЯ СИСТЕМИ",
                 "Доступна версія " + manifest.latestVersion(),
-                "Реліз від " + manifest.releaseDate(),
+                formatReleaseDate(manifest.releaseDate()),
                 "ОНОВИТИ ЗАРАЗ",
                 600);
 
@@ -68,16 +72,49 @@ public class UpdateAvailableDialog extends BasePremiumDialog {
 
         progressBar = new ProgressBar(0);
         progressBar.setPrefWidth(Double.MAX_VALUE);
-        progressBar.setStyle("-fx-accent: " + COLOR_PRIMARY + ";");
+        progressBar.setMinHeight(16);
+        progressBar.setPrefHeight(16);
+        progressBar.setMaxHeight(16);
+        
+        String barStyle = "-fx-background-color: linear-gradient(to right, #4f46e5, #7c3aed); -fx-background-radius: 99; -fx-background-insets: 0;";
+        String trackStyle = "-fx-background-color: #f1f5f9; -fx-background-radius: 99; -fx-background-insets: 0; -fx-border-color: #e2e8f0; -fx-border-width: 1; -fx-border-radius: 99;";
+        
+        progressBar.setStyle(
+            "-fx-indeterminate-bar-length: 60; -fx-indeterminate-bar-escape: true; -fx-indeterminate-bar-flip: true; -fx-indeterminate-bar-animation-delay: 20;"
+        );
+        
+        // CSS to target internal bar and track
+        String premiumProgressCss = 
+            ".progress-bar > .track { " + trackStyle + " } " +
+            ".progress-bar > .bar { " + barStyle + " -fx-effect: dropshadow(three-pass-box, rgba(79, 70, 229, 0.3), 10, 0, 0, 2); }";
+        
+        progressBar.getStylesheets().add("data:text/css;base64," + java.util.Base64.getEncoder().encodeToString(premiumProgressCss.getBytes()));
+        
         progressBar.setVisible(false);
         progressBar.setManaged(false);
 
         statusLabel = new Label();
-        statusLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_SLATE + ";");
+        statusLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_NAVY + ";");
         statusLabel.setVisible(false);
         statusLabel.setManaged(false);
 
-        content.getChildren().addAll(progressBar, statusLabel);
+        VBox progressContainer = new VBox(10, statusLabel, progressBar);
+        progressContainer.setAlignment(Pos.CENTER_LEFT);
+        content.getChildren().add(progressContainer);
+
+        // Change save button icon to update icon instead of default save icon
+        saveBtn.setGraphic(createSVGIcon(ICON_UPDATE, Color.WHITE, 18));
+    }
+
+    private static String formatReleaseDate(String isoDate) {
+        if (isoDate == null || isoDate.isBlank()) return "Дата невідома";
+        try {
+            LocalDate date = LocalDate.parse(isoDate);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            return "Реліз від " + date.format(formatter);
+        } catch (Exception e) {
+            return "Реліз від " + isoDate;
+        }
     }
 
     @Override

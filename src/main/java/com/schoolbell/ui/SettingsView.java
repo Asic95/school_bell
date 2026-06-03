@@ -196,12 +196,26 @@ public class SettingsView {
         airGrid.getChildren().addAll(airToggleBox, regBox, distBox);
         secAir.getChildren().add(airGrid);
 
+        VBox secUpdate = createSettingsSection("СИСТЕМНА ІНФОРМАЦІЯ", COLOR_VIOLET, ICON_INFO);
+        secUpdate.setStyle(SOFT_CARD + "-fx-padding: 30;");
+        Label verLabel = new Label("ПОТОЧНА ВЕРСІЯ: " + MainApp.VERSION);
+        verLabel.setStyle(HEADER_STYLE);
+        
+        Button checkUpdateBtn = createSecondaryDialogButton("ПЕРЕВІРИТИ ОНОВЛЕННЯ");
+        checkUpdateBtn.setOnAction(e -> {
+            checkUpdateBtn.setDisable(true);
+            mainApp.checkForUpdatesManual(() -> checkUpdateBtn.setDisable(false));
+        });
+        
+        secUpdate.getChildren().addAll(verLabel, checkUpdateBtn);
+
         grid.add(sec1, 0, 0);
         grid.add(sec2, 1, 0);
         grid.add(bellSettingsPane, 0, 1, 2, 1);
         grid.add(sec4, 0, 2);
         grid.add(sec5, 1, 2);
-        grid.add(secAir, 0, 3, 2, 1);
+        grid.add(secAir, 0, 3);
+        grid.add(secUpdate, 1, 3);
 
         root.getChildren().addAll(header, grid);
 

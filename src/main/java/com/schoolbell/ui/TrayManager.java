@@ -61,10 +61,20 @@ public class TrayManager {
                 }));
                 MenuItem exitItem = new MenuItem("Вихід");
                 exitItem.addActionListener(e -> {
+                    // Remove tray icon immediately in AWT thread
+                    try {
+                        SystemTray.getSystemTray().remove(trayIcon);
+                    } catch (Exception ex) {
+                        logger.error("Error removing tray icon", ex);
+                    }
+                    
                     Platform.runLater(() -> {
-                        app.stop();
-                        Platform.exit();
-                        System.exit(0);
+                        try {
+                            app.stop();
+                            Platform.exit();
+                        } finally {
+                            System.exit(0);
+                        }
                     });
                 });
                 popup.add(showItem);
