@@ -6,34 +6,18 @@ import com.schoolbell.model.SchoolClass;
 import com.schoolbell.model.Subject;
 import com.schoolbell.model.SubstitutionEntry;
 import com.schoolbell.model.Teacher;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.schoolbell.ui.ControlFactory.createDialogHeader;
-import static com.schoolbell.ui.ControlFactory.createDialogRoot;
-import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
-import static com.schoolbell.ui.ControlFactory.createSecondaryDialogButton;
 import static com.schoolbell.ui.UIStyles.HEADER_STYLE;
-import static com.schoolbell.ui.UIStyles.ICON_SAVE;
-import static com.schoolbell.ui.UIStyles.MODERN_SPINNER_STYLE;
-import static com.schoolbell.ui.UIStyles.PREMIUM_BTN_STYLE;
 import static com.schoolbell.ui.UIStyles.PREMIUM_SELECT_STYLE;
 
 public class SubstitutionEditorDialog extends BasePremiumDialog {

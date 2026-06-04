@@ -309,7 +309,6 @@ public class DashboardView {
                 volStatusLabel.setText(p + "%");
                 updateVolumeStyle();
                 config.setSystemVolume(p);
-                mainApp.getAudioService().setVolume(p);
                 mainApp.getSystemService().setWindowsSystemVolume(p);
                 mainApp.saveConfig();
             });

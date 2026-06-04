@@ -4,7 +4,6 @@ import com.schoolbell.MainApp;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -13,7 +12,6 @@ import javafx.scene.layout.VBox;
 
 import static com.schoolbell.ui.CardFactory.createManagementCard;
 import static com.schoolbell.ui.ControlFactory.createPageHeader;
-import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class SchoolView {

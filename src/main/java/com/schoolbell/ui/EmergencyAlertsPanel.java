@@ -323,28 +323,6 @@ public class EmergencyAlertsPanel {
         }
     }
 
-    private void chooseFile(TextField pathField) {
-        FileChooser chooser = new FileChooser();
-        chooser.setTitle("Оберіть аудіофайл");
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Аудіо (MP3, WAV)", "*.mp3", "*.wav"));
-        File file = chooser.showOpenDialog(mainApp.getStage());
-        if (file != null) {
-            pathField.setText(file.getAbsolutePath());
-        }
-    }
-
-    private String formatFileSize(long bytes) {
-        if (bytes <= 0) {
-            return "0 KB";
-        }
-        double mb = bytes / (1024d * 1024d);
-        if (mb >= 1) {
-            return new DecimalFormat("0.0#").format(mb) + " MB";
-        }
-        double kb = bytes / 1024d;
-        return new DecimalFormat("0").format(kb) + " KB";
-    }
-
     public void syncToConfig() {
         config.setAudioAirRaidEnabled(arAudioTg.isSelected());
         config.setAudioAirRaidPath(arAudioPath.getText());
@@ -357,17 +335,5 @@ public class EmergencyAlertsPanel {
         config.setAudioSilenceEnabled(siAudioTg.isSelected());
         config.setAudioSilencePath(siAudioPath.getText());
         config.setVisualSilenceEnabled(siVisualTg.isSelected());
-    }
-
-    public boolean hasChanges() {
-        return arAudioTg.isSelected() != config.isAudioAirRaidEnabled() ||
-               !arAudioPath.getText().equals(config.getAudioAirRaidPath() == null ? "" : config.getAudioAirRaidPath()) ||
-               arVisualTg.isSelected() != config.isVisualAirRaidEnabled() ||
-               emAudioTg.isSelected() != config.isAudioEmergencyEnabled() ||
-               !emAudioPath.getText().equals(config.getAudioEmergencyPath() == null ? "" : config.getAudioEmergencyPath()) ||
-               emVisualTg.isSelected() != config.isVisualEmergencyEnabled() ||
-               siAudioTg.isSelected() != config.isAudioSilenceEnabled() ||
-               !siAudioPath.getText().equals(config.getAudioSilencePath() == null ? "" : config.getAudioSilencePath()) ||
-               siVisualTg.isSelected() != config.isVisualSilenceEnabled();
     }
 }
