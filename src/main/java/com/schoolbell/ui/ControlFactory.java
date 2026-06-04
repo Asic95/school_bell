@@ -220,32 +220,6 @@ public class ControlFactory {
         return cb;
     }
 
-    public static HBox createStatusBadge(String icon, String color, String tag, String label, Label value) {
-        HBox badge = new HBox(16);
-        badge.setAlignment(Pos.CENTER_LEFT);
-
-        VBox iconBox = new VBox(createSVGIcon(icon, Color.web(color), 22));
-        iconBox.setAlignment(Pos.CENTER);
-        iconBox.setPrefSize(54, 54);
-        iconBox.setStyle("-fx-background-color: " + color + "10; -fx-background-radius: 18;");
-
-        VBox text = new VBox(1);
-        Label tagLabel = new Label(tag);
-        tagLabel.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-letter-spacing: 1px;");
-
-        HBox valueLine = new HBox(8);
-        valueLine.setAlignment(Pos.BASELINE_LEFT);
-        Label mainLabel = new Label(label);
-        mainLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: " + COLOR_SLATE + ";");
-        value.setStyle("-fx-font-size: 17px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
-        valueLine.getChildren().addAll(mainLabel, value);
-
-        text.getChildren().addAll(tagLabel, valueLine);
-
-        badge.getChildren().addAll(iconBox, text);
-        return badge;
-    }
-
     public static Label createChip(String text, String color, String icon) {
         Label l = new Label(text);
         if (icon != null) {
@@ -298,10 +272,6 @@ public class ControlFactory {
         header.getChildren().addAll(iconBox, titleBlock);
         section.getChildren().addAll(header, content);
         return section;
-    }
-
-    public static VBox createModernSettingsGroup(String title, String icon, Node content) {
-        return createModernSettingsGroup(title, icon, COLOR_PRIMARY, content);
     }
 
     public static VBox createLabeledField(String label, Node field) {

@@ -12,7 +12,6 @@ import javafx.scene.layout.VBox;
 
 import static com.schoolbell.ui.CardFactory.createManagementCard;
 import static com.schoolbell.ui.ControlFactory.createPageHeader;
-import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class ScheduleView {

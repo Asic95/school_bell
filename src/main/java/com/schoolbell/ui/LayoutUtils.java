@@ -91,11 +91,4 @@ public class LayoutUtils {
         avatar.getChildren().add(label);
         return avatar;
     }
-
-    public static javafx.scene.shape.Line createSeparator() {
-        javafx.scene.shape.Line line = new javafx.scene.shape.Line(0, 0, 100, 0);
-        line.setStroke(Color.web(COLOR_WHITE_MUTED_BORDER));
-        line.setStrokeWidth(1.5);
-        return line;
-    }
 }

@@ -6,14 +6,10 @@ import com.schoolbell.ui.ScheduleEditorDialog;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.stage.Stage;
 
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -22,8 +18,6 @@ import java.util.stream.Collectors;
 import static com.schoolbell.ui.ControlFactory.createEmptyState;
 import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
-import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
-import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
 import com.schoolbell.ui.SubstitutionEditorDialog;

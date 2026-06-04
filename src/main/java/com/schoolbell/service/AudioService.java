@@ -120,13 +120,6 @@ public class AudioService {
         }, "AudioEngine-Playlist-Thread").start();
     }
 
-    private boolean isFormatMatch(AudioFormat f1, AudioFormat f2) {
-        return Math.abs(f1.getSampleRate() - f2.getSampleRate()) < 1.0 &&
-               f1.getChannels() == f2.getChannels() &&
-               f1.getSampleSizeInBits() == f2.getSampleSizeInBits() &&
-               f1.getEncoding().equals(f2.getEncoding());
-    }
-
     /**
      * Tries multiple strategies to open an audio stream.
      * 1. Standard AudioSystem detection (best for WAV, standard MP3, and AAC/M4A).
@@ -234,24 +227,6 @@ public class AudioService {
         } finally {
             raf.seek(originalPos);
         }
-    }
-
-    private void diagnoseAudioSystem() {
-        logger.info("--- AudioSystem Diagnostics ---");
-        try {
-            logger.info("Mixers found: {}", AudioSystem.getMixerInfo().length);
-            for (Mixer.Info info : AudioSystem.getMixerInfo()) {
-                logger.info(" - Mixer: {}", info.getName());
-            }
-            // Check for MP3 SPI providers implicitly by checking available encodings
-            logger.info("Supported Encodings:");
-            for (AudioFormat.Encoding enc : AudioSystem.getTargetEncodings(AudioFormat.Encoding.PCM_SIGNED)) {
-                logger.info(" - To PCM_SIGNED from: {}", enc);
-            }
-        } catch (Exception ex) {
-            logger.error("Diagnostics failed: {}", ex.getMessage());
-        }
-        logger.info("-------------------------------");
     }
 
     private void playInternal(AudioInputStream stream, Mixer.Info mixerInfo, String trackName, boolean isAlert) throws Exception {
@@ -367,13 +342,5 @@ public class AudioService {
 
     public String getCurrentPlayingTrack() {
         return currentPlayingTrack;
-    }
-
-    /**
-     * Dynamically updates the system volume level for current playback.
-     */
-    public void setVolume(double volume) {
-        // Since we process volume per buffer in the loop, this will be 
-        // picked up by the next read iteration from configService.
     }
 }

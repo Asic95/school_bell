@@ -3,7 +3,6 @@ package com.schoolbell.ui.editor;
 import com.schoolbell.MainApp;
 import com.schoolbell.model.DaySchedule;
 import com.schoolbell.ui.ConfirmationDialog;
-import com.schoolbell.ui.TextInputModalDialog;
 import com.schoolbell.ui.ToastService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -439,32 +438,6 @@ public class BellsEditorTab {
             final String fTone = tone;
             lr.root.setOnMouseEntered(e -> lr.root.setStyle(lr.root.getStyle().split("-fx-background-color:")[0] + "-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-border-color: " + fTone + "40;"));
         }
-    }
-
-    private HBox lessonBox(int index, String tone) {
-        StackPane badge = new StackPane();
-        badge.setMinSize(44, 44);
-        badge.setPrefSize(44, 44);
-        badge.setMaxSize(44, 44);
-        badge.setStyle(
-                "-fx-background-color: " + tone + "12;" +
-                "-fx-background-radius: 12;" +
-                "-fx-border-color: " + tone + "30;" +
-                "-fx-border-width: 1.5;" +
-                "-fx-border-radius: 12;"
-        );
-        Label num = new Label(String.format("%02d", index + 1));
-        num.setStyle("-fx-text-fill: " + tone + "; -fx-font-weight: 900; -fx-font-size: 15px;");
-        badge.getChildren().add(num);
-
-        Label lessonText = new Label((index + 1) + " УРОК");
-        lessonText.setStyle("-fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + "; -fx-letter-spacing: 0.5px;");
-        String openBook = "M19,2H14C12.9,2 12,2.9 12,4C12,2.9 11.1,2 10,2H5C3.9,2 3,2.9 3,4V20C3,18.9 3.9,18 5,18H10C11.1,18 12,18.9 12,20C12,18.9 12.9,18 14,18H19C20.1,18 21,18.9 21,20V4C21,2.9 20.1,2 19,2Z";
-        HBox box = new HBox(12, badge, createSVGIcon(openBook, Color.web(tone), 22), lessonText);
-        box.setAlignment(Pos.CENTER_LEFT);
-        box.setPrefWidth(160);
-        box.setMinWidth(160);
-        return box;
     }
 
     private VBox labeledTimeBox(String labelText, ComboBox<String> h, ComboBox<String> m) {

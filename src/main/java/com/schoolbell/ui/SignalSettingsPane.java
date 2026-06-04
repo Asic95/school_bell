@@ -4,14 +4,12 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.CacheHint;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -43,30 +41,6 @@ public class SignalSettingsPane extends StackPane {
         container.getChildren().addAll(buildRegularCard(), buildAirRaidCard(), buildEmergencyCard());
 
         getChildren().add(container);
-    }
-
-    public SignalSettingsPane(int regular, int airRing, int airPause, int emergency) {
-        this();
-        regularDuration.set(regular);
-        airRaidRingDuration.set(airRing);
-        airRaidPauseDuration.set(airPause);
-        emergencyDuration.set(emergency);
-    }
-
-    public int getRegularDuration() {
-        return regularDuration.get();
-    }
-
-    public int getAirRaidRingDuration() {
-        return airRaidRingDuration.get();
-    }
-
-    public int getAirRaidPauseDuration() {
-        return airRaidPauseDuration.get();
-    }
-
-    public int getEmergencyDuration() {
-        return emergencyDuration.get();
     }
 
     private void applyStylesheet() {

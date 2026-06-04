@@ -7,10 +7,6 @@ import com.schoolbell.model.SchoolClass;
 import com.schoolbell.service.*;
 import com.schoolbell.ui.*;
 import com.sun.net.httpserver.HttpServer;
-import javafx.animation.Animation;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -25,7 +21,6 @@ import javafx.scene.shape.Circle;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -236,36 +231,11 @@ public class MainApp extends Application {
         });
     }
 
-    public void checkForUpdatesManual(Runnable onFinish) {
-        updateService.checkForUpdates().thenAccept(manifest -> {
-            Platform.runLater(() -> {
-                if (manifest != null) {
-                    new UpdateAvailableDialog(primaryStage, updateService, manifest).show();
-                } else {
-                    ToastService.showInfo("У вас встановлена актуальна версія.");
-                }
-                if (onFinish != null) onFinish.run();
-            });
-        }).exceptionally(ex -> {
-            Platform.runLater(() -> {
-                ToastService.showError("Помилка перевірки оновлень.");
-                if (onFinish != null) onFinish.run();
-            });
-            return null;
-        });
-    }
-
     public void addLog(String message, String level) { journal.addLog(message, level); }
     public ObservableList<String> getSystemLogs() { return journal.getSystemLogs(); }
 
-    public void showDashboard() { navigation.showDashboard(); }
-    public void showSchool() { navigation.showSchool(); }
-    public void showSchedule() { navigation.showSchedule(); }
     public void showEditorTab(int tabIndex) { navigation.showEditorTab(tabIndex); }
-    public void showEfir() { navigation.showEfir(); }
     public void showNotifications() { navigation.showNotifications(); }
-    public void showSystem() { navigation.showSystem(); }
-    public void showImport() { navigation.showImport(); }
 
     public DashboardView getDashboardView() { return dashboardView; }
     public SchoolView getSchoolView() { return schoolView; }

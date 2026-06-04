@@ -3,22 +3,15 @@ package com.schoolbell.ui;
 import com.schoolbell.model.Announcement;
 import com.schoolbell.service.AnnouncementService;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -26,19 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.schoolbell.ui.ControlFactory.createDialogHeader;
-import static com.schoolbell.ui.ControlFactory.createDialogRoot;
 import static com.schoolbell.ui.ControlFactory.createLabeledField;
-import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
-import static com.schoolbell.ui.ControlFactory.createSecondaryDialogButton;
 import static com.schoolbell.ui.UIStyles.COLOR_INDIGO;
 import static com.schoolbell.ui.UIStyles.COLOR_NAVY;
 import static com.schoolbell.ui.UIStyles.COLOR_SLATE;
 import static com.schoolbell.ui.UIStyles.COLOR_SURFACE_BRAND;
 import static com.schoolbell.ui.UIStyles.HEADER_STYLE;
-import static com.schoolbell.ui.UIStyles.ICON_SAVE;
-import static com.schoolbell.ui.UIStyles.MODERN_CHECKBOX_STYLE;
-import static com.schoolbell.ui.UIStyles.PREMIUM_BTN_STYLE;
 import static com.schoolbell.ui.UIStyles.PREMIUM_FIELD_STYLE;
 
 public class AnnouncementEditorDialog extends BasePremiumDialog {

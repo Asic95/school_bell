@@ -2,13 +2,11 @@ package com.schoolbell.ui;
 
 import com.schoolbell.MainApp;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 
 import static com.schoolbell.ui.UIStyles.*;
 

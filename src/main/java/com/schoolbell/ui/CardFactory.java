@@ -4,7 +4,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
@@ -88,77 +87,6 @@ public class CardFactory {
         card.setOnMouseEntered(e -> card.setStyle(SOFT_CARD + "-fx-background-color: " + COLOR_SURFACE_ELEVATED + "; -fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_12 + ", 40, 0, 0, 15);"));
         card.setOnMouseExited(e -> card.setStyle(SOFT_CARD));
         
-        return card;
-    }
-
-    public static VBox createMiniLessonCard(String header, Label lessonLabel, Label statusBadge, String color, Label timeLabel, Label subjectLabel, Label roomLabel, String iconPath) {
-        VBox card = new VBox(10);
-        card.setPadding(new Insets(20));
-        card.setStyle(SOFT_CARD);
-        
-        Label h = new Label(header); h.setStyle(HEADER_STYLE);
-        
-        HBox content = new HBox(20);
-        content.setAlignment(Pos.CENTER_LEFT);
-        
-        VBox iconBox = new VBox(createSVGIcon(iconPath, Color.web(color), 28));
-        iconBox.setAlignment(Pos.CENTER);
-        iconBox.setPrefSize(50, 50);
-        iconBox.setStyle("-fx-background-color: " + color + "15; -fx-background-radius: 50;");
-        
-        VBox info = new VBox(2);
-        lessonLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + ";");
-        statusBadge.setStyle("-fx-font-size: 9px; -fx-font-weight: 900; -fx-text-fill: white; -fx-background-color: " + color + "; -fx-padding: 2 6; -fx-background-radius: 4;");
-        HBox titleBox = new HBox(12, lessonLabel, statusBadge); titleBox.setAlignment(Pos.CENTER_LEFT);
-        
-        timeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
-        subjectLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + ";");
-        roomLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
-        
-        info.getChildren().addAll(titleBox, new HBox(10, timeLabel, new Label("|"), roomLabel), subjectLabel);
-        ((Label)((HBox)info.getChildren().get(1)).getChildren().get(1)).setStyle("-fx-text-fill: " + COLOR_WHITE_MUTED_BORDER + ";");
-        
-        content.getChildren().addAll(iconBox, info);
-        card.getChildren().addAll(h, content);
-        return card;
-    }
-
-    public static VBox createDetailedLessonCard(String header, Label lessonLabel, Label statusBadge, String color, Label timeLabel, Label subjectLabel, Label roomLabel, String iconPath, ProgressBar progress, Label progressText) {
-        VBox card = new VBox(10);
-        card.setPadding(new Insets(20));
-        card.setStyle(SOFT_CARD);
-        
-        Label h = new Label(header); h.setStyle(HEADER_STYLE);
-        
-        HBox content = new HBox(20);
-        content.setAlignment(Pos.CENTER_LEFT);
-        
-        VBox iconBox = new VBox(createSVGIcon(iconPath, Color.web(color), 32));
-        iconBox.setAlignment(Pos.CENTER);
-        iconBox.setPrefSize(60, 60);
-        iconBox.setStyle("-fx-background-color: " + color + "15; -fx-background-radius: 50;");
-        
-        VBox info = new VBox(4);
-        lessonLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + ";");
-        statusBadge.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: white; -fx-background-color: " + color + "; -fx-padding: 3 10; -fx-background-radius: 6;");
-        HBox titleBox = new HBox(15, lessonLabel, statusBadge); titleBox.setAlignment(Pos.CENTER_LEFT);
-        
-        timeLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT_DIM + ";");
-        subjectLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TEXT + ";");
-        roomLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-font-weight: bold;");
-        
-        HBox metaBox = new HBox(12, timeLabel, new Label("|"), roomLabel);
-        metaBox.setAlignment(Pos.CENTER_LEFT);
-        ((Label)metaBox.getChildren().get(1)).setStyle("-fx-text-fill: " + COLOR_WHITE_MUTED_BORDER + ";");
-        
-        VBox progressBox = new VBox(5, progress, new HBox(progressText));
-        ((HBox)progressBox.getChildren().get(1)).setAlignment(Pos.CENTER_RIGHT);
-        
-        info.getChildren().addAll(titleBox, metaBox, subjectLabel, progressBox);
-        HBox.setHgrow(info, Priority.ALWAYS);
-        
-        content.getChildren().addAll(iconBox, info);
-        card.getChildren().addAll(h, content);
         return card;
     }
 

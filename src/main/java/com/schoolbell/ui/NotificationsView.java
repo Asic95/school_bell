@@ -11,7 +11,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
@@ -23,7 +22,6 @@ import javax.sound.sampled.SourceDataLine;
 
 import static com.schoolbell.ui.CardFactory.createHelpCard;
 import static com.schoolbell.ui.CardFactory.createSideHelpPanel;
-import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
@@ -155,11 +153,10 @@ public class NotificationsView {
             button.setMinWidth(95);
             button.setPrefHeight(46);
             button.setOnAction(e -> {
-                currentVolumeValue = preset;
-                updateVolumeStyle();
-                mainApp.getAudioService().setVolume(preset);
-                mainApp.getSystemService().setWindowsSystemVolume(preset);
-                save();
+               currentVolumeValue = preset;
+               updateVolumeStyle();
+               mainApp.getSystemService().setWindowsSystemVolume(preset);
+               save();
             });
             volumePresetBox.getChildren().add(button);
         }

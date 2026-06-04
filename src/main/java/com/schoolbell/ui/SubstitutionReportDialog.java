@@ -2,24 +2,15 @@ package com.schoolbell.ui;
 
 import com.schoolbell.MainApp;
 import com.schoolbell.ui.editor.SubstitutionReportService;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Locale;
 
-import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class SubstitutionReportDialog extends BasePremiumDialog {

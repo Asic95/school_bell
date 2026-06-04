@@ -19,7 +19,6 @@ import java.util.List;
 import static com.schoolbell.ui.CardFactory.createHelpCard;
 import static com.schoolbell.ui.ControlFactory.createEmptyState;
 import static com.schoolbell.ui.ControlFactory.createPageHeader;
-import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 

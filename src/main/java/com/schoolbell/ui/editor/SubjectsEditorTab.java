@@ -13,7 +13,6 @@ import java.util.List;
 
 import static com.schoolbell.ui.CardFactory.createCardActionButton;
 import static com.schoolbell.ui.ControlFactory.*;
-import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 

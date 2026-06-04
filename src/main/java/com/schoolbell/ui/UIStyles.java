@@ -1,16 +1,10 @@
 package com.schoolbell.ui;
 
-import javafx.scene.Node;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.SVGPath;
-
 public class UIStyles {
     // Colors (Zinc-based palette)
     public static final String COLOR_BG = "linear-gradient(to bottom right, #f8fbff 0%, #f5f7fb 45%, #edf4ff 100%)";
     public static final String COLOR_WHITE = "#ffffff";
-    public static final String COLOR_ZINC_200 = "#e4e4e7";
     public static final String COLOR_ZINC_500 = "#71717a";
-    public static final String COLOR_ZINC_900 = "#18181b";
 
 
     public static final String COLOR_PRIMARY = "#2563eb";
@@ -59,7 +53,6 @@ public class UIStyles {
     public static final String COLOR_GREEN = "#27ae60";
     public static final String COLOR_CYAN = "#00cec9";
     public static final String COLOR_ORANGE_DARK = "#f39c12";
-    public static final String COLOR_GRAY_BLUE = "#334155";
     public static final String COLOR_ICON_MUTED = "#b2bec3";
     public static final String COLOR_PURPLE_DARK = "#8e44ad";
     public static final String COLOR_BLUE = "#3498db";
@@ -103,11 +96,6 @@ public class UIStyles {
     public static final String COLOR_SKY_BRIGHT = "#17c0eb";
     public static final String COLOR_LIME = "#3ae374";
     public static final String COLOR_PINK_LIGHT = "#ffb8b8";
-    public static final String COLOR_SKY_PASTEL = "#74b9ff";
-    public static final String COLOR_MINT = "#55efc4";
-    public static final String COLOR_PEACH = "#fab1a0";
-    public static final String COLOR_BUTTER = "#ffeaa7";
-    public static final String COLOR_AQUA = "#81ecec";
     public static final String COLOR_SLATE_PALE = "#c4cfde";
 
     // Glass & Transparency (RGBA)
@@ -120,9 +108,6 @@ public class UIStyles {
     public static final String TR_WHITE_28 = "rgba(255, 255, 255, 0.28)";
     public static final String TR_WHITE_30 = "rgba(255, 255, 255, 0.3)";
     public static final String TR_WHITE_80 = "rgba(255, 255, 255, 0.8)";
-    public static final String TR_INDIGO_10 = "rgba(79, 70, 229, 0.1)";
-    public static final String TR_SUCCESS_15 = "rgba(22, 163, 74, 0.15)";
-    public static final String TR_DANGER_15 = "rgba(220, 38, 38, 0.15)";
     public static final String TR_DANGER_05 = "rgba(220, 38, 38, 0.05)";
     public static final String TR_SLATE_92 = "rgba(241, 245, 249, 0.92)";
 
@@ -140,14 +125,10 @@ public class UIStyles {
     public static final String SHADOW_INDIGO_28 = "rgba(79, 70, 229, 0.28)";
     public static final String SHADOW_INDIGO_40 = "rgba(79, 70, 229, 0.4)";
     public static final String SHADOW_BLACK_03 = "rgba(0, 0, 0, 0.03)";
-    public static final String SHADOW_BLACK_05 = "rgba(0, 0, 0, 0.05)";
     public static final String SHADOW_BLACK_06 = "rgba(0, 0, 0, 0.06)";
-    public static final String SHADOW_BLACK_08 = "rgba(0, 0, 0, 0.08)";
     public static final String SHADOW_BLACK_10 = "rgba(0, 0, 0, 0.1)";
     public static final String SHADOW_BLACK_18 = "rgba(0, 0, 0, 0.18)";
     public static final String SHADOW_BLACK_30 = "rgba(0, 0, 0, 0.3)";
-    public static final String SHADOW_BLUE_40 = "rgba(9, 132, 227, 0.4)";
-    public static final String SHADOW_AMBER_30 = "rgba(253, 203, 110, 0.3)";
     public static final String SHADOW_GREEN_20 = "rgba(34, 197, 94, 0.2)";
 
     // Borders (RGBA)
@@ -161,8 +142,7 @@ public class UIStyles {
     public static final String BORDER_WHITE_05 = "rgba(255, 255, 255, 0.05)";
 
     public static final String DEPTH_1 = "-fx-background-color: " + COLOR_SURFACE_SUBTLE + ";";
-    public static final String DEPTH_2 = "-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_08 + ", 8, 0, 0, 3);";
-    
+
     public static final String SOFT_CARD = 
             "-fx-background-color: " + GLASS_WHITE + "; " +
             "-fx-background-radius: 28; " +
@@ -235,10 +215,7 @@ public class UIStyles {
             "-fx-cursor: hand;";
 
     public static final String HEADER_STYLE = "-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE + "; -fx-text-transform: uppercase; -fx-letter-spacing: 1.5px;";
-    public static final String SUB_HEADER_STYLE = "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_TEXT + "; -fx-letter-spacing: 0.5px;";
     public static final String DIALOG_TITLE_STYLE = "-fx-font-family: 'Inter'; -fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";";
-    public static final String DIALOG_TITLE_MEDIUM_STYLE = "-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";";
-    public static final String DIALOG_TITLE_SMALL_STYLE = "-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";";
     public static final String DIALOG_SUBTITLE_STYLE = "-fx-font-family: 'Inter'; -fx-font-size: 15px; -fx-text-fill: " + COLOR_SLATE + ";";
     public static final String DIALOG_SECONDARY_BUTTON_STYLE =
             "-fx-background-color: white;" +
@@ -289,12 +266,6 @@ public class UIStyles {
         ".spinner > .increment-arrow-button > .increment-arrow { -fx-shape: \"M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z\"; -fx-background-color: " + COLOR_PRIMARY + "; } " +
         ".spinner > .decrement-arrow-button > .decrement-arrow { -fx-shape: \"M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z\"; -fx-background-color: " + COLOR_PRIMARY + "; } ";
 
-    public static final String TAB_STYLE = ".tab-pane .tab-header-area .tab-header-background { -fx-background-color: transparent; } " +
-            ".tab-pane .tab { -fx-background-color: " + COLOR_SURFACE_SOFT + "; -fx-background-radius: 14 14 0 0; -fx-padding: 12 24; -fx-background-insets: 0 2 0 2; -fx-cursor: hand; } " +
-            ".tab-pane .tab:selected { -fx-background-color: white; -fx-background-radius: 14 14 0 0; -fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_05 + ", 10, 0, 0, 0); } " +
-            ".tab-pane .tab .tab-label { -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 800; -fx-font-size: 13px; } " +
-            ".tab-pane .tab:selected .tab-label { -fx-text-fill: " + COLOR_PRIMARY + "; }";
-
     public static final String MODERN_DATE_PICKER_STYLE = 
         ".date-picker { -fx-background-color: transparent; } " +
         ".date-picker > .text-field { -fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 600; -fx-background-color: white; -fx-background-radius: 18 0 0 18; -fx-border-color: " + COLOR_BORDER_FIELD + "; -fx-border-radius: 18 0 0 18; -fx-border-width: 1 0 1 1; -fx-padding: 11 16; } " +
@@ -324,19 +295,16 @@ public class UIStyles {
     public static final String NAV_BTN_ACTIVE = "-fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white;";
     public static final String NAV_BTN_HOVER = "-fx-background-color: " + TR_WHITE_08 + ";";
     public static final String SIDEBAR_STATUS_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20; -fx-border-color: " + BORDER_WHITE_05 + "; -fx-border-width: 1 0 0 0;";
-    public static final String SUBJECT_CHIP_STYLE = ".subject-chip { -fx-background-color: white; -fx-background-radius: 15; -fx-padding: 4 10; -fx-font-size: 11px; -fx-text-fill: " + COLOR_TEXT + "; -fx-border-color: " + COLOR_WHITE_MUTED_BORDER + "; -fx-border-radius: 15; } .subject-chip:hover { -fx-background-color: #ff7675; -fx-text-fill: white; -fx-cursor: hand; -fx-border-color: #ff7675; }";
     public static final double ICON_SCALE = 1.0;
 
 
     // SVG Icons
     public static final String ICON_DASHBOARD = "M13,3V9H21V3H13M13,21H21V15H13V21M3,21H11V11H3V21M3,9H11V3H3V9Z";
     public static final String ICON_BELL = "M12,2A2,2 0 0,0 10,4A2,2 0 0,0 10,4.29C7.12,5.14 5,7.82 5,11V17L3,19V20H21V19L19,17V11C19,7.82 16.88,5.14 14,4.29C14,4.19 14,4.1 14,4A2,2 0 0,0 12,2M10,21A2,2 0 0,0 12,23A2,2 0 0,0 14,21H10Z";
-    public static final String ICON_MEGAPHONE = "M12,18H10L9,21H7L8,18H5C3.9,18 3,17.1 3,16V9C3,7.9 3.9,7 5,7H11L18,2V21L11,16M11,14V9H5V16H8.4L11,14Z";
     public static final String ICON_ALERT = "M12,2L2,21A2,2 0 0,0 4,24H20A2,2 0 0,0 22,21L12,2M12,6L18.53,19H5.47L12,6M13,15H11V17H13V15M13,10H11V14H13V10Z";
     public static final String ICON_SETTINGS = "M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.35 19.43,11.03L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.97 19.05,5.05L16.56,5.9C16.04,5.5 15.48,5.19 14.88,4.97L14.5,2.33C14.46,2.1 14.26,1.92 14.03,1.92H10.03C9.8,1.92 9.6,2.1 9.57,2.33L9.18,4.97C8.58,5.19 8.02,5.5 7.5,5.9L5.01,5.05C4.79,4.97 4.52,5.05 4.4,5.27L2.4,8.73C2.28,8.95 2.33,9.22 2.52,9.37L4.63,11.03C4.59,11.35 4.56,11.67 4.56,12C4.56,12.33 4.59,12.65 4.63,12.97L2.52,14.63C2.33,14.78 2.28,15.05 2.4,15.27L4.4,18.73C4.52,18.95 4.79,19.03 5.01,18.95L7.5,18.1C8.02,18.5 8.58,18.81 9.18,19.03L9.57,21.67C9.6,21.9 9.8,22.08 10.03,22.08H14.03C14.26,22.08 14.46,21.9 14.5,21.67L14.88,19.03C15.48,18.81 16.04,18.5 16.56,18.1L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z";
     public static final String ICON_CALENDAR = "M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z";
     public static final String ICON_NOTIFICATIONS = "M21,19V20H3V19L5,17V11C5,7.9 7.1,5.2 10,4.3V4A2,2 0 0,1 12,2A2,2 0 0,1 14,4V4.3C16.9,5.2 19,7.9 19,11V17L21,19M12,22A2,2 0 0,0 14,20H10A2,2 0 0,0 12,22Z";
-    public static final String ICON_SIGNAL = "M12,3C7.79,3 3.7,4.41 0.38,7H0.38L12,21L23.65,7H23.65C20.3,4.41 16.21,3 12,3Z";
     public static final String ICON_BROADCAST = "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z";
     public static final String ICON_SAVE = "M17,3L21,7V19A2,2 0 0,1 19,21H5C3.89,21 3,20.1 3,19V5A2,2 0 0,1 5,3H17M12,12A3,3 0 0,0 9,15A3,3 0 0,0 12,18A3,3 0 0,0 15,15A3,3 0 0,0 12,12M15,5H5V9H15V5Z";
     public static final String ICON_MUSIC = "M21,3V15.5A3.5,3.5 0 0,1 17.5,19A3.5,3.5 0 0,1 14,15.5A3.5,3.5 0 0,1 17.5,12C18.04,12 18.55,12.12 19,12.34V6.47L9,8.6V17.5A3.5,3.5 0 0,1 5.5,21A3.5,3.5 0 0,1 2,17.5A3.5,3.5 0 0,1 5.5,14C6.04,14 6.55,14.12 7,14.34V4.53L21,2V3Z";
@@ -345,11 +313,9 @@ public class UIStyles {
     public static final String ICON_BOOK = "M18,2H6c-1.1,0-2,0.9-2,2v16c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V4c0-1.1-0.9-2-2-2zM6,4h5v8l-2.5-1.5L6,12V4z";
     public static final String ICON_CLASS = "M12,3L1,9l11,6l9-4.91V17h2V9L12,3zM3.89,9L12,4.57L20.11,9L12,13.43L3.89,9z";
     public static final String ICON_CLOCK = "M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z";
-    public static final String ICON_CLOCK_FAST = "M15,1H9V3H15V1M11,14H13V8H11V14M19.03,7.39L20.45,5.97C20,5.46 19.55,5 19.04,4.56L17.62,5.97C15.91,4.74 13.82,4 12,4A9,9 0 0,0 3,13A9,9 0 0,0 12,22C17,22 21,17.97 21,13C21,10.88 20.26,8.93 19.03,7.39M12,20A7,7 0 0,1 5,13A7,7 0 0,1 12,6A7,7 0 0,1 19,13A7,7 0 0,1 12,20Z";
     public static final String ICON_ROOM = "M19 19V5c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v14H3v2h18v-2h-2zm-4-6h-2v-2h2v2z";
     public static final String ICON_SEARCH = "M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z";
     public static final String ICON_INFO = "M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z";
-    public static final String ICON_MESSAGE = "M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2M20,16H5.17L4,17.17V4H20V16Z";
     public static final String ICON_VOLUME = "M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16.03C15.5,15.29 16.5,13.77 16.5,12M3,9V15H7L12,20V4L7,9H3Z";
     public static final String ICON_MONITOR = "M21,14H22V16H2V14H3V4H21V14M19,12V6H5V12H19M14,18H10V17H14V18M15,20H9V19H15V20Z";
     public static final String ICON_PHONE = "M17,1H7A2,2 0 0,0 5,3V21A2,2 0 0,0 7,23H17A2,2 0 0,0 19,21V3A2,2 0 0,0 17,1M17,19H7V5H17V19Z";
@@ -375,25 +341,20 @@ public class UIStyles {
     public static final String ICON_SHIELD = "M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,3L19,6.09V11C19,15.47 16.02,19.66 12,20.9C7.98,19.66 5,15.47 5,11V6.09L12,3Z";
     public static final String ICON_NET = "M12,11L12,13H10V11H12M18,11L18,13H16V11H18M12,17L12,19H10V17H12M18,17L18,19H16V17H18M20,15V21H4V15H2V13H4V11H2V9H4V3H20V9H22V11H20V13H22V15H20M18,5H6V9H18V5M18,15H6V19H18V15Z";
     public static final String ICON_LINK = "M3.9,12C3.9,10.29 5.29,8.9 7,8.9H11V7H7A5,5 0 0,0 2,12A5,5 0 0,0 7,17H11V15.1H7C5.29,15.1 3.9,13.71 3.9,12M8,13H16V11H8V13M17,7H13V8.9H17C18.71,8.9 20.1,10.29 20.1,12C20.1,13.71 18.71,15.1 17,15.1H13V17H17A5,5 0 0,0 22,12A5,5 0 0,0 17,7Z";
-    public static final String ICON_CHEVRON_RIGHT = "M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z";
     public static final String ICON_CLONE = "M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z";
-    public static final String ICON_PAUSE = "M14,19H18V5H14M6,19H10V5H6V19Z";
-    public static final String ICON_PLAY = "M8,5.14V19.14L19,12.14L8,5.14Z";
 
     
     // New Modern Settings Icons
     public static final String ICON_POWER = "M16.56,5.44L15.11,6.89C16.84,7.94 18,9.83 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12C6,9.83 7.16,7.94 8.88,6.88L7.44,5.44C5.13,6.96 3.5,9.6 3.5,12.6C3.5,17.3 7.3,21.1 12,21.1C16.7,21.1 20.5,17.3 20.5,12.6C20.5,9.6 18.87,6.96 16.56,5.44M13,3H11V13H13V3Z";
     public static final String ICON_TRAY = "M2,12H4V17H20V12H22V17A2,2 0 0,1 20,19H4A2,2 0 0,1 2,17V12M12,15L17.5,9.5L16.08,8.08L13,11.17V2H11V11.17L7.92,8.08L6.5,9.5L12,15Z";
     public static final String ICON_FLASK = "M20.3,19.1L15.1,9.7L15,9.5V4H17V2H7V4H9V9.5L8.9,9.7L3.7,19.1C3.4,19.7 3.8,22 5,22H19C20.2,22 20.6,19.7 20.3,19.1Z";
-    public static final String ICON_PALETTE = "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A1,1 0 0,0 13,21V20C13,18.89 13.9,18 15,18H17A5,5 0 0,0 22,13C22,6.92 17.5,2 12,2M6.5,10A1.5,1.5 0 1,1 5,11.5A1.5,1.5 0 0,1 6.5,10M9.5,6A1.5,1.5 0 1,1 8,7.5A1.5,1.5 0 0,1 9.5,6M14.5,6A1.5,1.5 0 1,1 13,7.5A1.5,1.5 0 0,1 14.5,6M17.5,10A1.5,1.5 0 1,1 16,11.5A1.5,1.5 0 0,1 17.5,10Z";
-    
+
     // Premium Gradients
     public static final String GRADIENT_PRIMARY = "linear-gradient(to bottom right, " + COLOR_SKY + ", " + COLOR_SKY_DARK + ")";
     public static final String GRADIENT_WARNING = "linear-gradient(to bottom right, #ff9f43, " + COLOR_ORANGE_DARK + ")";
     public static final String GRADIENT_DANGER = "linear-gradient(to bottom right, " + COLOR_RED_SOFT + ", #c0392b)";
     public static final String GRADIENT_SUCCESS = "linear-gradient(to bottom right, #2ecc71, " + COLOR_GREEN + ")";
     public static final String GRADIENT_INFO = "linear-gradient(to bottom right, " + COLOR_BLUE + ", " + COLOR_SKY_DARK + ")";
-    public static final String GRADIENT_PURPLE = "linear-gradient(to bottom right, #9b59b6, " + COLOR_PURPLE_DARK + ")";
     public static final String GRADIENT_NEUTRAL = "linear-gradient(to bottom right, " + COLOR_NEUTRAL + ", " + COLOR_TEXT + ")";
 
     public static final String ICON_WINDOW_MINIMIZE = "M20,14H4V10H20V14Z";

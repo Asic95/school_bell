@@ -1,10 +1,8 @@
 package com.schoolbell.ui;
 
 import com.schoolbell.model.Announcement;
-import com.schoolbell.service.AnnouncementService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;

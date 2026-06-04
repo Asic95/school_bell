@@ -1,7 +1,6 @@
 package com.schoolbell.ui;
 
 import com.schoolbell.MainApp;
-import com.schoolbell.service.AcademicService;
 import com.schoolbell.service.PdfParserService;
 import com.schoolbell.service.ScheduleDataNormalizer;
 import com.schoolbell.service.ScheduleDataNormalizer.ImportReport;
@@ -19,13 +18,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.schoolbell.ui.CardFactory.createHelpCard;
 import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
-import static com.schoolbell.ui.LayoutUtils.createSectionHeader;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 

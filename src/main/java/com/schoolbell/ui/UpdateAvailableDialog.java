@@ -19,7 +19,6 @@ import static com.schoolbell.ui.UIStyles.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 
 public class UpdateAvailableDialog extends BasePremiumDialog {
     private final UpdateService updateService;
