@@ -183,6 +183,58 @@ public class DatabaseManager {
         }
     }
 
+    // --- RADIO STATIONS ---
+
+    public static List<com.schoolbell.model.RadioStation> getAllRadioStations() {
+        List<com.schoolbell.model.RadioStation> stations = new ArrayList<>();
+        String sql = "SELECT * FROM radio_stations ORDER BY name ASC";
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                stations.add(new com.schoolbell.model.RadioStation(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("url"),
+                        rs.getString("favicon_url")
+                ));
+            }
+        } catch (SQLException e) {
+            logger.error("Failed to load radio stations", e);
+        }
+        return stations;
+    }
+
+    public static void saveRadioStation(com.schoolbell.model.RadioStation station) {
+        String sql;
+        if (station.id() == null) {
+            sql = "INSERT INTO radio_stations (name, url, favicon_url) VALUES (?, ?, ?)";
+        } else {
+            sql = "UPDATE radio_stations SET name=?, url=?, favicon_url=? WHERE id=?";
+        }
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, station.name());
+            pstmt.setString(2, station.url());
+            pstmt.setString(3, station.faviconUrl());
+            if (station.id() != null) pstmt.setInt(4, station.id());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Failed to save radio station", e);
+        }
+    }
+
+    public static void deleteRadioStation(int id) {
+        String sql = "DELETE FROM radio_stations WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Failed to delete radio station: " + id, e);
+        }
+    }
+
     public static void saveSystemLog(String level, String message) {
         String sql = "INSERT INTO system_logs (level, message, timestamp) VALUES (?, ?, datetime('now', 'localtime'))";
         try (Connection conn = getConnection();

@@ -24,11 +24,71 @@ public class AudioService {
     }
 
     /**
-     * Plays a single audio file.
+     * Plays a single audio source (file path or URL).
      */
     public void playAudioFile(String path) {
+        playAudioFile(path, null);
+    }
+
+    public void playAudioFile(String path, String displayName) {
         if (path == null || path.isEmpty()) return;
-        playPlaylist(java.util.List.of(new File(path)), false);
+        
+        if (path.startsWith("http://") || path.startsWith("https://")) {
+            playStream(path, displayName);
+        } else {
+            playPlaylist(java.util.List.of(new File(path)), false);
+        }
+    }
+
+    private void playStream(String url, String displayName) {
+        // Ensure only one playlist/track plays at a time
+        if (currentPlayingTrack != null) {
+            stopImmediate();
+        }
+
+        new Thread(() -> {
+            try {
+                Mixer.Info mixerInfo = getSelectedMixerInfo();
+                currentPlayingTrack = displayName != null ? displayName : "Радіо: " + url;
+                isStopping = false;
+
+                logger.info("Stream: starting '{}' ({})", url, currentPlayingTrack);
+
+                try (AudioInputStream baseStream = getCleanAudioStreamFromUrl(url)) {
+                    AudioFormat baseFormat = baseStream.getFormat();
+                    
+                    AudioInputStream finalStream = null;
+                    AudioFormat targetFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
+                    
+                    try {
+                        finalStream = AudioSystem.getAudioInputStream(targetFormat, baseStream);
+                    } catch (Exception e) {
+                        try {
+                            AudioInputStream intermediate = AudioSystem.getAudioInputStream(AudioFormat.Encoding.PCM_SIGNED, baseStream);
+                            finalStream = AudioSystem.getAudioInputStream(targetFormat, intermediate);
+                        } catch (Exception e2) {
+                            logger.error("No PCM conversion path for stream: {}", e2.getMessage());
+                        }
+                    }
+
+                    if (finalStream != null) {
+                        try {
+                            playInternal(finalStream, mixerInfo, currentPlayingTrack, false);
+                        } finally {
+                            if (finalStream != baseStream) finalStream.close();
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error("PCM Engine failed for stream: {}", e.getMessage());
+                }
+            } catch (Exception e) {
+                logger.error("Stream thread critical error: {}", e.getMessage());
+            } finally {
+                currentPlayingTrack = null;
+                isStopping = false;
+                logger.info("Stream thread finished.");
+            }
+        }, "AudioEngine-Stream-Thread").start();
     }
 
     /**
@@ -154,6 +214,25 @@ public class AudioService {
         } catch (Exception e) {
             bis.close();
             logger.error("Advanced recovery also failed for '{}': {}", file.getName(), e.getMessage());
+            throw e;
+        }
+    }
+
+    private AudioInputStream getCleanAudioStreamFromUrl(String url) throws Exception {
+        java.net.URL radioUrl = new java.net.URL(url);
+        java.net.URLConnection conn = radioUrl.openConnection();
+        conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+        conn.setConnectTimeout(10000);
+        conn.setReadTimeout(10000);
+
+        java.io.InputStream is = conn.getInputStream();
+        java.io.BufferedInputStream bis = new java.io.BufferedInputStream(is, 1024 * 1024); // 1MB buffer
+        
+        try {
+            return AudioSystem.getAudioInputStream(bis);
+        } catch (Exception e) {
+            bis.close();
+            logger.error("Failed to open stream from {}: {}", url, e.getMessage());
             throw e;
         }
     }

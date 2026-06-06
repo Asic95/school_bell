@@ -401,7 +401,11 @@ public class DashboardView {
             safeSetText(relayStatusLabel, "Немає зв'язку");
             relayStatusLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_DANGER + ";");
             relayIndicator.setFill(Color.web(COLOR_DANGER));
-            safeSetText(relaySubtext, "ПЕРЕВІРТЕ ПІДКЛЮЧЕННЯ USB КАБЕЛЮ");
+            
+            String errorMsg = "SHELLY".equals(config.getRelayType()) 
+                    ? "ПЕРЕВІРТЕ МЕРЕЖУ ТА ЖИВЛЕННЯ SHELLY" 
+                    : "ПЕРЕВІРТЕ ПІДКЛЮЧЕННЯ USB КАБЕЛЮ";
+            safeSetText(relaySubtext, errorMsg);
         }
         
         String countdown = "--:--:--";

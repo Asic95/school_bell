@@ -124,6 +124,14 @@ public class DatabaseMigrations {
                     "break_offset INTEGER DEFAULT 0" +
                     ")");
 
+            // Radio Stations table
+            stmt.execute("CREATE TABLE IF NOT EXISTS radio_stations (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "name TEXT NOT NULL," +
+                    "url TEXT NOT NULL," +
+                    "favicon_url TEXT" +
+                    ")");
+
             // System Logs table
             stmt.execute("CREATE TABLE IF NOT EXISTS system_logs (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +

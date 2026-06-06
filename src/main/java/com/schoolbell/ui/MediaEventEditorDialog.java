@@ -91,7 +91,7 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
         pathMainLabel.setWrapText(true);
         pathMainLabel.setMaxWidth(420);
 
-        Label pathSubLabel = new Label("Оберіть аудіофайл або папку для програвання");
+        Label pathSubLabel = new Label("Оберіть аудіофайл, папку або радіостанцію");
         pathSubLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + COLOR_SLATE + ";");
         pathSubLabel.setEllipsisString("...");
         pathSubLabel.setTextOverrun(OverrunStyle.CENTER_ELLIPSIS);
@@ -110,8 +110,13 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
             if (currentPath == null || currentPath.isEmpty()) {
                 pathIconBox.getChildren().setAll(createSVGIcon(ICON_MUSIC, Color.web(COLOR_SLATE_LIGHT), 24));
                 pathMainLabel.setText("Джерело не обрано");
-                pathSubLabel.setText("Оберіть аудіофайл або папку");
+                pathSubLabel.setText("Оберіть джерело для програвання");
                 sourceCard.setStyle(sourceCard.getStyle() + "-fx-border-color: " + COLOR_BORDER_FIELD + ";");
+            } else if (currentPath.startsWith("http")) {
+                pathIconBox.getChildren().setAll(createSVGIcon(ICON_RADIO, Color.web(COLOR_INDIGO), 24));
+                pathMainLabel.setText(nameF.getText().isEmpty() ? "Онлайн Радіо" : nameF.getText());
+                pathSubLabel.setText(currentPath);
+                sourceCard.setStyle(sourceCard.getStyle().replace(COLOR_DANGER, COLOR_INDIGO) + "-fx-border-style: solid; -fx-background-color: " + COLOR_SURFACE_SKY + ";");
             } else {
                 File file = new File(currentPath);
                 boolean exists = file.exists();
@@ -143,6 +148,10 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
         browseFolder.setGraphic(createSVGIcon(ICON_FOLDER, Color.web(COLOR_VIOLET), 14));
         browseFolder.setStyle("-fx-background-color: white; -fx-text-fill: " + COLOR_VIOLET + "; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 8 16; -fx-background-radius: 10; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 10; -fx-cursor: hand;");
 
+        Button browseRadio = new Button("ОНЛАЙН РАДІО");
+        browseRadio.setGraphic(createSVGIcon(ICON_RADIO, Color.web(COLOR_INDIGO), 14));
+        browseRadio.setStyle("-fx-background-color: white; -fx-text-fill: " + COLOR_INDIGO + "; -fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 8 16; -fx-background-radius: 10; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 10; -fx-cursor: hand;");
+
         browseFile.setOnAction(e -> {
             FileChooser fc = new FileChooser();
             fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Аудіо файли (MP3, WAV)", "*.mp3", "*.wav"));
@@ -160,8 +169,16 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
                 updateSourceDisplay.run();
             }
         });
+        browseRadio.setOnAction(e -> {
+            new RadioSelectionDialog(mainApp, station -> {
+                pathF.setText(station.url());
+                nameF.setText(station.name());
+                updateSourceDisplay.run();
+            }).show();
+        });
 
-        HBox btnRow = new HBox(12, browseFile, browseFolder);
+        javafx.scene.layout.FlowPane btnRow = new javafx.scene.layout.FlowPane(12, 12);
+        btnRow.getChildren().addAll(browseFile, browseFolder, browseRadio);
         sourceCard.getChildren().addAll(sourceInfo, btnRow);
 
         grid.add(createLabel("ДЖЕРЕЛО ЗВУКУ"), 0, 2);
@@ -281,9 +298,12 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
             return false;
         }
 
-        boolean isFolder = path.equals(event != null ? event.path() : "")
+        boolean isFolder = false;
+        if (!path.startsWith("http")) {
+            isFolder = path.equals(event != null ? event.path() : "")
                 ? event != null && event.isFolder()
                 : new File(path).isDirectory();
+        }
 
         MediaEvent newEvent = new MediaEvent(
                 event != null ? event.id() : null,
