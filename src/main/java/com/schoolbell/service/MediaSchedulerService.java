@@ -199,8 +199,8 @@ public class MediaSchedulerService {
             }
         }
         
-        logger.info("Starting media event (File): {} -> {}", event.name(), path);
-        audioService.playAudioFile(path);
+        logger.info("Starting media event (Source): {} -> {}", event.name(), path);
+        audioService.playAudioFile(path, event.name());
     }
 
     public List<MediaEvent> getEvents() { return events; }

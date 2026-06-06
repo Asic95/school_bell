@@ -38,7 +38,7 @@ import static com.schoolbell.ui.UIStyles.*;
 
 public class MainApp extends Application {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
-    public static final String VERSION = "1.0.0";
+    public static final String VERSION = "1.1.0";
     private static final String APP_TITLE = "SchoolBell v" + VERSION;
 
     // Services
@@ -49,6 +49,7 @@ public class MainApp extends Application {
     private final AnnouncementService announcementService = new AnnouncementService();
     private ConfigService configService;
     private AudioService audioService;
+    private RadioStationService radioStationService;
     private SignalService signalService;
     private SystemService systemService;
     private MediaSchedulerService mediaSchedulerService;
@@ -163,6 +164,7 @@ public class MainApp extends Application {
         // 5. Initialize Hardware & Background Services
         relayController = new RelayController(this);
         audioService = new AudioService(configService);
+        radioStationService = new RadioStationService();
         signalService = new SignalService(relayController, audioService, configService);
         signalService.setLogConsumer(msg -> journal.addLog(msg, "INFO"));
         systemService = new SystemService(configService);
@@ -315,6 +317,7 @@ public class MainApp extends Application {
 
     public ConfigService getConfigService() { return configService; }
     public AudioService getAudioService() { return audioService; }
+    public RadioStationService getRadioStationService() { return radioStationService; }
     public SignalService getSignalService() { return signalService; }
     public SystemService getSystemService() { return systemService; }
     public MediaSchedulerService getMediaSchedulerService() { return mediaSchedulerService; }

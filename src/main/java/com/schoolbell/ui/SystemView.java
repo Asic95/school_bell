@@ -161,6 +161,22 @@ public class SystemView {
         HBox btnBox = new HBox(12, restoreBtn, backupBtn);
         rows.getChildren().add(createActionRow("Резервне копіювання та відновлення", "Збережіть налаштування у файл або відновіть їх із копії", ICON_SAVE, COLOR_INDIGO, btnBox));
 
+        Button refreshRadioBtn = new Button("ОНОВИТИ КАТАЛОГ");
+        refreshRadioBtn.setGraphic(createSVGIcon(ICON_REFRESH, Color.web(COLOR_PRIMARY), 14));
+        refreshRadioBtn.setStyle(secondaryStyle + btnStyle);
+        refreshRadioBtn.setPrefWidth(190);
+        refreshRadioBtn.setOnAction(e -> {
+            refreshRadioBtn.setDisable(true);
+            ToastService.showInfo("Оновлення каталогу радіо розпочато...");
+            mainApp.getRadioStationService().refreshCatalog(() -> {
+                refreshRadioBtn.setDisable(false);
+                int count = mainApp.getRadioStationService().getTotalCatalogSize();
+                mainApp.addLog("Каталог онлайн-радіо оновлено. Знайдено станцій: " + count, "SUCCESS");
+                ToastService.showSuccess("Каталог радіо успішно оновлено!");
+            });
+        });
+        rows.getChildren().add(createActionRow("Каталог онлайн-радіо", "Завантажити актуальний список станцій з Radio Browser API", ICON_RADIO, COLOR_PRIMARY, refreshRadioBtn));
+
         rows.getChildren().add(createToggleRow("Автоматизація повітряної тривоги",
                 "Пошук та автоматичне оповіщення про повітряну тривогу", ICON_SETTINGS, COLOR_TANGERINE, airRaidTg));
 
@@ -449,8 +465,8 @@ public class SystemView {
                 mainApp.getAirAlertService().stop();
             }
 
-            mainApp.addLog("Системні налаштування оновлено", "SUCCESS");
-            ToastService.showSuccess("Налаштування збережено!");
+            // TRIGGER DEBOUNCED NOTIFICATION
+            saveDebounce.playFromStart();
         } catch (Exception e) {
             ToastService.showError("Помилка при збереженні: " + e.getMessage());
         }

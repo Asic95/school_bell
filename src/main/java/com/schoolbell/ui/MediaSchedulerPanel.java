@@ -70,24 +70,26 @@ public class MediaSchedulerPanel {
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(20, 24, 20, 24));
 
-        boolean pathExists = new File(event.path()).exists();
+        boolean isRadio = event.path().startsWith("http");
+        boolean pathExists = isRadio || new File(event.path()).exists();
         
         String normalStyle = "-fx-background-color: white; -fx-background-radius: 22; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 22;";
-        String normalHover = "-fx-background-color: " + COLOR_SURFACE_SUBTLE + "; -fx-background-radius: 22; -fx-border-color: " + COLOR_SLATE_MUTED + "; -fx-border-radius: 22;";
         String errorStyle = "-fx-background-color: " + COLOR_DANGER_PALE + "; -fx-background-radius: 22; -fx-border-color: " + COLOR_DANGER_BORDER + "; -fx-border-radius: 22;";
-        String errorHover = "-fx-background-color: " + COLOR_DANGER_LIGHT + "; -fx-background-radius: 22; -fx-border-color: " + COLOR_DANGER + "40; -fx-border-radius: 22;";
 
         row.setStyle(pathExists ? normalStyle : errorStyle);
         row.setOnMouseEntered(e -> {
             if (pathExists) {
-                row.setStyle(normalStyle + "-fx-border-color: " + COLOR_PRIMARY + "40;");
+                row.setStyle(normalStyle + "-fx-border-color: " + (isRadio ? COLOR_INDIGO : COLOR_PRIMARY) + "40;");
             } else {
                 row.setStyle(errorStyle + "-fx-border-color: " + COLOR_DANGER + "60;");
             }
         });
         row.setOnMouseExited(e -> row.setStyle(pathExists ? normalStyle : errorStyle));
 
-        VBox iconBox = new VBox(createSVGIcon(event.isFolder() ? ICON_FOLDER : ICON_MUSIC, Color.web(pathExists ? COLOR_PRIMARY : COLOR_DANGER), 22));
+        String icon = isRadio ? ICON_RADIO : (event.isFolder() ? ICON_FOLDER : ICON_MUSIC);
+        Color iconColor = Color.web(pathExists ? (isRadio ? COLOR_INDIGO : COLOR_PRIMARY) : COLOR_DANGER);
+
+        VBox iconBox = new VBox(createSVGIcon(icon, iconColor, 22));
         iconBox.setAlignment(Pos.CENTER);
         iconBox.setPrefSize(52, 52);
         iconBox.setStyle(ICON_BADGE_STYLE + "-fx-background-radius: 14;");
@@ -105,6 +107,10 @@ public class MediaSchedulerPanel {
             Label errorLabel = new Label("УВАГА: Файл або папка не існує!");
             errorLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_DANGER + "; -fx-padding: 2 0;");
             info.getChildren().add(1, errorLabel);
+        } else if (isRadio) {
+            Label radioLabel = new Label("ОНЛАЙН ПОТІК");
+            radioLabel.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_INDIGO + "; -fx-letter-spacing: 0.5px;");
+            info.getChildren().add(1, radioLabel);
         }
 
         Label status = new Label(event.isActive() ? "АКТИВНЕ" : "ВИМКНЕНЕ");
