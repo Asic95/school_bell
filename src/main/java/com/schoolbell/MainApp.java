@@ -212,6 +212,10 @@ public class MainApp extends Application {
         startScheduler();
         refreshCaches();
 
+        // Load recent logs from DB
+        journal.loadLastLogs();
+        systemService.logSystemDiagnostics(journal);
+
         // Background maintenance
         scheduler.scheduleAtFixedRate(DatabaseManager::cleanupOldData, 1, 24, TimeUnit.HOURS);
         scheduler.schedule(this::checkForUpdates, 10, TimeUnit.SECONDS);
@@ -254,9 +258,17 @@ public class MainApp extends Application {
             signalService.checkAndTriggerBell(now, schedule);
             Platform.runLater(() -> {
                 if (dashboardView != null) dashboardView.update(now);
-                if (sidebarStatusTime != null) sidebarStatusTime.setText(now.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")));
+                
+                String timeStr = now.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+                if (sidebarStatusTime != null && !timeStr.equals(sidebarStatusTime.getText())) {
+                    sidebarStatusTime.setText(timeStr);
+                }
+                
                 if (relayController != null && sidebarStatusDot != null) {
-                    sidebarStatusDot.setFill(relayController.isConnected() ? Color.web(COLOR_SUCCESS) : Color.web(COLOR_DANGER));
+                    Color targetColor = relayController.isConnected() ? Color.web(COLOR_SUCCESS) : Color.web(COLOR_DANGER);
+                    if (!targetColor.equals(sidebarStatusDot.getFill())) {
+                        sidebarStatusDot.setFill(targetColor);
+                    }
                 }
                 
                 if (broadcastService != null && broadcastService.isBroadcasting() && dashboardView != null) {

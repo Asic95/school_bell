@@ -73,10 +73,25 @@ public class ControlFactory {
 
         btn.setStyle(baseStyle);
 
-        btn.setOnMouseEntered(e -> btn.setStyle(baseStyle +
-            "-fx-background-color: linear-gradient(to right, " + hoverStart + ", " + hoverEnd + ");" +
-            "-fx-effect: dropshadow(three-pass-box, " + shadow + ", 12, 0, 0, 4);"));
-        btn.setOnMouseExited(e -> btn.setStyle(baseStyle));
+        // Hover effect that captures current style to avoid wiping custom overrides
+        btn.setOnMouseEntered(e -> {
+            // Save the state BEFORE applying hover styles if not already hovering
+            if (!btn.getProperties().containsKey("originalStyle")) {
+                btn.getProperties().put("originalStyle", btn.getStyle());
+            }
+            
+            String currentStyle = btn.getStyle();
+            btn.setStyle(currentStyle + 
+                "-fx-background-color: linear-gradient(to right, " + hoverStart + ", " + hoverEnd + ");" +
+                "-fx-effect: dropshadow(three-pass-box, " + shadow + ", 12, 0, 0, 4);");
+        });
+        
+        btn.setOnMouseExited(e -> {
+            if (btn.getProperties().containsKey("originalStyle")) {
+                btn.setStyle((String) btn.getProperties().get("originalStyle"));
+                btn.getProperties().remove("originalStyle");
+            }
+        });
 
         return btn;
     }

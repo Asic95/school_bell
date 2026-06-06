@@ -183,23 +183,60 @@ public class DatabaseManager {
         }
     }
 
+    public static void saveSystemLog(String level, String message) {
+        String sql = "INSERT INTO system_logs (level, message, timestamp) VALUES (?, ?, datetime('now', 'localtime'))";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, level);
+            pstmt.setString(2, message);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Failed to save system log", e);
+        }
+    }
+
+    public static List<String> getSystemLogs(int limitDays) {
+        List<String> logs = new ArrayList<>();
+        String sql = "SELECT strftime('%d.%m.%Y %H:%M:%S', timestamp) as ts_formatted, level, message FROM system_logs " +
+                     "WHERE timestamp > date('now', 'localtime', ?) " +
+                     "ORDER BY timestamp DESC";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, "-" + limitDays + " days");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String ts = rs.getString("ts_formatted");
+                    String level = rs.getString("level");
+                    String msg = rs.getString("message");
+                    logs.add("[" + ts + "] [" + level + "] " + msg);
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Failed to load system logs", e);
+        }
+        return logs;
+    }
+
     /**
      * Cleans up old data:
      * - Substitutions older than 45 days (by 'date' column)
      * - Announcements older than 45 days (by 'end_date' column)
+     * - System logs older than 7 days
      */
     public static void cleanupOldData() {
         String cleanupSubstitutions = "DELETE FROM substitutions WHERE date < date('now', '-45 days')";
         String cleanupAnnouncements = "DELETE FROM announcements WHERE end_date < date('now', '-45 days')";
+        String cleanupLogs = "DELETE FROM system_logs WHERE timestamp < date('now', '-7 days')";
 
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
             
             int subsCount = stmt.executeUpdate(cleanupSubstitutions);
             int annCount = stmt.executeUpdate(cleanupAnnouncements);
+            int logsCount = stmt.executeUpdate(cleanupLogs);
             
-            if (subsCount > 0 || annCount > 0) {
-                logger.info("Database cleanup completed. Removed {} old substitutions and {} old announcements.", subsCount, annCount);
+            if (subsCount > 0 || annCount > 0 || logsCount > 0) {
+                logger.info("Database cleanup completed. Removed {} subs, {} ann, {} logs.", subsCount, annCount, logsCount);
             }
         } catch (SQLException e) {
             logger.error("Failed to cleanup old data from database", e);

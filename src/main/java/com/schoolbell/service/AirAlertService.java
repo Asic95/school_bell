@@ -164,11 +164,22 @@ public class AirAlertService {
                 lastAlertState = false;
             }
         } catch (IOException | InterruptedException e) {
-            handleFetchError("Проблема з мережею: " + e.getMessage());
+            handleFetchError("Проблема з мережею: " + translateError(e.getMessage()));
         } catch (Exception e) {
             logger.error("Unexpected error in AirAlertService Live polling: ", e);
-            handleFetchError("Внутрішня помилка сервісу: " + e.getMessage());
+            handleFetchError("Внутрішня помилка сервісу: " + translateError(e.getMessage()));
         }
+    }
+
+    private String translateError(String msg) {
+        if (msg == null) return "Невідома помилка";
+        String lower = msg.toLowerCase();
+        if (lower.contains("no route to host")) return "Відсутній маршрут до сервера (немає інтернету)";
+        if (lower.contains("connection refused")) return "Сервер відхилив з'єднання";
+        if (lower.contains("timed out")) return "Перевищено час очікування відповіді";
+        if (lower.contains("unknown host")) return "Не вдалося знайти адресу сервера (проблема DNS)";
+        if (lower.contains("network is unreachable")) return "Мережа недоступна";
+        return msg;
     }
 
     private void handleFetchError(String error) {

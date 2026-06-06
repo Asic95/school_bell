@@ -14,12 +14,13 @@
     -fx-border-width: 1;
     -fx-border-radius: 28;
     -fx-padding: 28;
-    -fx-effect: dropshadow(three-pass-box, rgba(15, 23, 42, 0.08), 30, 0, 0, 10);
+    /* Static bounds protection */
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: dropshadow(three-pass-box, rgba(15, 23, 42, 0.08), 25, 0, 0, 8);
 }
 
-.bell-card:hover {
-    -fx-effect: dropshadow(three-pass-box, rgba(15, 23, 42, 0.12), 40, 0, 0, 12);
-}
+/* Hover effect removed to eliminate any micro-movements or layout recalculations */
 
 .card-icon-wrap {
     -fx-background-radius: 18;
