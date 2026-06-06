@@ -597,19 +597,29 @@ public class EfirView {
         container.getChildren().setAll(items.stream().map(mapper).toList());
     }
 
+    private void safeSetText(Label label, String text) {
+        if (label == null || text == null) return;
+        if (!text.equals(label.getText())) {
+            label.setText(text);
+        }
+    }
+
     private void updateUptime() {
         Duration diff = Duration.seconds(java.time.Duration.between(startTime, LocalDateTime.now()).getSeconds());
         long s = (long) diff.toSeconds();
-        uptimeLabel.setText(String.format("%02d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60));
+        safeSetText(uptimeLabel, String.format("%02d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60));
     }
 
     private void updateMetrics() {
         int count = mainApp.getBroadcastService() != null ? mainApp.getBroadcastService().getConnections().size() : 0;
-        connectionsLabel.setText(formatDevicesCount(count));
+        safeSetText(connectionsLabel, formatDevicesCount(count));
 
         boolean isWsOk = mainApp.getBroadcastService() != null && mainApp.getBroadcastService().isBroadcasting();
-        wsStatusLabel.setText(isWsOk ? "Підключено" : "");
-        wsStatusLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: 800; -fx-text-fill: " + (isWsOk ? COLOR_SUCCESS : COLOR_DANGER) + ";");
+        String statusText = isWsOk ? "Підключено" : "";
+        if (!statusText.equals(wsStatusLabel.getText())) {
+            wsStatusLabel.setText(statusText);
+            wsStatusLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: 800; -fx-text-fill: " + (isWsOk ? COLOR_SUCCESS : COLOR_DANGER) + ";");
+        }
     }
 
     private String getLocalIp() {

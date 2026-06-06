@@ -18,9 +18,22 @@ public class SystemJournal {
         String timestamp = LocalTime.now().format(TIME_FORMATTER);
         String fullMsg = "[" + timestamp + "] [" + level + "] " + message;
         logger.info(fullMsg);
+        
+        // Save to DB
+        com.schoolbell.service.DatabaseManager.saveSystemLog(level, message);
+        
         Platform.runLater(() -> {
             systemLogs.add(0, fullMsg);
             if (systemLogs.size() > 100) systemLogs.remove(100, systemLogs.size());
+        });
+    }
+
+    public void loadLastLogs() {
+        java.util.List<String> logs = com.schoolbell.service.DatabaseManager.getSystemLogs(1); // Last 24 hours
+        Platform.runLater(() -> {
+            systemLogs.clear();
+            // DB returns newest first, which is what we want for add(0, ...)
+            systemLogs.addAll(logs);
         });
     }
 

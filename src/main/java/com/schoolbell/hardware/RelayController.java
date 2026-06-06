@@ -34,7 +34,14 @@ public class RelayController {
             if (ip != null && !ip.isEmpty()) {
                 activeDevice = new ShellyRelayDevice(mainApp, ip, name != null ? name : "Shelly Device");
             } else {
-                activeDevice = new UsbRelayDevice(mainApp); // Fallback
+                // Return a dummy device that just says "not configured"
+                activeDevice = new RelayDevice() {
+                    @Override public void turnOn() {}
+                    @Override public void turnOff() {}
+                    @Override public boolean isConnected() { return false; }
+                    @Override public String getDisplayName() { return "Shelly: Пристрій не налаштовано"; }
+                    @Override public void close() {}
+                };
             }
         } else {
             activeDevice = new UsbRelayDevice(mainApp);

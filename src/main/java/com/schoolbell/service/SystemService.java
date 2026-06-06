@@ -261,4 +261,67 @@ public class SystemService {
         }
         return false;
     }
+
+    /**
+     * Gathers and logs system diagnostic information.
+     */
+    public void logSystemDiagnostics(com.schoolbell.SystemJournal journal) {
+        journal.addLog("--- SYSTEM DIAGNOSTICS ---", "INFO");
+        journal.addLog("OS: " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ") v" + System.getProperty("os.version"), "INFO");
+        journal.addLog("Java: " + System.getProperty("java.version") + " (" + System.getProperty("java.vendor") + ")", "INFO");
+        
+        Runtime runtime = Runtime.getRuntime();
+        long maxMem = runtime.maxMemory() / 1024 / 1024;
+        long totalMem = runtime.totalMemory() / 1024 / 1024;
+        journal.addLog("Memory: Max " + maxMem + "MB, Allocated " + totalMem + "MB", "INFO");
+        
+        try {
+            java.net.InetAddress localHost = java.net.InetAddress.getLocalHost();
+            journal.addLog("Host: " + localHost.getHostName() + " (" + localHost.getHostAddress() + ")", "INFO");
+        } catch (Exception e) {
+            journal.addLog("Host lookup failed", "WARNING");
+        }
+        
+        journal.addLog("Config Port: " + config.getBroadcastPort(), "INFO");
+        journal.addLog("Relay: " + config.getRelayType() + (config.getShellyIp().isEmpty() ? "" : " (" + config.getShellyIp() + ")"), "INFO");
+        journal.addLog("--------------------------", "INFO");
+    }
+
+    /**
+     * Exports all system logs from the database to a text file.
+     */
+    public void exportLogs(Stage owner) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Експортувати системний журнал");
+        
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"));
+        fileChooser.setInitialFileName("school_bell_logs_" + timestamp + ".txt");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Текстові файли", "*.txt"));
+
+        File file = fileChooser.showSaveDialog(owner);
+        if (file != null) {
+            try {
+                java.util.List<String> logs = DatabaseManager.getSystemLogs(7);
+                // Database returns logs in DESC order (newest first), usually for export we want ASC or just as is.
+                // Let's reverse them for a chronological report.
+                java.util.Collections.reverse(logs);
+                
+                StringBuilder content = new StringBuilder();
+                content.append("--- SchoolBell System Log Export ---\n");
+                DateTimeFormatter uaFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+                content.append("Exported at: ").append(LocalDateTime.now().format(uaFormatter)).append("\n\n");
+                
+                for (String log : logs) {
+                    content.append(log).append("\n");
+                }
+                
+                Files.writeString(file.toPath(), content.toString());
+                logger.info("Logs exported successfully to: " + file.getAbsolutePath());
+                com.schoolbell.ui.ToastService.showSuccess("Журнал успішно експортовано!");
+            } catch (IOException e) {
+                logger.error("Failed to export logs", e);
+                com.schoolbell.ui.ToastService.showError("Помилка при експорті журналів");
+            }
+        }
+    }
 }

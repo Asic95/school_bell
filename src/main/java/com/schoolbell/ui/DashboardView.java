@@ -108,8 +108,7 @@ public class DashboardView {
         ((Label)timeCard.getChildren().get(0)).setStyle(HEADER_STYLE);
         timeCard.setPadding(new Insets(25));
         timeCard.setStyle(SOFT_CARD);
-        timeCard.setCache(true);
-        timeCard.setCacheHint(CacheHint.SPEED);
+        // Caching disabled for high-frequency updates (clock)
         grid.add(timeCard, 0, 0);
 
         relayIndicator = new Circle(8, Color.web(COLOR_DANGER));
@@ -133,16 +132,14 @@ public class DashboardView {
         VBox relayCard = new VBox(5, relayHeader, rSpacer, relayContent);
         relayCard.setPadding(new Insets(25));
         relayCard.setStyle(SOFT_CARD);
-        relayCard.setCache(true);
-        relayCard.setCacheHint(CacheHint.SPEED);
+        // Caching disabled for relay status updates
         grid.add(relayCard, 1, 0);
 
         // --- MIDDLE ROW ---
         VBox heroCard = new VBox(25);
         heroCard.setPadding(new Insets(30));
         heroCard.setStyle(SOFT_CARD);
-        heroCard.setCache(true);
-        heroCard.setCacheHint(CacheHint.SPEED);
+        // Caching disabled for progress bar and countdown
         
         HBox heroHeader = new HBox(15);
         heroHeader.setAlignment(Pos.CENTER_LEFT);
@@ -216,8 +213,7 @@ public class DashboardView {
         VBox nextEventCard = new VBox(25);
         nextEventCard.setPadding(new Insets(30));
         nextEventCard.setStyle(SOFT_CARD);
-        nextEventCard.setCache(true);
-        nextEventCard.setCacheHint(CacheHint.SPEED);
+        // Caching disabled for next lesson countdown
         
         Label nextHeader = new Label("НАСТУПНА ПОДІЯ");
         nextHeader.setStyle(HEADER_STYLE);
@@ -287,7 +283,7 @@ public class DashboardView {
         
         activeScheduleValue = new Label(config.getSelectedScheduleName() != null ? config.getSelectedScheduleName() : "Не вибрано");
         applyInfoValueStyle(activeScheduleValue, COLOR_NAVY);
-        VBox schCard = createSmallInfoCard("АКТИВНИЙ РОЗКЛАД", activeScheduleValue, "Змінити", () -> new ScheduleQuickSelectorDialog(mainApp).display(), ICON_CALENDAR, COLOR_BLUE_LIGHT, COLOR_PRIMARY, false, 0, null);
+        VBox schCard = createSmallInfoCard("АКТИВНИЙ РОЗКЛАД", activeScheduleValue, "Змінити", () -> new ScheduleQuickSelectorDialog(mainApp).display(), ICON_CALENDAR, COLOR_BLUE_LIGHT, COLOR_PRIMARY, true, 0, null);
         
         currentVolumeValue = normalizeVolume(config.getSystemVolume());
         volStatusLabel = new Label(currentVolumeValue + "%");
@@ -306,7 +302,7 @@ public class DashboardView {
             pb.setUserData(p);
             pb.setOnAction(e -> {
                 currentVolumeValue = p;
-                volStatusLabel.setText(p + "%");
+                safeSetText(volStatusLabel, p + "%");
                 updateVolumeStyle();
                 config.setSystemVolume(p);
                 mainApp.getSystemService().setWindowsSystemVolume(p);
@@ -317,16 +313,16 @@ public class DashboardView {
         updateVolumeStyle();
 
         VBox volContent = new VBox(5, volStatusLabel, volumePresetBox);
-        VBox volCard = createSmallInfoCard("СИСТЕМНА ГУЧНІСТЬ", volContent, null, null, ICON_VOLUME, COLOR_GREEN_LIGHT, COLOR_SUCCESS, false, 0, null);
+        VBox volCard = createSmallInfoCard("СИСТЕМНА ГУЧНІСТЬ", volContent, null, null, ICON_VOLUME, COLOR_GREEN_LIGHT, COLOR_SUCCESS, true, 0, null);
         
         Label brStatusLabel = new Label(config.isBroadcastEnabled() ? "Увімкнено" : "Вимкнено");
         applyInfoValueStyle(brStatusLabel, COLOR_NAVY);
-        VBox brCard = createSmallInfoCard("ТРАНСЛЯЦІЯ ДАШБОРДУ", brStatusLabel, "Відкрити в браузері", () -> mainApp.getHostServices().showDocument("http://localhost:" + (config.getBroadcastPort())), ICON_MONITOR, COLOR_PURPLE_LIGHT, COLOR_INDIGO_SOFT, false, 0, null);
+        VBox brCard = createSmallInfoCard("ТРАНСЛЯЦІЯ ДАШБОРДУ", brStatusLabel, "Відкрити в браузері", () -> mainApp.getHostServices().showDocument("http://localhost:" + (config.getBroadcastPort())), ICON_MONITOR, COLOR_PURPLE_LIGHT, COLOR_INDIGO_SOFT, true, 0, null);
         
         mediaValue = new Label("Очікування...");
         applyInfoValueStyle(mediaValue, COLOR_NAVY);
         
-        VBox mediaCard = createSmallInfoCard("МЕДІА-ЕФІР", mediaValue, "Управління", () -> new MediaQuickControlDialog(mainApp).display(), ICON_AIRPLAY, COLOR_TANGERINE_LIGHT, COLOR_TANGERINE, false, 0, null);
+        VBox mediaCard = createSmallInfoCard("МЕДІА-ЕФІР", mediaValue, "Управління", () -> new MediaQuickControlDialog(mainApp).display(), ICON_AIRPLAY, COLOR_TANGERINE_LIGHT, COLOR_TANGERINE, true, 0, null);
         
         infoRow.getChildren().addAll(schCard, volCard, brCard, mediaCard);
         for (Node n : infoRow.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
@@ -346,6 +342,20 @@ public class DashboardView {
         label.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: " + color + ";");
         label.setWrapText(true);
         label.setMaxWidth(200);
+    }
+
+    private void safeSetText(Label label, String text) {
+        if (label == null || text == null) return;
+        if (!text.equals(label.getText())) {
+            label.setText(text);
+        }
+    }
+
+    private void safeSetProgress(ProgressBar bar, double progress) {
+        if (bar == null) return;
+        if (Math.abs(bar.getProgress() - progress) > 0.001) {
+            bar.setProgress(progress);
+        }
     }
 
     private int normalizeVolume(int value) {
@@ -375,23 +385,23 @@ public class DashboardView {
     }
 
     public void update(LocalTime now) {
-        currentTimeLabel.setText(now.format(HH_MM_SS));
+        safeSetText(currentTimeLabel, now.format(HH_MM_SS));
         
         if (config.isSimulationMode()) {
-            relayStatusLabel.setText("РЕЖИМ СИМУЛЯЦІЇ");
+            safeSetText(relayStatusLabel, "РЕЖИМ СИМУЛЯЦІЇ");
             relayStatusLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_INDIGO + ";");
             relayIndicator.setFill(Color.web(COLOR_INDIGO));
-            relaySubtext.setText("ФІЗИЧНЕ РЕЛЕ ВІДКЛЮЧЕНО (ЛОГУВАННЯ)");
+            safeSetText(relaySubtext, "ФІЗИЧНЕ РЕЛЕ ВІДКЛЮЧЕНО (ЛОГУВАННЯ)");
         } else if (mainApp.getRelayController().isConnected()) {
-            relayStatusLabel.setText("Підключено");
+            safeSetText(relayStatusLabel, "Підключено");
             relayStatusLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SUCCESS + ";");
             relayIndicator.setFill(Color.web(COLOR_SUCCESS));
-            relaySubtext.setText(mainApp.getRelayController().getConnectionDetails().toUpperCase());
+            safeSetText(relaySubtext, mainApp.getRelayController().getConnectionDetails().toUpperCase());
         } else {
-            relayStatusLabel.setText("Немає зв'язку");
+            safeSetText(relayStatusLabel, "Немає зв'язку");
             relayStatusLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_DANGER + ";");
             relayIndicator.setFill(Color.web(COLOR_DANGER));
-            relaySubtext.setText("ПЕРЕВІРТЕ ПІДКЛЮЧЕННЯ USB КАБЕЛЮ");
+            safeSetText(relaySubtext, "ПЕРЕВІРТЕ ПІДКЛЮЧЕННЯ USB КАБЕЛЮ");
         }
         
         String countdown = "--:--:--";
@@ -420,13 +430,13 @@ public class DashboardView {
             }
         }
         
-        countdownLabel.setText(countdown);
-        nextBellTypeLabel.setText(nextType);
+        safeSetText(countdownLabel, countdown);
+        safeSetText(nextBellTypeLabel, nextType);
         
         if (mediaValue != null) {
             String currentTrack = mainApp.getAudioService().getCurrentPlayingTrack();
             if (currentTrack != null) {
-                mediaValue.setText("ЗАРАЗ: " + currentTrack.toUpperCase());
+                safeSetText(mediaValue, "ЗАРАЗ: " + currentTrack.toUpperCase());
                 applyInfoValueStyle(mediaValue, COLOR_TANGERINE);
                 if (stopMediaBtn != null) {
                     stopMediaBtn.setVisible(true);
@@ -435,9 +445,9 @@ public class DashboardView {
             } else {
                 com.schoolbell.model.MediaEvent nextEvent = mainApp.getMediaSchedulerService().getNextEvent();
                 if (nextEvent != null) {
-                    mediaValue.setText(nextEvent.time() + " — " + nextEvent.name().toUpperCase());
+                    safeSetText(mediaValue, nextEvent.time() + " — " + nextEvent.name().toUpperCase());
                 } else {
-                    mediaValue.setText("ПОДІЙ НЕ ЗАПЛАНОВАНО");
+                    safeSetText(mediaValue, "ПОДІЙ НЕ ЗАПЛАНОВАНО");
                 }
                 applyInfoValueStyle(mediaValue, COLOR_NAVY);
                 if (stopMediaBtn != null) {
@@ -514,77 +524,77 @@ public class DashboardView {
         boolean found = false;
         if (isBeforeDay) {
             DaySchedule.LessonInfo firstLi = lessons.get(0);
-            curLessonNumLabel.setText("ПЕРЕД ЗАЙНЯТТЯМИ");
-            curLessonStatusBadge.setText("ОЧІКУВАННЯ");
+            safeSetText(curLessonNumLabel, "ПЕРЕД ЗАЙНЯТТЯМИ");
+            safeSetText(curLessonStatusBadge, "ОЧІКУВАННЯ");
             curLessonStatusBadge.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: white; -fx-background-color: " + COLOR_NEUTRAL + "; -fx-padding: 3 10; -fx-background-radius: 6;");
-            curLessonTimeLabel.setText("Початок о " + firstLi.start);
-            curLessonSubjectLabel.setText("Система готова до початку дня");
-            curLessonProgress.setProgress(0);
-            curLessonProgressText.setText("0%");
+            safeSetText(curLessonTimeLabel, "Початок о " + firstLi.start);
+            safeSetText(curLessonSubjectLabel, "Система готова до початку дня");
+            safeSetProgress(curLessonProgress, 0);
+            safeSetText(curLessonProgressText, "0%");
 
-            nextLessonNumLabel.setText("1 УРОК");
-            nextLessonStatusBadge.setText("ПОЧАТОК ДНЯ");
-            nextLessonTimeLabel.setText(firstLi.start + " — " + firstLi.end);
-            nextLessonSubjectLabel.setText("Перше заняття сьогодні");
+            safeSetText(nextLessonNumLabel, "1 УРОК");
+            safeSetText(nextLessonStatusBadge, "ПОЧАТОК ДНЯ");
+            safeSetText(nextLessonTimeLabel, firstLi.start + " — " + firstLi.end);
+            safeSetText(nextLessonSubjectLabel, "Перше заняття сьогодні");
             found = true;
         } else if (curLessonIdx != -1) {
             DaySchedule.LessonInfo li = activeDs.getLessons().get(curLessonIdx);
             if (!isBreak) {
-                curLessonNumLabel.setText((curLessonIdx + 1) + " УРОК");
-                curLessonStatusBadge.setText("ТРИВАЄ");
+                safeSetText(curLessonNumLabel, (curLessonIdx + 1) + " УРОК");
+                safeSetText(curLessonStatusBadge, "ТРИВАЄ");
                 curLessonStatusBadge.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: white; -fx-background-color: " + COLOR_PRIMARY + "; -fx-padding: 3 10; -fx-background-radius: 6;");
-                curLessonTimeLabel.setText(li.start + " — " + li.end);
-                curLessonSubjectLabel.setText("Йде навчальний процес");
+                safeSetText(curLessonTimeLabel, li.start + " — " + li.end);
+                safeSetText(curLessonSubjectLabel, "Йде навчальний процес");
                 
                 long total = java.time.Duration.between(li.start, li.end).toSeconds();
                 long elapsed = java.time.Duration.between(li.start, now).toSeconds();
                 double p = Math.max(0, Math.min(1.0, (double) elapsed / total));
-                curLessonProgress.setProgress(p);
-                curLessonProgressText.setText((int)(p * 100) + "% ЗАВЕРШЕНО");
+                safeSetProgress(curLessonProgress, p);
+                safeSetText(curLessonProgressText, (int)(p * 100) + "% ЗАВЕРШЕНО");
 
                 if (curLessonIdx < activeDs.getLessons().size() - 1) {
                     DaySchedule.LessonInfo nextLi = activeDs.getLessons().get(curLessonIdx + 1);
-                    nextLessonNumLabel.setText((curLessonIdx + 2) + " УРОК");
-                    nextLessonStatusBadge.setText("НАСТУПНИЙ");
-                    nextLessonTimeLabel.setText(nextLi.start + " — " + nextLi.end);
-                    nextLessonSubjectLabel.setText("Після перерви");
+                    safeSetText(nextLessonNumLabel, (curLessonIdx + 2) + " УРОК");
+                    safeSetText(nextLessonStatusBadge, "НАСТУПНИЙ");
+                    safeSetText(nextLessonTimeLabel, nextLi.start + " — " + nextLi.end);
+                    safeSetText(nextLessonSubjectLabel, "Після перерви");
                 } else {
-                    nextLessonNumLabel.setText("--");
-                    nextLessonStatusBadge.setText("КІНЕЦЬ");
-                    nextLessonSubjectLabel.setText("Занять більше немає");
+                    safeSetText(nextLessonNumLabel, "--");
+                    safeSetText(nextLessonStatusBadge, "КІНЕЦЬ");
+                    safeSetText(nextLessonSubjectLabel, "Занять більше немає");
                 }
                 found = true;
             } else {
                 DaySchedule.LessonInfo nextLi = activeDs.getLessons().get(curLessonIdx + 1);
-                curLessonNumLabel.setText("ПЕРЕРВА");
-                curLessonStatusBadge.setText("ВІДПОЧИНОК");
+                safeSetText(curLessonNumLabel, "ПЕРЕРВА");
+                safeSetText(curLessonStatusBadge, "ВІДПОЧИНОК");
                 curLessonStatusBadge.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: white; -fx-background-color: " + COLOR_WARNING + "; -fx-padding: 3 10; -fx-background-radius: 6;");
-                curLessonTimeLabel.setText(li.end + " — " + nextLi.start);
-                curLessonSubjectLabel.setText("Час для відпочинку та підготовки");
+                safeSetText(curLessonTimeLabel, li.end + " — " + nextLi.start);
+                safeSetText(curLessonSubjectLabel, "Час для відпочинку та підготовки");
                 
                 long total = java.time.Duration.between(li.end, nextLi.start).toSeconds();
                 long elapsed = java.time.Duration.between(li.end, now).toSeconds();
                 double p = Math.max(0, Math.min(1.0, (double) elapsed / total));
-                curLessonProgress.setProgress(p);
-                curLessonProgressText.setText((int)(p * 100) + "% МИНУЛО");
+                safeSetProgress(curLessonProgress, p);
+                safeSetText(curLessonProgressText, (int)(p * 100) + "% МИНУЛО");
                 
-                nextLessonNumLabel.setText((curLessonIdx + 2) + " УРОК");
-                nextLessonStatusBadge.setText("ГОТУЙТЕСЯ");
-                nextLessonTimeLabel.setText(nextLi.start + " — " + nextLi.end);
-                nextLessonSubjectLabel.setText("Наступний урок");
+                safeSetText(nextLessonNumLabel, (curLessonIdx + 2) + " УРОК");
+                safeSetText(nextLessonStatusBadge, "ГОТУЙТЕСЯ");
+                safeSetText(nextLessonTimeLabel, nextLi.start + " — " + nextLi.end);
+                safeSetText(nextLessonSubjectLabel, "Наступний урок");
                 found = true;
             }
         }
         
         if (!found) {
-            curLessonNumLabel.setText("--");
-            curLessonStatusBadge.setText("КІНЕЦЬ");
+            safeSetText(curLessonNumLabel, "--");
+            safeSetText(curLessonStatusBadge, "КІНЕЦЬ");
             curLessonStatusBadge.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: white; -fx-background-color: " + COLOR_NEUTRAL + "; -fx-padding: 3 10; -fx-background-radius: 6;");
-            curLessonSubjectLabel.setText("Навчальний день завершено");
-            curLessonProgress.setProgress(0);
-            curLessonProgressText.setText("0%");
-            nextLessonNumLabel.setText("--");
-            nextLessonSubjectLabel.setText("До завтра!");
+            safeSetText(curLessonSubjectLabel, "Навчальний день завершено");
+            safeSetProgress(curLessonProgress, 0);
+            safeSetText(curLessonProgressText, "0%");
+            safeSetText(nextLessonNumLabel, "--");
+            safeSetText(nextLessonSubjectLabel, "До завтра!");
         }
     }
 
@@ -594,10 +604,10 @@ public class DashboardView {
 
     public void refreshActiveScheduleLabel() {
         if (activeScheduleValue != null) {
-            activeScheduleValue.setText(config.getSelectedScheduleName() != null ? config.getSelectedScheduleName() : "Не вибрано");
+            safeSetText(activeScheduleValue, config.getSelectedScheduleName() != null ? config.getSelectedScheduleName() : "Не вибрано");
         }
         if (topActiveScheduleLabel != null) {
-            topActiveScheduleLabel.setText(config.getSelectedScheduleName() != null ? config.getSelectedScheduleName() : "Не вибрано");
+            safeSetText(topActiveScheduleLabel, config.getSelectedScheduleName() != null ? config.getSelectedScheduleName() : "Не вибрано");
         }
     }
 }

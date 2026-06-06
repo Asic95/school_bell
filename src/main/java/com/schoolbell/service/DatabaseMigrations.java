@@ -124,6 +124,14 @@ public class DatabaseMigrations {
                     "break_offset INTEGER DEFAULT 0" +
                     ")");
 
+            // System Logs table
+            stmt.execute("CREATE TABLE IF NOT EXISTS system_logs (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                    "level TEXT," +
+                    "message TEXT" +
+                    ")");
+
             // --- INCREMENTAL MIGRATIONS ---
 
             // Migration: Add break_anchor and break_offset to media_events if they don't exist

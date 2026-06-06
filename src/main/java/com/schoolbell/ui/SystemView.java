@@ -36,11 +36,17 @@ public class SystemView {
     private final BellSettingsPane bellSettingsPane;
     private final SystemJournalPane journalPane;
     private VBox mainCol;
+    private final javafx.animation.PauseTransition saveDebounce = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(3));
 
     public SystemView(MainApp mainApp) {
         this.mainApp = mainApp;
         this.config = mainApp.getConfigService();
         this.systemService = mainApp.getSystemService();
+
+        saveDebounce.setOnFinished(e -> {
+            mainApp.addLog("Системні налаштування оновлено", "SUCCESS");
+            ToastService.showSuccess("Налаштування збережено!");
+        });
 
         autostartTg = createToggleSwitch(config.isAutostartEnabled());
         trayTg = createToggleSwitch(config.isMinimizeToTray());
@@ -51,10 +57,10 @@ public class SystemView {
         regionCombo.getItems().addAll(mainApp.getAirAlertService().getRegions());
         regionCombo.setValue(config.getSelectedRegionId());
         regionCombo.setStyle(PREMIUM_SELECT_STYLE);
-        
+
         districtCombo = new ComboBox<>();
         districtCombo.setStyle(PREMIUM_SELECT_STYLE);
-        
+
         if (config.getSelectedRegionId() != null) {
             districtCombo.getItems().addAll(mainApp.getAirAlertService().getDistricts(config.getSelectedRegionId()));
             districtCombo.setValue(config.getSelectedDistrictId());
@@ -78,11 +84,8 @@ public class SystemView {
         bellSettingsPane.setOnSettingsChanged(this::save);
 
         journalPane = new SystemJournalPane(mainApp);
-        
-        simulationTg.selectedProperty().addListener((obs, old, nv) -> {
-            updateJournalVisibility(nv);
-            save();
-        });
+
+        simulationTg.selectedProperty().addListener((obs, old, nv) -> save());
         autostartTg.selectedProperty().addListener((obs, old, nv) -> save());
         trayTg.selectedProperty().addListener((obs, old, nv) -> save());
         airRaidTg.selectedProperty().addListener((obs, old, nv) -> save());
@@ -95,22 +98,21 @@ public class SystemView {
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
 
         HBox header = createPageHeader(
-            "КОНФІГУРАЦІЯ",
-            "Системні налаштування",
-            "Глобальні параметри роботи програми, дизайн та поведінка системи.",
-            ICON_SETTINGS,
-            COLOR_TEXT,
-            null
+                "КОНФІГУРАЦІЯ",
+                "Системні налаштування",
+                "Глобальні параметри роботи програми, дизайн та поведінка системи.",
+                ICON_SETTINGS,
+                COLOR_TEXT,
+                null
         );
 
         mainCol = new VBox(25);
         HBox.setHgrow(mainCol, Priority.ALWAYS);
-        mainCol.getChildren().addAll(buildOperationCard(), buildRelayCard(), buildSignalCard());
-        
-        updateJournalVisibility(simulationTg.isSelected());
+        mainCol.getChildren().addAll(buildOperationCard(), buildRelayCard(), buildSignalCard(), journalPane);
 
         VBox helpPanel = createSideHelpPanel(
                 createHelpCard(ICON_POWER, "Автостарт", "Рекомендуємо увімкнути автостарт, щоб система відновлювалась після вимкнення світла.", COLOR_SUCCESS),
+                createHelpCard(ICON_NET, "Wi-Fi мережа", "Для роботи через Wi-Fi пристрій (Shelly) та цей комп'ютер мають бути в одній локальній мережі.", COLOR_PRIMARY),
                 createHelpCard(ICON_SAVE, "Бекап", "Регулярно створюйте копію бази, щоб не втратити розклад при перевстановленні системи.", COLOR_INDIGO)
         );
 
@@ -121,16 +123,6 @@ public class SystemView {
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
         return scroll;
-    }
-
-    private void updateJournalVisibility(boolean visible) {
-        if (visible) {
-            if (!mainCol.getChildren().contains(journalPane)) {
-                mainCol.getChildren().add(journalPane);
-            }
-        } else {
-            mainCol.getChildren().remove(journalPane);
-        }
     }
 
     private VBox buildOperationCard() {
@@ -145,7 +137,7 @@ public class SystemView {
                 "Робота без фізичного підключення до реле (тільки логування)", ICON_FLASK, COLOR_WARNING, simulationTg));
 
         String btnStyle = "-fx-font-weight: 900; -fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 12; -fx-cursor: hand;";
-        
+
         Button backupBtn = createPrimaryActionButton("СТВОРИТИ КОПІЮ", ICON_SAVE);
         backupBtn.setStyle(PREMIUM_BTN_STYLE + btnStyle);
         backupBtn.setPrefWidth(190);
@@ -171,32 +163,32 @@ public class SystemView {
 
         rows.getChildren().add(createToggleRow("Автоматизація повітряної тривоги",
                 "Пошук та автоматичне оповіщення про повітряну тривогу", ICON_SETTINGS, COLOR_TANGERINE, airRaidTg));
-        
+
         VBox regionBox = new VBox(8);
         Label regionLbl = new Label("ОБЕРІТЬ РЕГІОН:");
         regionLbl.setStyle(HEADER_STYLE);
         regionCombo.setMaxWidth(Double.MAX_VALUE);
         regionBox.getChildren().addAll(regionLbl, regionCombo);
         regionBox.setPadding(new Insets(10, 15, 0, 15));
-        
+
         VBox districtBox = new VBox(8);
         Label districtLbl = new Label("ОБЕРІТЬ РАЙОН:");
         districtLbl.setStyle(HEADER_STYLE);
         districtCombo.setMaxWidth(Double.MAX_VALUE);
         districtBox.getChildren().addAll(districtLbl, districtCombo);
         districtBox.setPadding(new Insets(0, 15, 10, 15));
-        
+
         Runnable refreshVisibility = () -> {
             boolean active = airRaidTg.isSelected();
             regionBox.setVisible(active);
             regionBox.setManaged(active);
-            
+
             String sel = regionCombo.getValue();
             boolean hasDistricts = active && sel != null && !mainApp.getAirAlertService().getDistricts(sel).isEmpty();
             districtBox.setVisible(hasDistricts);
             districtBox.setManaged(hasDistricts);
         };
-        
+
         airRaidTg.selectedProperty().addListener((obs, old, nv) -> {
             if (nv) {
                 new AirRaidInfoDialog((javafx.stage.Stage) mainCol.getScene().getWindow()).display();
@@ -212,17 +204,25 @@ public class SystemView {
     }
 
     private VBox buildRelayCard() {
-        VBox card = createCard("КЕРУВАННЯ ПРИСТРОЄМ ВИКОНАННЯ", ICON_CHIP, COLOR_INDIGO);
+        VBox card = createCard("КЕРУВАННЯ ПРИСТРОЄМ ВИКОНАННЯ", ICON_POWER_PLUG, COLOR_INDIGO);
         VBox rows = new VBox(20);
 
-        // --- MODERN PREMIUM TOGGLE ---
+        // --- MODERN PREMIUM TOGGLE ALIGNED TO RIGHT ---
         HBox toggleContainer = new HBox();
-        toggleContainer.setStyle(PREMIUM_TOGGLE_CONTAINER);
-        toggleContainer.setMaxWidth(400);
+        toggleContainer.setAlignment(Pos.CENTER);
+        toggleContainer.setStyle(PREMIUM_TOGGLE_CONTAINER + "-fx-background-color: white; -fx-border-color: " + BORDER_SLATE_70 + "; -fx-border-width: 1; -fx-border-radius: 22; -fx-padding: 2;");
+        toggleContainer.setMinWidth(320);
+        toggleContainer.setMaxWidth(320);
+        toggleContainer.setPrefHeight(44);
+        toggleContainer.setMinHeight(44);
+        toggleContainer.setMaxHeight(44);
 
-        Button usbBtn = new Button("USB HID (КАБЕЛЬ)");
-        Button shellyBtn = new Button("WI-FI (SHELLY)");
-        
+        Button usbBtn = new Button("USB HID");
+        Button shellyBtn = new Button("WI-FI SHELLY");
+
+        usbBtn.setPrefHeight(Double.MAX_VALUE);
+        shellyBtn.setPrefHeight(Double.MAX_VALUE);
+
         HBox.setHgrow(usbBtn, Priority.ALWAYS);
         HBox.setHgrow(shellyBtn, Priority.ALWAYS);
         usbBtn.setMaxWidth(Double.MAX_VALUE);
@@ -250,20 +250,24 @@ public class SystemView {
 
         updateToggleStyles.run();
         toggleContainer.getChildren().addAll(usbBtn, shellyBtn);
-        
+
+        HBox deviceRow = createActionRow("Тип пристрою комутації",
+                "Вибір способу зв'язку з фізичним реле для автоматичного керування дзвінками", ICON_CHIP, COLOR_INDIGO, toggleContainer);
         VBox shellySetup = new VBox(15);
-        shellySetup.setPadding(new Insets(10, 0, 0, 0));
-        
+        shellySetup.setPadding(new Insets(10, 0, 0, 18));
+
         ComboBox<com.schoolbell.hardware.ShellyRelayDevice> shellyCombo = new ComboBox<>();
         shellyCombo.setStyle(PREMIUM_SELECT_STYLE);
         shellyCombo.setPromptText("Оберіть знайдений Shelly...");
         shellyCombo.setMaxWidth(Double.MAX_VALUE);
-        
-        // Fix: Explicit size and style to prevent jumping/scaling
+        shellyCombo.setPrefHeight(48);
+        HBox.setHgrow(shellyCombo, Priority.ALWAYS);
+
         Button scanBtn = createPrimaryActionButton("ПОШУК РЕЛЕ", ICON_SEARCH);
-        scanBtn.setStyle(PREMIUM_BTN_STYLE + "-fx-font-size: 11px; -fx-padding: 10 20; -fx-background-radius: 12; -fx-min-width: 160;");
-        
+        scanBtn.setStyle(PREMIUM_BTN_STYLE + "-fx-font-size: 14px; -fx-padding: 0 30; -fx-background-radius: 12; -fx-min-width: 210; -fx-pref-height: 50;");
+
         Label statusLbl = new Label(mainApp.getRelayController().getConnectionDetails());
+
         statusLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 600;");
 
         scanBtn.setOnAction(e -> {
@@ -318,22 +322,17 @@ public class SystemView {
         shellySetup.setManaged(shellySetup.isVisible());
 
         shellySetup.getChildren().addAll(
-            new Label("АВТОМАТИЧНЕ ВИЯВЛЕННЯ SHELLY:"),
-            new HBox(12, scanBtn, shellyCombo),
-            new Label("Пристрій має бути в одній Wi-Fi мережі.")
+            new HBox(15, scanBtn, shellyCombo)
         );
-        shellySetup.getChildren().get(0).setStyle(HEADER_STYLE);
-        shellySetup.getChildren().get(2).setStyle("-fx-font-size: 11px; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-style: italic;");
 
         rows.getChildren().addAll(
-            new Label("СПОСІБ ПІДКЛЮЧЕННЯ:"),
-            toggleContainer,
+            deviceRow,
             shellySetup,
             new Region() {{ setMinHeight(5); }},
             new HBox(10, createSVGIcon(ICON_INFO, Color.web(COLOR_PRIMARY), 16), statusLbl)
         );
-        rows.getChildren().get(0).setStyle(HEADER_STYLE);
-        ((HBox)rows.getChildren().get(4)).setAlignment(Pos.CENTER_LEFT);
+
+        ((HBox) rows.getChildren().get(3)).setAlignment(Pos.CENTER_LEFT);
 
         card.getChildren().add(rows);
         return card;
@@ -443,7 +442,7 @@ public class SystemView {
             if (autostartChanged) {
                 systemService.updateAutostart(config.isAutostartEnabled());
             }
-            
+
             if (config.isAirRaidAutomationEnabled()) {
                 mainApp.getAirAlertService().start();
             } else {

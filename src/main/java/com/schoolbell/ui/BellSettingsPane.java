@@ -402,13 +402,14 @@ public class BellSettingsPane extends StackPane {
 
             double barW = 6.0; double gap = 4.0;
             double pauseW = 120.0; // Fixed symbolic pause width
-            double bellW = (w - START_X - 10 - pauseW) / 2.0;
+            // Subtract small epsilon (1.0) to prevent flickering on sub-pixel width changes
+            double bellW = (w - START_X - 15 - pauseW) / 2.0; 
             bellW = Math.max(60, bellW);
 
             gc.setFill(color.deriveColor(0, 1, 1, 0.9));
             
             // 1. Early Bell (First Section)
-            int bars1 = (int)(bellW / (barW+gap));
+            int bars1 = (int)((bellW + gap/2.0) / (barW+gap));
             for (int i = 0; i < bars1; i++) {
                 double bh = h * (0.52 + noise(i, 1.3) * 0.28);
                 gc.fillRoundRect(START_X + i*(barW+gap), top+h-bh, barW, bh, 4, 4);
@@ -428,7 +429,7 @@ public class BellSettingsPane extends StackPane {
 
             // 3. Main Bell (Final Section)
             double bell2StartX = pauseStartX + pauseW;
-            int bars2 = (int)(bellW / (barW+gap));
+            int bars2 = (int)((bellW + gap/2.0) / (barW+gap));
             for (int i = 0; i < bars2; i++) {
                 double bh = h * (0.52 + noise(i+100, 1.3) * 0.28);
                 gc.fillRoundRect(bell2StartX + i*(barW+gap), top+h-bh, barW, bh, 4, 4);
@@ -440,7 +441,8 @@ public class BellSettingsPane extends StackPane {
         }
 
         private void drawContinuous(GraphicsContext gc, double w, double top, double h, double barW, double gap, int duration, boolean dense) {
-            int bars = Math.max(20, (int) ((w - START_X - 10) / (barW + gap)));
+            // Safety margin of 15px to prevent bars popping in/out
+            int bars = Math.max(20, (int) ((w - START_X - 15) / (barW + gap)));
             gc.setFill(color.deriveColor(0, 1, 1, 0.9));
             for (int i = 0; i < bars; i++) {
                 double base = dense ? 0.56 : 0.52;
@@ -462,7 +464,7 @@ public class BellSettingsPane extends StackPane {
             divider1.setVisible(true); divider2.setVisible(true);
 
             int total = Math.max(1, soundSec * 3 + pauseSec * 2);
-            double availableWidth = w - START_X - 10;
+            double availableWidth = w - START_X - 15; // Added safety margin
             double pxPerSec = availableWidth / total;
             double x = START_X;
             double barW = 6.0; double gap = 4.0;
@@ -470,7 +472,7 @@ public class BellSettingsPane extends StackPane {
 
             for (int section = 0; section < 3; section++) {
                 double secWidth = soundSec * pxPerSec;
-                int bars = Math.max(4, (int) (secWidth / (barW + gap)));
+                int bars = Math.max(4, (int) ((secWidth + gap/2.0) / (barW + gap)));
                 for (int i = 0; i < bars; i++) {
                     double amp = 0.55 + noise(i + section * 37, 1.7) * 0.28;
                     double bh = h * Math.min(0.95, amp);
