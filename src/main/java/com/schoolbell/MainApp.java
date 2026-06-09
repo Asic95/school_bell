@@ -73,8 +73,6 @@ public class MainApp extends Application {
     // UI
     private StackPane contentArea;
     private VBox sidebar;
-    private Label sidebarStatusTime;
-    private Circle sidebarStatusDot;
     private DashboardView dashboardView;
     private SchoolView schoolView;
     private ScheduleView scheduleView;
@@ -134,21 +132,12 @@ public class MainApp extends Application {
         logoContainer.setAlignment(Pos.CENTER);
         sidebar.getChildren().add(logoContainer);
 
-        Region spacer = new Region(); VBox.setVgrow(spacer, Priority.ALWAYS);
-        sidebarStatusDot = new Circle(4, Color.web(COLOR_SUCCESS));
-        sidebarStatusTime = new Label("00:00:00");
-        sidebarStatusTime.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
-        VBox statusInfo = new VBox(5, new HBox(10, sidebarStatusDot, new Label("Онлайн")), sidebarStatusTime);
-        statusInfo.setStyle(SIDEBAR_STATUS_STYLE);
-        
         contentArea = new StackPane();
         contentArea.setStyle(DEPTH_1);
         HBox.setHgrow(contentArea, Priority.ALWAYS);
 
         navigation = new AppNavigation(this, sidebar, contentArea);
         navigation.init();
-        
-        sidebar.getChildren().addAll(spacer, statusInfo);
         
         HBox mainLayout = new HBox(sidebar, contentArea);
         StackPane root = new StackPane(mainLayout);
@@ -260,18 +249,6 @@ public class MainApp extends Application {
             signalService.checkAndTriggerBell(now, schedule);
             Platform.runLater(() -> {
                 if (dashboardView != null) dashboardView.update(now);
-                
-                String timeStr = now.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
-                if (sidebarStatusTime != null && !timeStr.equals(sidebarStatusTime.getText())) {
-                    sidebarStatusTime.setText(timeStr);
-                }
-                
-                if (relayController != null && sidebarStatusDot != null) {
-                    Color targetColor = relayController.isConnected() ? Color.web(COLOR_SUCCESS) : Color.web(COLOR_DANGER);
-                    if (!targetColor.equals(sidebarStatusDot.getFill())) {
-                        sidebarStatusDot.setFill(targetColor);
-                    }
-                }
                 
                 if (broadcastService != null && broadcastService.isBroadcasting() && dashboardView != null) {
                     Map<String, Object> data = dashboardView.getExtendedDashboardData(now);

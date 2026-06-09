@@ -200,21 +200,21 @@ public class SystemService {
         if (!System.getProperty("os.name").toLowerCase().contains("win")) return;
         
         try {
-            // Using a clever PowerShell trick: maximize volume (50 steps of 2%) then decrease to desired
-            // Or even simpler: use the SndVol tool if possible, but PowerShell is more reliable.
-            // Precision is tricky with SendKeys, but it's the most compatible way without external DLLs.
-            int stepsToMax = 50;
-            int stepsDown = (100 - level) / 2;
+            // Optimization: Reset to 0% first instead of 100% to avoid the loud burst.
+            // Windows has 50 steps of 2%.
+            int stepsToZero = 50;
+            int stepsUp = level / 2;
             
             String script = String.format(
                 "$w = New-Object -ComObject WScript.Shell; " +
-                "for($i=0; $i -lt %d; $i++) { $w.SendKeys([char]175) }; " + // Vol Up
-                "for($i=0; $i -lt %d; $i++) { $w.SendKeys([char]174) }",    // Vol Down
-                stepsToMax, stepsDown
+                "for($i=0; $i -lt %d; $i++) { $w.SendKeys([char]174) }; " + // Vol Down (Reset to 0)
+                "for($i=0; $i -lt %d; $i++) { $w.SendKeys([char]175) }",    // Vol Up (Set to target)
+                stepsToZero, stepsUp
             );
             
             String[] command = {"powershell.exe", "-NoProfile", "-Command", script};
             Runtime.getRuntime().exec(command);
+            logger.info("System volume set to {}%", level);
         } catch (Exception e) {
             logger.error("Failed to set system volume", e);
         }

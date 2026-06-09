@@ -34,6 +34,13 @@ public class AppNavigation {
         createNavButton("SCHOOL", "Школа", ICON_FOLDER, this::showSchool);
         createNavButton("IMPORT", "Імпорт", ICON_PLUS, this::showImport);
         createNavButton("SYSTEM", "Система", ICON_SETTINGS, this::showSystem);
+        
+        // External Help Link
+        createNavButton("HELP", "Допомога", ICON_INFO, this::openHelp);
+    }
+
+    private void openHelp() {
+        mainApp.getHostServices().showDocument("https://github.com/Asic95/school_bell");
     }
 
     public void createNavButton(String id, String text, String iconPath, Runnable action) {

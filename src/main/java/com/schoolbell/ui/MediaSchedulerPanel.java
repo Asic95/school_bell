@@ -166,6 +166,8 @@ public class MediaSchedulerPanel {
     }
 
     private String describeEvent(MediaEvent event) {
+        String daysInfo = formatDays(event.daysOfWeek());
+        
         return switch (event.type()) {
             case "BREAKS" -> {
                 String anchorText = switch (event.breakAnchor() != null ? event.breakAnchor() : "START") {
@@ -175,9 +177,9 @@ public class MediaSchedulerPanel {
                     case "OFFSET" -> "зміщення на " + event.breakOffset() + " хв.";
                     default -> "початок перерви";
                 };
-                yield "Відтворення: " + anchorText;
+                yield daysInfo + ": " + anchorText;
             }
-            case "TIME" -> "Щодня о " + event.time();
+            case "TIME" -> daysInfo + " о " + event.time();
             case "ONCE" -> {
                 try {
                     String[] parts = event.date().split("-");
@@ -188,5 +190,21 @@ public class MediaSchedulerPanel {
             }
             default -> "";
         };
+    }
+
+    private String formatDays(String days) {
+        if (days == null || days.isEmpty()) return "Ніколи";
+        if (days.equals("1,2,3,4,5,6,7")) return "Щодня";
+        if (days.equals("1,2,3,4,5")) return "Будні";
+        if (days.equals("6,7")) return "Вихідні";
+        
+        String[] dayNames = {"Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"};
+        java.util.List<String> selected = new java.util.ArrayList<>();
+        for (int i = 1; i <= 7; i++) {
+            if (days.contains(String.valueOf(i))) {
+                selected.add(dayNames[i - 1]);
+            }
+        }
+        return String.join(", ", selected);
     }
 }
