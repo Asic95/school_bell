@@ -222,6 +222,8 @@ public class MediaSchedulerService {
 
     public MediaEvent getNextEvent() {
         LocalTime now = LocalTime.now();
+        java.time.LocalDate today = java.time.LocalDate.now();
+        int dayOfWeek = today.getDayOfWeek().getValue();
         MediaEvent next = null;
         LocalTime minTime = LocalTime.MAX;
 
@@ -230,6 +232,13 @@ public class MediaSchedulerService {
         for (MediaEvent e : events) {
             if (!e.isActive()) continue;
             
+            // Day/Date check
+            if ("TIME".equals(e.type()) || "BREAKS".equals(e.type())) {
+                if (!e.daysOfWeek().contains(String.valueOf(dayOfWeek))) continue;
+            } else if ("ONCE".equals(e.type())) {
+                if (!today.toString().equals(e.date())) continue;
+            }
+
             try {
                 if ("BREAKS".equals(e.type())) {
                     // Calculate next break trigger

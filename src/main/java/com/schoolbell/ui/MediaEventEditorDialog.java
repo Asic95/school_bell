@@ -29,6 +29,7 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
     private DatePicker dateP;
     private ComboBox<String> breakAnchorC;
     private TextField offsetF;
+    private java.util.List<CheckBox> dayCheckboxes = new java.util.ArrayList<>();
 
     public MediaEventEditorDialog(MainApp mainApp, MediaEvent event) {
         super(mainApp.getStage(),
@@ -39,6 +40,20 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
 
         this.mainApp = mainApp;
         this.event = event;
+
+        // --- DAYS OF WEEK SELECTOR ---
+        String[] dayNames = {"Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"};
+        String currentDays = event != null ? event.daysOfWeek() : "1,2,3,4,5";
+        HBox daysBox = new HBox(10);
+        daysBox.setPadding(new Insets(5, 0, 5, 0));
+        for (int i = 1; i <= 7; i++) {
+            CheckBox cb = new CheckBox(dayNames[i - 1]);
+            cb.setSelected(currentDays != null && currentDays.contains(String.valueOf(i)));
+            cb.setUserData(String.valueOf(i));
+            cb.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + ";");
+            dayCheckboxes.add(cb);
+            daysBox.getChildren().add(cb);
+        }
 
         GridPane grid = new GridPane();
         grid.setHgap(20);
@@ -225,23 +240,29 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
             dLabelCol.setMaxWidth(170);
             dynamicGrid.getColumnConstraints().add(dLabelCol);
 
-            if (typeC.getValue().equals("На перервах")) {
-                dynamicGrid.add(createLabel("КОЛИ ГРАТИ"), 0, 0);
-                HBox h = new HBox(15, breakAnchorC);
-                h.setAlignment(Pos.CENTER_LEFT);
-                if (breakAnchorC.getValue().equals("Зі зміщенням (хв)")) {
-                    h.getChildren().add(offsetF);
-                }
-                dynamicGrid.add(h, 1, 0);
-            } else if (typeC.getValue().equals("У конкретний час")) {
-                dynamicGrid.add(createLabel("ЧАС"), 0, 0);
-                dynamicGrid.add(timeF, 1, 0);
-            } else if (typeC.getValue().equals("Разово")) {
+            if (typeC.getValue().equals("Разово")) {
                 dynamicGrid.add(createLabel("ДАТА"), 0, 0);
                 dynamicGrid.add(dateP, 1, 0);
                 dynamicGrid.add(createLabel("ЧАС"), 0, 1);
                 dynamicGrid.add(timeF, 1, 1);
+            } else {
+                dynamicGrid.add(createLabel("ДНІ ТИЖНЯ"), 0, 0);
+                dynamicGrid.add(daysBox, 1, 0);
+                
+                if (typeC.getValue().equals("На перервах")) {
+                    dynamicGrid.add(createLabel("КОЛИ ГРАТИ"), 0, 1);
+                    HBox h = new HBox(15, breakAnchorC);
+                    h.setAlignment(Pos.CENTER_LEFT);
+                    if (breakAnchorC.getValue().equals("Зі зміщенням (хв)")) {
+                        h.getChildren().add(offsetF);
+                    }
+                    dynamicGrid.add(h, 1, 1);
+                } else if (typeC.getValue().equals("У конкретний час")) {
+                    dynamicGrid.add(createLabel("ЧАС"), 0, 1);
+                    dynamicGrid.add(timeF, 1, 1);
+                }
             }
+            
             dynamicFields.getChildren().add(dynamicGrid);
             if (isShowing()) {
                 sizeToScene();
@@ -279,6 +300,20 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
             case "Разово" -> "ONCE";
             default -> "BREAKS";
         };
+        
+        String days = "";
+        if (!type.equals("ONCE")) {
+            days = dayCheckboxes.stream()
+                .filter(CheckBox::isSelected)
+                .map(cb -> (String) cb.getUserData())
+                .collect(java.util.stream.Collectors.joining(","));
+            
+            if (days.isEmpty()) {
+                ToastService.showError("Оберіть хоча б один день тижня");
+                return false;
+            }
+        }
+
         String anchor = switch (breakAnchorC.getValue()) {
             case "Початок перерви" -> "START";
             case "Кінець перерви" -> "END";
@@ -311,7 +346,7 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
                 path,
                 type,
                 timeF.getText(),
-                "1,2,3,4,5",
+                days,
                 dateP.getValue().toString(),
                 true,
                 isFolder,
