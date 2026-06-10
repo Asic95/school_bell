@@ -200,21 +200,63 @@ public class SystemService {
         if (!System.getProperty("os.name").toLowerCase().contains("win")) return;
         
         try {
-            // Optimization: Reset to 0% first instead of 100% to avoid the loud burst.
-            // Windows has 50 steps of 2%.
-            int stepsToZero = 50;
-            int stepsUp = level / 2;
+            int clampedLevel = Math.max(0, Math.min(100, level));
+            double volumeScalar = clampedLevel / 100.0;
             
-            String script = String.format(
-                "$w = New-Object -ComObject WScript.Shell; " +
-                "for($i=0; $i -lt %d; $i++) { $w.SendKeys([char]174) }; " + // Vol Down (Reset to 0)
-                "for($i=0; $i -lt %d; $i++) { $w.SendKeys([char]175) }",    // Vol Up (Set to target)
-                stepsToZero, stepsUp
-            );
+            String script = 
+                "$definition = @'\n" +
+                "using System;\n" +
+                "using System.Runtime.InteropServices;\n" +
+                "\n" +
+                "[Guid(\"5CDF2C82-841E-4546-9722-0CF74078229A\"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]\n" +
+                "interface IAudioEndpointVolume {\n" +
+                "    int f(); int g(); int h(); int i();\n" +
+                "    int SetMasterVolumeLevelScalar(float fLevel, Guid pguidEventContext);\n" +
+                "    int j();\n" +
+                "    int GetMasterVolumeLevelScalar(out float pfLevel);\n" +
+                "    int k(); int l(); int m(); int n();\n" +
+                "    int SetMute(bool bMute, Guid pguidEventContext);\n" +
+                "    int GetMute(out bool pbMute);\n" +
+                "}\n" +
+                "\n" +
+                "[Guid(\"D666063F-1587-4E43-81F1-B948E807363F\"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]\n" +
+                "interface IMMDevice {\n" +
+                "    int Activate(ref Guid id, int clsCtx, int activationParams, out IAudioEndpointVolume aev);\n" +
+                "}\n" +
+                "\n" +
+                "[Guid(\"A95664D2-9614-4F35-A746-DE8DB63617E6\"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]\n" +
+                "interface IMMDeviceEnumerator {\n" +
+                "    int f();\n" +
+                "    int GetDefaultAudioEndpoint(int dataFlow, int role, out IMMDevice endpoint);\n" +
+                "}\n" +
+                "\n" +
+                "[ComImport, Guid(\"BCDE0395-E52F-467C-8E3D-C4579291692E\")]\n" +
+                "class MMDeviceEnumeratorComObject { }\n" +
+                "\n" +
+                "public class Audio {\n" +
+                "    public static void SetVolume(float level) {\n" +
+                "        var enumerator = new MMDeviceEnumeratorComObject() as IMMDeviceEnumerator;\n" +
+                "        IMMDevice dev;\n" +
+                "        enumerator.GetDefaultAudioEndpoint(0, 1, out dev);\n" +
+                "        IAudioEndpointVolume epv;\n" +
+                "        var epvid = typeof(IAudioEndpointVolume).GUID;\n" +
+                "        dev.Activate(ref epvid, 23, 0, out epv);\n" +
+                "        epv.SetMasterVolumeLevelScalar(level, Guid.Empty);\n" +
+                "        if (level > 0.0f) {\n" +
+                "            epv.SetMute(false, Guid.Empty);\n" +
+                "        }\n" +
+                "    }\n" +
+                "}\n" +
+                "'@\n" +
+                "Add-Type -TypeDefinition $definition\n" +
+                "[Audio]::SetVolume(" + volumeScalar + ")";
+
+            byte[] utf16Bytes = script.getBytes(java.nio.charset.StandardCharsets.UTF_16LE);
+            String base64Script = java.util.Base64.getEncoder().encodeToString(utf16Bytes);
             
-            String[] command = {"powershell.exe", "-NoProfile", "-Command", script};
+            String[] command = {"powershell.exe", "-NoProfile", "-EncodedCommand", base64Script};
             Runtime.getRuntime().exec(command);
-            logger.info("System volume set to {}%", level);
+            logger.info("System volume set to {}%", clampedLevel);
         } catch (Exception e) {
             logger.error("Failed to set system volume", e);
         }

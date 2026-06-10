@@ -145,12 +145,12 @@ public class NotificationsView {
         volumePresetBox.setAlignment(Pos.CENTER_LEFT);
         volumePresetBox.setStyle(PREMIUM_TOGGLE_CONTAINER);
 
-        int[] presets = {0, 25, 50, 75, 100};
+        int[] presets = {0, 20, 40, 60, 80, 100};
         for (int preset : presets) {
             Button button = new Button(preset == 0 ? "ВИМК" : preset + "%");
             button.setUserData(preset);
-            button.setPrefWidth(95);
-            button.setMinWidth(95);
+            button.setPrefWidth(76);
+            button.setMinWidth(76);
             button.setPrefHeight(46);
             button.setOnAction(e -> {
                currentVolumeValue = preset;
@@ -169,10 +169,11 @@ public class NotificationsView {
     }
 
     private int normalizeVolume(int value) {
-        if (value <= 12) return 0;
-        if (value <= 37) return 25;
-        if (value <= 62) return 50;
-        if (value <= 87) return 75;
+        if (value <= 10) return 0;
+        if (value <= 30) return 20;
+        if (value <= 50) return 40;
+        if (value <= 70) return 60;
+        if (value <= 90) return 80;
         return 100;
     }
 
