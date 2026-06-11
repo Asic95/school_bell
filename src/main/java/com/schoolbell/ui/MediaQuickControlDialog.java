@@ -178,7 +178,19 @@ public class MediaQuickControlDialog extends BasePremiumDialog {
                 VBox text = new VBox(1);
                 Label name = new Label(e.name().toUpperCase());
                 name.setStyle("-fx-font-size: 13px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_NAVY + ";");
-                Label typeTag = new Label("BREAKS".equals(e.type()) ? "НА ПЕРЕРВІ" : (e.isFolder() ? "ПАПКА" : "ФАЙЛ"));
+                
+                String typeLabel;
+                if ("BREAKS".equals(e.type())) {
+                    typeLabel = "НА ПЕРЕРВІ";
+                } else if (e.path() != null && (e.path().startsWith("http") || e.path().startsWith("https"))) {
+                    typeLabel = "ОНЛАЙН РАДІО";
+                } else if (e.isFolder()) {
+                    typeLabel = "ПАПКА";
+                } else {
+                    typeLabel = "ФАЙЛ";
+                }
+                
+                Label typeTag = new Label(typeLabel);
                 typeTag.setStyle("-fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-letter-spacing: 0.5px;");
                 text.getChildren().addAll(name, typeTag);
                 

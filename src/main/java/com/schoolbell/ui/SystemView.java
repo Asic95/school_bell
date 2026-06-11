@@ -268,7 +268,7 @@ public class SystemView {
         toggleContainer.getChildren().addAll(usbBtn, shellyBtn);
 
         HBox deviceRow = createActionRow("Тип пристрою комутації",
-                "Вибір способу зв'язку з фізичним реле для автоматичного керування дзвінками", ICON_CHIP, COLOR_INDIGO, toggleContainer);
+                "Вибір способу зв'язку з фізичним реле для автоматичного керування дзвінками", ICON_LINK, COLOR_INDIGO, toggleContainer);
         VBox shellySetup = new VBox(15);
         shellySetup.setPadding(new Insets(10, 0, 0, 18));
 
@@ -279,8 +279,43 @@ public class SystemView {
         shellyCombo.setPrefHeight(48);
         HBox.setHgrow(shellyCombo, Priority.ALWAYS);
 
+        // --- PREMIUM TWO-LINE LIST ITEMS, CLEAN SINGLE-LINE SELECTION ---
+        shellyCombo.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(com.schoolbell.hardware.ShellyRelayDevice item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                } else {
+                    VBox container = new VBox(0);
+                    Label nameLbl = new Label(item.getCleanName());
+                    nameLbl.setStyle("-fx-font-weight: 800; -fx-font-size: 14px; -fx-text-fill: inherit;");
+                    Label ipLbl = new Label("IP: " + item.getIp());
+                    ipLbl.setStyle("-fx-font-size: 10px; -fx-text-fill: inherit; -fx-opacity: 0.8;");
+                    container.getChildren().addAll(nameLbl, ipLbl);
+                    setGraphic(container);
+                }
+            }
+        });
+
+        shellyCombo.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(com.schoolbell.hardware.ShellyRelayDevice item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText("Оберіть знайдений Shelly...");
+                } else {
+                    setText(item.getCleanName() + " [" + item.getIp() + "]");
+                    setStyle("-fx-font-weight: 800; -fx-text-fill: " + COLOR_NAVY + ";");
+                }
+            }
+        });
+
         Button scanBtn = createPrimaryActionButton("ПОШУК РЕЛЕ", ICON_SEARCH);
         scanBtn.setStyle(PREMIUM_BTN_STYLE + "-fx-font-size: 14px; -fx-padding: 0 30; -fx-background-radius: 12; -fx-min-width: 210; -fx-pref-height: 50;");
+        scanBtn.setPrefHeight(55);
+        scanBtn.setMinHeight(55);
+        scanBtn.setMaxHeight(55);
 
         Label statusLbl = new Label(mainApp.getRelayController().getConnectionDetails());
 
@@ -307,7 +342,7 @@ public class SystemView {
         shellyCombo.setOnAction(e -> {
             com.schoolbell.hardware.ShellyRelayDevice sel = shellyCombo.getValue();
             if (sel != null) {
-                mainApp.getRelayController().switchDevice("SHELLY", sel.getIp(), sel.getDisplayName());
+                mainApp.getRelayController().switchDevice("SHELLY", sel.getIp(), sel.getCleanName());
                 mainApp.saveConfig();
                 statusLbl.setText(mainApp.getRelayController().getConnectionDetails());
                 ToastService.showSuccess("Shelly підключено!");

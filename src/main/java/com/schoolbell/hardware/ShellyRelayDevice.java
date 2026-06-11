@@ -22,10 +22,25 @@ public class ShellyRelayDevice implements RelayDevice {
     public ShellyRelayDevice(MainApp mainApp, String ip, String name) {
         this.mainApp = mainApp;
         this.ip = ip;
-        this.name = name;
+        this.name = cleanInputName(name);
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(2))
                 .build();
+    }
+
+    private String cleanInputName(String raw) {
+        if (raw == null) return "Shelly Device";
+        String clean = raw;
+        if (clean.startsWith("WI-FI (SHELLY): ")) {
+            clean = clean.substring("WI-FI (SHELLY): ".length());
+        }
+        if (clean.contains(" [") && clean.endsWith("]")) {
+            int lastBracketIndex = clean.lastIndexOf(" [");
+            if (lastBracketIndex != -1) {
+                clean = clean.substring(0, lastBracketIndex).trim();
+            }
+        }
+        return clean;
     }
 
     private void detectGeneration() {
@@ -67,7 +82,7 @@ public class ShellyRelayDevice implements RelayDevice {
         
         String url;
         if (generation != null && generation >= 2) {
-            url = String.format("http://%s/rpc/Relay.Set?id=0&on=%b", ip, on);
+            url = String.format("http://%s/rpc/Switch.Set?id=0&on=%b", ip, on);
         } else {
             url = String.format("http://%s/relay/0?turn=%s", ip, on ? "on" : "off");
         }
@@ -93,24 +108,55 @@ public class ShellyRelayDevice implements RelayDevice {
         }
     }
 
+    private boolean lastConnectedStatus = false;
+    private long lastCheckTime = 0;
+
     @Override
     public boolean isConnected() {
         if (mainApp != null && mainApp.getConfigService().isSimulationMode()) return true;
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://" + ip + "/shelly"))
-                    .GET()
-                    .timeout(Duration.ofMillis(800))
-                    .build();
-            return httpClient.send(request, HttpResponse.BodyHandlers.discarding()).statusCode() == 200;
-        } catch (Exception e) {
-            return false;
+        
+        long now = System.currentTimeMillis();
+        // Only check every 2 seconds to avoid flooding
+        if (now - lastCheckTime > 2000) {
+            lastCheckTime = now;
+            checkConnectionAsync();
         }
+        return lastConnectedStatus;
+    }
+
+    private void checkConnectionAsync() {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://" + ip + "/shelly"))
+                .GET()
+                .timeout(Duration.ofMillis(1000))
+                .build();
+
+        httpClient.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                .thenAccept(res -> {
+                    lastConnectedStatus = (res.statusCode() == 200);
+                })
+                .exceptionally(ex -> {
+                    lastConnectedStatus = false;
+                    return null;
+                });
     }
 
     @Override
     public String getDisplayName() {
         return String.format("WI-FI (SHELLY): %s [%s]", name, ip);
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCleanName() {
+        return name;
     }
 
     @Override
