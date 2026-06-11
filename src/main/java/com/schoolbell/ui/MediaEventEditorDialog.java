@@ -50,13 +50,13 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
             CheckBox cb = new CheckBox(dayNames[i - 1]);
             cb.setSelected(currentDays != null && currentDays.contains(String.valueOf(i)));
             cb.setUserData(String.valueOf(i));
-            cb.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + ";");
+            cb.setCursor(javafx.scene.Cursor.HAND);
             dayCheckboxes.add(cb);
             daysBox.getChildren().add(cb);
         }
 
         GridPane grid = new GridPane();
-        grid.setHgap(20);
+        grid.setHgap(25);
         grid.setVgap(20);
         grid.setAlignment(Pos.CENTER_LEFT);
 
@@ -283,7 +283,7 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
 
     private Label createLabel(String text) {
         Label lbl = new Label(text);
-        lbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-letter-spacing: 1px;");
+        lbl.setStyle(PREMIUM_LABEL_STYLE);
         return lbl;
     }
 

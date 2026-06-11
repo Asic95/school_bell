@@ -67,7 +67,7 @@ public class DashboardHeroCard extends VBox {
 
         curLessonSubjectLabel = new Label("Завантаження даних...");
         curLessonSubjectLabel.setWrapText(true);
-        curLessonSubjectLabel.setMaxWidth(400);
+        curLessonSubjectLabel.setMaxWidth(800);
         curLessonSubjectLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: " + COLOR_SLATE + ";");
         sessionText.getChildren().addAll(titleRow, curLessonSubjectLabel);
 
@@ -83,7 +83,7 @@ public class DashboardHeroCard extends VBox {
         nextBellTypeLabel = new Label("—");
         nextBellTypeLabel.setWrapText(true);
         nextBellTypeLabel.setTextAlignment(javafx.scene.text.TextAlignment.RIGHT);
-        nextBellTypeLabel.setMaxWidth(220);
+        nextBellTypeLabel.setMaxWidth(500);
         nextBellTypeLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + COLOR_SLATE_LIGHT + ";");
         countdownBox.getChildren().addAll(countdownTitle, countdownLabel, nextBellTypeLabel);
 

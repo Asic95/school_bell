@@ -20,6 +20,7 @@ import javafx.stage.StageStyle;
 
 import java.io.File;
 
+import static com.schoolbell.ui.CardFactory.createCardActionButton;
 import static com.schoolbell.ui.ControlFactory.createDialogRoot;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
 import static com.schoolbell.ui.ControlFactory.createSecondaryDialogButton;
@@ -115,12 +116,7 @@ public class SignalAudioEditorDialog extends BasePremiumDialog {
         field.textProperty().addListener((obs, old, nv) -> validate.run());
         validate.run();
 
-        Button pickBtn = new Button();
-        pickBtn.setGraphic(createSVGIcon(ICON_FOLDER, Color.web(COLOR_PRIMARY), 18));
-        String pickStyle = "-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 14; -fx-padding: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_03 + ", 5, 0, 0, 1);";
-        pickBtn.setStyle(pickStyle);
-        pickBtn.setOnMouseEntered(e -> pickBtn.setStyle(pickStyle + "-fx-background-color: " + COLOR_SURFACE_GLASS_START + "; -fx-border-color: " + COLOR_PRIMARY + ";"));
-        pickBtn.setOnMouseExited(e -> pickBtn.setStyle(pickStyle));
+        Button pickBtn = createCardActionButton(ICON_FOLDER, COLOR_SURFACE_SUBTLE, COLOR_PRIMARY);
         pickBtn.setOnAction(e -> {
             FileChooser chooser = new FileChooser();
             chooser.setTitle("Оберіть " + labelText);
@@ -131,12 +127,7 @@ public class SignalAudioEditorDialog extends BasePremiumDialog {
             }
         });
 
-        Button clearBtn = new Button();
-        clearBtn.setGraphic(createSVGIcon(ICON_TRASH, Color.web(COLOR_DANGER), 18));
-        String clearStyle = "-fx-background-color: white; -fx-background-radius: 14; -fx-border-color: " + COLOR_DANGER_BORDER + "; -fx-border-radius: 14; -fx-padding: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, " + SHADOW_BLACK_03 + ", 5, 0, 0, 1);";
-        clearBtn.setStyle(clearStyle);
-        clearBtn.setOnMouseEntered(e -> clearBtn.setStyle(clearStyle + "-fx-background-color: " + COLOR_DANGER_PALE + "; -fx-border-color: " + COLOR_DANGER + ";"));
-        clearBtn.setOnMouseExited(e -> clearBtn.setStyle(clearStyle));
+        Button clearBtn = createCardActionButton(ICON_TRASH, COLOR_DANGER_LIGHT, COLOR_DANGER);
         clearBtn.setOnAction(e -> field.setText(""));
 
         row.getChildren().addAll(field, pickBtn, clearBtn);

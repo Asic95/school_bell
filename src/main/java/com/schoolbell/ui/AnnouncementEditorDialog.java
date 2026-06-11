@@ -115,7 +115,7 @@ public class AnnouncementEditorDialog extends BasePremiumDialog {
 
         HBox daysBox = new HBox(12);
         daysBox.setAlignment(Pos.CENTER_LEFT);
-        String[] dayNames = {"ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "НД"};
+        String[] dayNames = {"Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"};
 
         dayCheckboxes = new ArrayList<>();
         List<String> activeDays = announcement != null && announcement.daysOfWeek() != null
@@ -125,6 +125,7 @@ public class AnnouncementEditorDialog extends BasePremiumDialog {
         for (int i = 1; i <= 7; i++) {
             CheckBox cb = new CheckBox(dayNames[i - 1]);
             cb.setSelected(activeDays.contains(String.valueOf(i)));
+            cb.setCursor(javafx.scene.Cursor.HAND);
             dayCheckboxes.add(cb);
             daysBox.getChildren().add(cb);
         }

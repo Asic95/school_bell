@@ -8,11 +8,17 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import static com.schoolbell.ui.ControlFactory.*;
 import static com.schoolbell.ui.UIStyles.*;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
+
+import java.util.List;
+import java.util.ArrayList;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.ColumnConstraints;
 
 public class EfirNetworkSection extends VBox {
     private final MainApp mainApp;
@@ -24,6 +30,9 @@ public class EfirNetworkSection extends VBox {
     private final ComboBox<String> themeCombo;
     private final Label firewallStatusLabel;
     private Button optimizeBtn;
+    
+    private final GridPane mainGrid = new GridPane();
+    private final List<VBox> settingsGroups = new ArrayList<>();
 
     public EfirNetworkSection(MainApp mainApp, EfirStatusCard statusCard) {
         super(22);
@@ -52,9 +61,9 @@ public class EfirNetworkSection extends VBox {
         Label title = new Label("МЕРЕЖА ТА ТРАНСЛЯЦІЯ");
         title.setStyle(HEADER_STYLE);
 
-        HBox mainRow = new HBox(24);
-        mainRow.setAlignment(Pos.TOP_LEFT);
-
+        mainGrid.setHgap(24);
+        mainGrid.setVgap(24);
+        
         this.optimizeBtn = createPrimaryActionButton("ОПТИМІЗУВАТИ", ICON_UPDATE);
         this.optimizeBtn.setMaxWidth(Double.MAX_VALUE);
         this.optimizeBtn.setOnAction(e -> {
@@ -67,18 +76,45 @@ public class EfirNetworkSection extends VBox {
             }
         });
 
-        mainRow.getChildren().addAll(
-            createModernSettingsGroup("ЗАКЛАД", ICON_SCHOOL, COLOR_INDIGO, new VBox(12, createLabeledField("НАЗВА", schoolNameField), createLabeledField("МІСТО", cityNameField))),
-            createModernSettingsGroup("ТРАНСЛЯЦІЯ", ICON_NET, COLOR_VIOLET, new VBox(12, createLabeledField("ПОРТ ТРАНСЛЯЦІЇ", portField))),
-            createModernSettingsGroup("ОФОРМЛЕННЯ", ICON_AIRPLAY, COLOR_PRIMARY, new VBox(12, createLabeledField("ДИЗАЙН ТАБЛО", themeCombo))),
-            createModernSettingsGroup("БРАНДМАУЕР", ICON_SHIELD, COLOR_TEAL_DARK, new VBox(15, firewallStatusLabel, optimizeBtn))
-        );
-        
-        mainRow.getChildren().forEach(n -> ((VBox)n).setMinWidth(320));
+        settingsGroups.add(createModernSettingsGroup("ЗАКЛАД", ICON_SCHOOL, COLOR_INDIGO, new VBox(12, createLabeledField("НАЗВА", schoolNameField), createLabeledField("МІСТО", cityNameField))));
+        settingsGroups.add(createModernSettingsGroup("ТРАНСЛЯЦІЯ", ICON_NET, COLOR_VIOLET, new VBox(12, createLabeledField("ПОРТ ТРАНСЛЯЦІЇ", portField))));
+        settingsGroups.add(createModernSettingsGroup("ОФОРМЛЕННЯ", ICON_AIRPLAY, COLOR_PRIMARY, new VBox(12, createLabeledField("ДИЗАЙН ТАБЛО", themeCombo))));
+        settingsGroups.add(createModernSettingsGroup("БРАНДМАУЕР", ICON_SHIELD, COLOR_TEAL_DARK, new VBox(15, firewallStatusLabel, optimizeBtn)));
 
-        getChildren().addAll(title, mainRow);
+        setStretchMode(true); // Initial layout
+
+        getChildren().addAll(title, mainGrid);
         
         updateFirewallStatusLabel();
+    }
+
+    public void setStretchMode(boolean stretch) {
+        mainGrid.getChildren().clear();
+        mainGrid.getColumnConstraints().clear();
+        
+        if (stretch) {
+            // Desktop: 1 row, 4 columns (25% each)
+            for (int i = 0; i < 4; i++) {
+                ColumnConstraints cc = new ColumnConstraints();
+                cc.setPercentWidth(25);
+                mainGrid.getColumnConstraints().add(cc);
+                mainGrid.add(settingsGroups.get(i), i, 0);
+                settingsGroups.get(i).setMaxWidth(Double.MAX_VALUE);
+            }
+        } else {
+            // Laptop: 2 rows, 2 columns (50% each)
+            for (int i = 0; i < 2; i++) {
+                ColumnConstraints cc = new ColumnConstraints();
+                cc.setPercentWidth(50);
+                mainGrid.getColumnConstraints().add(cc);
+            }
+            mainGrid.add(settingsGroups.get(0), 0, 0);
+            mainGrid.add(settingsGroups.get(1), 1, 0);
+            mainGrid.add(settingsGroups.get(2), 0, 1);
+            mainGrid.add(settingsGroups.get(3), 1, 1);
+            
+            settingsGroups.forEach(g -> g.setMaxWidth(Double.MAX_VALUE));
+        }
     }
 
     private void setupAutoSaveListeners(EfirStatusCard statusCard) {

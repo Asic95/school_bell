@@ -17,8 +17,7 @@ import javafx.scene.layout.Priority;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.schoolbell.ui.UIStyles.HEADER_STYLE;
-import static com.schoolbell.ui.UIStyles.PREMIUM_SELECT_STYLE;
+import static com.schoolbell.ui.UIStyles.*;
 
 public class SubstitutionEditorDialog extends BasePremiumDialog {
     private final MainApp mainApp;
@@ -155,7 +154,7 @@ public class SubstitutionEditorDialog extends BasePremiumDialog {
 
     private Label createLabel(String text) {
         Label lbl = new Label(text);
-        lbl.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
+        lbl.setStyle(PREMIUM_LABEL_STYLE);
         return lbl;
     }
 }

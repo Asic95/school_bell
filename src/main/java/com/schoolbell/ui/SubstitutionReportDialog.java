@@ -79,7 +79,7 @@ public class SubstitutionReportDialog extends BasePremiumDialog {
 
     private Label createLabel(String text) {
         Label lbl = new Label(text);
-        lbl.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-letter-spacing: 1px;");
+        lbl.setStyle(PREMIUM_LABEL_STYLE);
         return lbl;
     }
 }

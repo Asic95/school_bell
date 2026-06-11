@@ -227,7 +227,7 @@ public class ControlFactory {
                     setText(item);
                     setAlignment(Pos.CENTER);
                     // Use internal cell padding to position text without triggering ellipsis
-                    setStyle("-fx-text-fill: " + COLOR_NAVY + "; -fx-font-weight: 800; -fx-background-color: transparent; -fx-padding: 0 0 0 10;");
+                    setStyle("-fx-text-fill: " + COLOR_NAVY + "; -fx-font-weight: 500; -fx-background-color: transparent; -fx-padding: 0 0 0 10;");
                 }
             }
         });

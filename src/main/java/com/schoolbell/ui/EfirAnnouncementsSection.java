@@ -41,7 +41,7 @@ public class EfirAnnouncementsSection extends VBox {
         header.setAlignment(Pos.CENTER_LEFT);
         
         VBox titleBox = new VBox(4);
-        Label eyebrow = new Label("ОГОЛОШЕННЯ ТА ПОВІДОМЛЕННЯ");
+        Label eyebrow = new Label("ОГОЛОШЕННЯ");
         eyebrow.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
         Label title = new Label("Стрічка ефіру");
         title.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");

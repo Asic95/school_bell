@@ -39,6 +39,11 @@ public class EfirStatusCard extends StackPane {
     private Circle liveStatusDotCore;
     private Circle liveStatusDotGlow;
 
+    private HBox bar;
+    private HBox connStatus;
+    private Region divider1;
+    private Region divider2;
+
     public EfirStatusCard(MainApp mainApp) {
         this.mainApp = mainApp;
         this.config = mainApp.getConfigService();
@@ -49,15 +54,15 @@ public class EfirStatusCard extends StackPane {
         bg.setCache(true);
         bg.setCacheHint(javafx.scene.CacheHint.SPEED);
 
-        HBox bar = new HBox(24);
+        bar = new HBox(24);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.setPadding(new Insets(16, 28, 16, 28));
         bar.setStyle("-fx-background-color: transparent;");
 
         HBox liveStatus = createLiveStatusWidget();
-        Region divider1 = createVerticalDivider();
-        HBox connStatus = createMonitoringWidget();
-        Region divider2 = createVerticalDivider();
+        divider1 = createVerticalDivider();
+        connStatus = createMonitoringWidget();
+        divider2 = createVerticalDivider();
         HBox broadcastAddr = createAddressWidget();
 
         Region spacer = new Region();
@@ -89,6 +94,26 @@ public class EfirStatusCard extends StackPane {
         
         updateMetrics(); // Initial update
         setupAutoRefresh();
+    }
+
+    public void setCompactMode(boolean compact) {
+        if (connStatus != null) {
+            connStatus.setVisible(!compact);
+            connStatus.setManaged(!compact);
+        }
+        if (divider1 != null) {
+            divider1.setVisible(!compact);
+            divider1.setManaged(!compact);
+        }
+        if (divider2 != null) {
+            divider2.setVisible(!compact);
+            divider2.setManaged(!compact);
+        }
+        
+        if (bar != null) {
+            bar.setSpacing(compact ? 12 : 24);
+            bar.setPadding(new Insets(16, compact ? 15 : 28, 16, compact ? 15 : 28));
+        }
     }
 
     private HBox createLiveStatusWidget() {

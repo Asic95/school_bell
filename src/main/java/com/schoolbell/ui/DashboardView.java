@@ -31,6 +31,9 @@ public class DashboardView {
     private DashboardQuickActionsCard quickActionsCard;
     private DashboardInfoRow infoRow;
 
+    private static final double RESPONSIVE_THRESHOLD = 1350;
+    private boolean isSmallMode = false;
+
     public DashboardView(MainApp mainApp) {
         this.mainApp = mainApp;
         this.config = mainApp.getConfigService();
@@ -46,12 +49,6 @@ public class DashboardView {
         grid.setPadding(new Insets(25));
         grid.setStyle(DEPTH_1);
 
-        ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(55);
-        ColumnConstraints col2 = new ColumnConstraints();
-        col2.setPercentWidth(45);
-        grid.getColumnConstraints().addAll(col1, col2);
-
         timeCard = new DashboardTimeCard();
         relayCard = new DashboardRelayCard();
         heroCard = new DashboardHeroCard(config.getSelectedScheduleName());
@@ -66,6 +63,20 @@ public class DashboardView {
         grid.add(quickActionsCard, 0, 2, 2, 1);
         grid.add(infoRow, 0, 3, 2, 1);
 
+        // Initial setup for column constraints to avoid flicker
+        ColumnConstraints c1 = new ColumnConstraints();
+        c1.setPercentWidth(55);
+        ColumnConstraints c2 = new ColumnConstraints();
+        c2.setPercentWidth(45);
+        grid.getColumnConstraints().addAll(c1, c2);
+
+        grid.widthProperty().addListener((obs, oldW, newW) -> {
+            boolean small = newW.doubleValue() < RESPONSIVE_THRESHOLD;
+            if (small != isSmallMode || oldW.doubleValue() == 0) {
+                applyResponsiveLayout(grid, small);
+            }
+        });
+
         ScrollPane mainScroll = new ScrollPane(grid);
         mainScroll.setFitToWidth(true);
         mainScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -74,6 +85,35 @@ public class DashboardView {
 
         update(LocalTime.now());
         return mainScroll;
+    }
+
+    private void applyResponsiveLayout(GridPane grid, boolean small) {
+        this.isSmallMode = small;
+        grid.getColumnConstraints().clear();
+        
+        if (small) {
+            ColumnConstraints c1 = new ColumnConstraints();
+            c1.setPercentWidth(50);
+            ColumnConstraints c2 = new ColumnConstraints();
+            c2.setPercentWidth(50);
+            grid.getColumnConstraints().addAll(c1, c2);
+
+            GridPane.setConstraints(heroCard, 0, 1, 2, 1);
+            GridPane.setConstraints(nextEventCard, 0, 2, 2, 1);
+            GridPane.setConstraints(quickActionsCard, 0, 3, 2, 1);
+            GridPane.setConstraints(infoRow, 0, 4, 2, 1);
+        } else {
+            ColumnConstraints c1 = new ColumnConstraints();
+            c1.setPercentWidth(55);
+            ColumnConstraints c2 = new ColumnConstraints();
+            c2.setPercentWidth(45);
+            grid.getColumnConstraints().addAll(c1, c2);
+
+            GridPane.setConstraints(heroCard, 0, 1, 1, 1);
+            GridPane.setConstraints(nextEventCard, 1, 1, 1, 1);
+            GridPane.setConstraints(quickActionsCard, 0, 2, 2, 1);
+            GridPane.setConstraints(infoRow, 0, 3, 2, 1);
+        }
     }
 
     public void update(LocalTime now) {

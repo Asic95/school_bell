@@ -68,6 +68,7 @@ public class EmergencyAlertsPanel {
         VBox section = new VBox(18);
         section.setPadding(new Insets(28));
         section.setStyle(SECTION_CARD);
+        section.getStylesheets().add("data:text/css," + PREMIUM_MENU_STYLE.replace(" ", "%20"));
 
         Label title = new Label("Конфігурація сигналів");
         title.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: " + COLOR_NAVY + ";");
@@ -192,14 +193,17 @@ public class EmergencyAlertsPanel {
         );
 
         MenuItem testAudio = new MenuItem("Тест Аудіо (Початок)");
+        testAudio.setGraphic(createSVGIcon(ICON_VOLUME, Color.web(COLOR_PRIMARY), 16));
         testAudio.setOnAction(e -> mainApp.getAudioService().playAudioFile(pathField.getText()));
 
         MenuItem testVisual = new MenuItem("Тест Екрану");
+        testVisual.setGraphic(createSVGIcon(ICON_MONITOR, Color.web(COLOR_INDIGO), 16));
         testVisual.setOnAction(e -> mainApp.getSignalService().setTemporaryAlertType(alertType, 15000));
 
         javafx.scene.control.SeparatorMenuItem sep = new javafx.scene.control.SeparatorMenuItem();
 
         MenuItem pick = new MenuItem("Налаштувати звуки");
+        pick.setGraphic(createSVGIcon(ICON_SETTINGS, Color.web(COLOR_SLATE_DARK), 16));
         pick.setOnAction(e -> {
             new SignalAudioEditorDialog(mainApp, alertType).showAndWait();
             refreshPathsFromConfig();

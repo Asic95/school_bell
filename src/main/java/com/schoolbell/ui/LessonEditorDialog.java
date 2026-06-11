@@ -8,13 +8,15 @@ import com.schoolbell.model.Teacher;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
 
 import static com.schoolbell.ui.ControlFactory.createDangerDialogButton;
-import static com.schoolbell.ui.ControlFactory.createLabeledField;
-import static com.schoolbell.ui.UIStyles.PREMIUM_SELECT_STYLE;
+import static com.schoolbell.ui.UIStyles.*;
 
 public class LessonEditorDialog extends BasePremiumDialog {
     private final MainApp mainApp;
@@ -36,7 +38,7 @@ public class LessonEditorDialog extends BasePremiumDialog {
                 schoolClass.name(),
                 "Налаштуйте вчителя, предмет та кабінет для уроку №" + lesson,
                 "ЗБЕРЕГТИ",
-                550);
+                650);
 
         this.mainApp = mainApp;
         this.schoolClass = schoolClass;
@@ -107,16 +109,30 @@ public class LessonEditorDialog extends BasePremiumDialog {
                     allClassrooms.stream().filter(room -> room.id() == entry.classroomId()).findFirst().ifPresent(classroomCombo::setValue);
                 });
 
-        VBox fields = new VBox(20);
-        fields.setAlignment(Pos.CENTER_LEFT);
-        fields.getChildren().addAll(
-                createLabeledField("ВЧИТЕЛЬ", teacherCombo),
-                createLabeledField("ПРЕДМЕТ", subjectCombo),
-                createLabeledField("КАБІНЕТ", classroomCombo),
-                createLabeledField("ТИЖДЕНЬ", parityCombo)
-        );
+        GridPane grid = new GridPane();
+        grid.setHgap(25);
+        grid.setVgap(20);
+        grid.setAlignment(Pos.CENTER_LEFT);
+        grid.setMaxWidth(Double.MAX_VALUE);
 
-        content.getChildren().add(fields);
+        javafx.scene.layout.ColumnConstraints labelCol = new javafx.scene.layout.ColumnConstraints();
+        labelCol.setMinWidth(170);
+        labelCol.setPrefWidth(170);
+        labelCol.setMaxWidth(170);
+        javafx.scene.layout.ColumnConstraints fieldCol = new javafx.scene.layout.ColumnConstraints();
+        fieldCol.setHgrow(Priority.ALWAYS);
+        grid.getColumnConstraints().addAll(labelCol, fieldCol);
+
+        grid.add(createLabel("ВЧИТЕЛЬ"), 0, 0);
+        grid.add(teacherCombo, 1, 0);
+        grid.add(createLabel("ПРЕДМЕТ"), 0, 1);
+        grid.add(subjectCombo, 1, 1);
+        grid.add(createLabel("КАБІНЕТ"), 0, 2);
+        grid.add(classroomCombo, 1, 2);
+        grid.add(createLabel("ТИЖДЕНЬ"), 0, 3);
+        grid.add(parityCombo, 1, 3);
+
+        content.getChildren().add(grid);
 
         Button deleteBtn = createDangerDialogButton("ВИДАЛИТИ");
         deleteBtn.setOnAction(ev -> {
@@ -127,6 +143,12 @@ public class LessonEditorDialog extends BasePremiumDialog {
             ToastService.showSuccess("Урок видалено");
         });
         addLeftFooterButton(deleteBtn);
+    }
+
+    private Label createLabel(String text) {
+        Label label = new Label(text);
+        label.setStyle(PREMIUM_LABEL_STYLE);
+        return label;
     }
 
     @Override

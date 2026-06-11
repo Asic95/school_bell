@@ -216,6 +216,7 @@ public class UIStyles {
             "-fx-cursor: hand;";
 
     public static final String HEADER_STYLE = "-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE + "; -fx-text-transform: uppercase; -fx-letter-spacing: 1.5px;";
+    public static final String PREMIUM_LABEL_STYLE = "-fx-font-family: 'Inter'; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE + "; -fx-text-transform: uppercase; -fx-letter-spacing: 1.5px;";
     public static final String DIALOG_TITLE_STYLE = "-fx-font-family: 'Inter'; -fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";";
     public static final String DIALOG_SUBTITLE_STYLE = "-fx-font-family: 'Inter'; -fx-font-size: 15px; -fx-text-fill: " + COLOR_SLATE + ";";
     public static final String DIALOG_SECONDARY_BUTTON_STYLE =
@@ -382,8 +383,8 @@ public class UIStyles {
         "    -fx-border-color: " + COLOR_SLATE_MUTED + ";" +
         "}" +
         ".check-box:selected .box {" +
-        "    -fx-background-color: " + COLOR_INDIGO + ";" +
-        "    -fx-border-color: " + COLOR_INDIGO + ";" +
+        "    -fx-background-color: " + COLOR_PRIMARY + ";" +
+        "    -fx-border-color: " + COLOR_PRIMARY + ";" +
         "}" +
         ".check-box:selected .mark {" +
         "    -fx-background-color: white;" +
@@ -396,5 +397,36 @@ public class UIStyles {
         "    -fx-font-size: 13px;" +
         "    -fx-font-weight: 600;" +
         "    -fx-padding: 0 0 0 8;" +
+        "}";
+
+    public static final String PREMIUM_MENU_STYLE =
+        ".context-menu {" +
+        "    -fx-background-color: white;" +
+        "    -fx-background-radius: 18;" +
+        "    -fx-border-color: " + BORDER_SLATE_70 + ";" +
+        "    -fx-border-width: 1.2;" +
+        "    -fx-border-radius: 18;" +
+        "    -fx-padding: 8;" +
+        "    -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_08 + ", 20, 0, 0, 10);" +
+        "}" +
+        ".menu-item {" +
+        "    -fx-padding: 10 18;" +
+        "    -fx-background-radius: 12;" +
+        "    -fx-cursor: hand;" +
+        "}" +
+        ".menu-item:focused {" +
+        "    -fx-background-color: " + COLOR_SURFACE_SOFT + ";" +
+        "}" +
+        ".menu-item .label {" +
+        "    -fx-text-fill: " + COLOR_NAVY + ";" +
+        "    -fx-font-family: 'Inter';" +
+        "    -fx-font-weight: 600;" +
+        "    -fx-font-size: 14px;" +
+        "}" +
+        ".menu-item .graphic-container {" +
+        "    -fx-padding: 0 12 0 0;" +
+        "}" +
+        ".separator-menu-item .separator {" +
+        "    -fx-padding: 4 0 4 0;" +
         "}";
 }

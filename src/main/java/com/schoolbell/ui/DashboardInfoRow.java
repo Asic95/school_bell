@@ -3,84 +3,235 @@ package com.schoolbell.ui;
 import com.schoolbell.MainApp;
 import com.schoolbell.model.MediaEvent;
 import com.schoolbell.service.ConfigService;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 
-import static com.schoolbell.ui.CardFactory.createSmallInfoCard;
+import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
-public class DashboardInfoRow extends HBox {
+public class DashboardInfoRow extends StackPane {
     private final MainApp mainApp;
     private final ConfigService config;
 
-    private final Label activeScheduleValue;
-    private final Label volStatusLabel;
-    private final HBox volumePresetBox;
-    private final Label brStatusLabel;
-    private final Label mediaValue;
+    private Label activeScheduleValue;
+    private Label volPercentLabel;
+    private HBox volumeSegmentBox;
+    private Label brStatusLabel;
+    private Label mediaValue;
 
     private int currentVolumeValue;
 
     public DashboardInfoRow(MainApp mainApp) {
-        super(20);
         this.mainApp = mainApp;
         this.config = mainApp.getConfigService();
-        setAlignment(Pos.CENTER_LEFT);
+        this.currentVolumeValue = normalizeVolume(config.getSystemVolume());
 
-        // Schedule Card
+        Region bg = new Region();
+        bg.setStyle(SOFT_CARD);
+        
+        HBox bar = new HBox(0);
+        bar.setAlignment(Pos.CENTER_LEFT);
+        bar.setPadding(new Insets(20, 20, 20, 20));
+
+        HBox schSection = createScheduleSection();
+        HBox volSection = createVolumeSection();
+        HBox brSection = createBroadcastSection();
+        HBox mediaSection = createMediaSection();
+
+        bar.getChildren().addAll(
+            schSection, createDivider(),
+            volSection, createDivider(),
+            brSection, createDivider(),
+            mediaSection
+        );
+
+        getChildren().addAll(bg, bar);
+    }
+
+    private HBox createScheduleSection() {
         activeScheduleValue = new Label(config.getSelectedScheduleName() != null ? config.getSelectedScheduleName() : "Не вибрано");
-        applyInfoValueStyle(activeScheduleValue, COLOR_NAVY);
-        VBox schCard = createSmallInfoCard("АКТИВНИЙ РОЗКЛАД", activeScheduleValue, "Змінити", () -> new ScheduleQuickSelectorDialog(mainApp).display(), ICON_CALENDAR, COLOR_BLUE_LIGHT, COLOR_PRIMARY, true, 0, null);
+        activeScheduleValue.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
 
-        // Volume Card
-        currentVolumeValue = normalizeVolume(config.getSystemVolume());
-        volStatusLabel = new Label(currentVolumeValue + "%");
-        applyInfoValueStyle(volStatusLabel, COLOR_NAVY);
+        Button changeBtn = createActionButton("Змінити", COLOR_PRIMARY, () -> new ScheduleQuickSelectorDialog(mainApp).display());
 
-        volumePresetBox = new HBox(0);
-        volumePresetBox.setAlignment(Pos.CENTER_LEFT);
-        volumePresetBox.setMaxWidth(Region.USE_PREF_SIZE);
-        volumePresetBox.setStyle(PREMIUM_TOGGLE_CONTAINER + "-fx-padding: 2;");
+        VBox details = new VBox(10, activeScheduleValue, changeBtn);
+        details.setAlignment(Pos.CENTER_LEFT);
 
+        VBox texts = new VBox(14,
+                createSectionTitle("Активний розклад"),
+                createSectionBody(ICON_CALENDAR, COLOR_PRIMARY, details)
+        );
+        return createSectionWrapper(texts, COLOR_PRIMARY);
+    }
+
+    private HBox createVolumeSection() {
+        volPercentLabel = new Label(currentVolumeValue + "%");
+        volPercentLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE + ";");
+
+        volumeSegmentBox = new HBox(4);
+        volumeSegmentBox.setAlignment(Pos.CENTER_LEFT);
+        
         int[] presets = {0, 20, 40, 60, 80, 100};
         for (int p : presets) {
-            Button pb = new Button(p == 0 ? "0" : p + "");
-            pb.setPrefHeight(28);
-            pb.setMinWidth(38);
-            pb.setUserData(p);
-            pb.setOnAction(e -> {
+            Region segment = new Region();
+            segment.setPrefSize(30, 11);
+            segment.setUserData(p);
+            segment.setCursor(javafx.scene.Cursor.HAND);
+            segment.setOnMouseClicked(e -> {
                 currentVolumeValue = p;
-                safeSetText(volStatusLabel, p + "%");
+                safeSetText(volPercentLabel, p + "%");
                 updateVolumeStyle();
                 config.setSystemVolume(p);
                 mainApp.getSystemService().setWindowsSystemVolume(p);
                 mainApp.saveConfig();
             });
-            volumePresetBox.getChildren().add(pb);
+            volumeSegmentBox.getChildren().add(segment);
         }
         updateVolumeStyle();
 
-        VBox volContent = new VBox(5, volStatusLabel, volumePresetBox);
-        VBox volCard = createSmallInfoCard("СИСТЕМНА ГУЧНІСТЬ", volContent, null, null, ICON_VOLUME, COLOR_GREEN_LIGHT, COLOR_SUCCESS, true, 0, null);
+        HBox volSegmentsWithLabel = new HBox(12, volumeSegmentBox, volPercentLabel);
+        volSegmentsWithLabel.setAlignment(Pos.CENTER_LEFT);
 
-        // Broadcast Card
-        brStatusLabel = new Label(config.isBroadcastEnabled() ? "Увімкнено" : "Вимкнено");
-        applyInfoValueStyle(brStatusLabel, COLOR_NAVY);
-        VBox brCard = createSmallInfoCard("ТРАНСЛЯЦІЯ ДАШБОРДУ", brStatusLabel, "Відкрити в браузері", () -> mainApp.getHostServices().showDocument("http://localhost:" + (config.getBroadcastPort())), ICON_MONITOR, COLOR_PURPLE_LIGHT, COLOR_INDIGO_SOFT, true, 0, null);
+        VBox details = new VBox(volSegmentsWithLabel);
+        details.setAlignment(Pos.CENTER_LEFT);
 
-        // Media Card
+        VBox content = new VBox(14,
+                createSectionTitle("Гучність системи"),
+                createSectionBody(ICON_VOLUME, COLOR_SUCCESS, details)
+        );
+        return createSectionWrapper(content, COLOR_SUCCESS);
+    }
+
+    private HBox createBroadcastSection() {
+        brStatusLabel = new Label(config.isBroadcastEnabled() ? "Активно" : "Вимкнено");
+        brStatusLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + (config.isBroadcastEnabled() ? COLOR_SUCCESS : COLOR_DANGER) + ";");
+
+        Button openBtn = createActionButton("Відкрити", COLOR_INDIGO_SOFT, () -> mainApp.getHostServices().showDocument("http://localhost:" + config.getBroadcastPort()));
+
+        VBox details = new VBox(10, brStatusLabel, openBtn);
+        details.setAlignment(Pos.CENTER_LEFT);
+
+        VBox texts = new VBox(14,
+                createSectionTitle("Трансляція"),
+                createSectionBody(ICON_MONITOR, COLOR_INDIGO_SOFT, details)
+        );
+        return createSectionWrapper(texts, COLOR_INDIGO_SOFT);
+    }
+
+    private HBox createMediaSection() {
         mediaValue = new Label("Очікування...");
-        applyInfoValueStyle(mediaValue, COLOR_NAVY);
-        VBox mediaCard = createSmallInfoCard("МЕДІА-ЕФІР", mediaValue, "Управління", () -> new MediaQuickControlDialog(mainApp).display(), ICON_AIRPLAY, COLOR_TANGERINE_LIGHT, COLOR_TANGERINE, true, 0, null);
+        mediaValue.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
+        mediaValue.setWrapText(false);
+        mediaValue.setEllipsisString("...");
+        mediaValue.setMaxWidth(260);
 
-        getChildren().addAll(schCard, volCard, brCard, mediaCard);
-        for (Node n : getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
+        Button manageBtn = createActionButton("Керувати", COLOR_TANGERINE, () -> new MediaQuickControlDialog(mainApp).display());
+
+        VBox details = new VBox(10, mediaValue, manageBtn);
+        details.setAlignment(Pos.CENTER_LEFT);
+
+        VBox texts = new VBox(14,
+                createSectionTitle("Медіа-ефір"),
+                createSectionBody(ICON_AIRPLAY, COLOR_TANGERINE, details)
+        );
+        updateMedia();
+
+        return createSectionWrapper(texts, COLOR_TANGERINE);
+    }
+
+    private HBox createSectionWrapper(Node content, String accentColor) {
+        HBox wrapper = new HBox(content);
+        wrapper.setAlignment(Pos.CENTER_LEFT);
+        wrapper.setPadding(new Insets(10, 22, 10, 22));
+        wrapper.setStyle("-fx-background-radius: 20;");
+        
+        wrapper.setOnMouseEntered(e -> wrapper.setStyle("-fx-background-color: " + accentColor + "08; -fx-background-radius: 20;"));
+        wrapper.setOnMouseExited(e -> wrapper.setStyle("-fx-background-color: transparent; -fx-background-radius: 20;"));
+        
+        HBox.setHgrow(wrapper, Priority.ALWAYS);
+        return wrapper;
+    }
+
+    private Region createDivider() {
+        Region d = new Region();
+        d.setPrefWidth(1);
+        d.setMinHeight(92);
+        d.setMaxHeight(92);
+        d.setStyle("-fx-background-color: " + COLOR_BORDER_SOFT + ";");
+        return d;
+    }
+
+    private Label createSectionTitle(String text) {
+        Label title = new Label(text.toUpperCase());
+        title.setStyle(HEADER_STYLE);
+        return title;
+    }
+
+    private HBox createSectionBody(String icon, String color, Node content) {
+        HBox body = new HBox(16, createIconBadge(icon, color), content);
+        body.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(content, Priority.ALWAYS);
+        return body;
+    }
+
+    private VBox createIconBadge(String icon, String color) {
+        VBox badge = new VBox(createSVGIcon(icon, Color.web(color), 42));
+        badge.setAlignment(Pos.CENTER);
+        badge.setPrefSize(72, 72);
+        badge.setMinSize(72, 72);
+        badge.setMaxSize(72, 72);
+        badge.setStyle(ICON_BADGE_STYLE);
+        return badge;
+    }
+
+    private Button createActionButton(String text, String accentColor, Runnable action) {
+        Button b = new Button(text);
+        String normalStyle = "-fx-background-color: " + accentColor + "12; "
+                + "-fx-background-radius: 14; "
+                + "-fx-border-color: " + accentColor + "35; "
+                + "-fx-border-radius: 14; "
+                + "-fx-padding: 6 13; "
+                + "-fx-text-fill: " + accentColor + "; "
+                + "-fx-font-size: 12px; "
+                + "-fx-font-weight: 900; "
+                + "-fx-cursor: hand;";
+        String hoverStyle = "-fx-background-color: " + accentColor + "; "
+                + "-fx-background-radius: 14; "
+                + "-fx-border-color: " + accentColor + "; "
+                + "-fx-border-radius: 14; "
+                + "-fx-padding: 6 13; "
+                + "-fx-text-fill: white; "
+                + "-fx-font-size: 12px; "
+                + "-fx-font-weight: 900; "
+                + "-fx-cursor: hand;";
+        b.setStyle(normalStyle);
+        b.setOnAction(e -> action.run());
+        b.setOnMouseEntered(e -> b.setStyle(hoverStyle));
+        b.setOnMouseExited(e -> b.setStyle(normalStyle));
+        return b;
+    }
+
+    private void updateVolumeStyle() {
+        if (volumeSegmentBox == null) return;
+        for (Node n : volumeSegmentBox.getChildren()) {
+            if (n instanceof Region r) {
+                int val = (int) r.getUserData();
+                boolean isActive = val <= currentVolumeValue && currentVolumeValue > 0;
+                if (val == 0 && currentVolumeValue == 0) isActive = true;
+
+                String baseStyle = "-fx-background-radius: 4; ";
+                if (isActive) {
+                    r.setStyle(baseStyle + "-fx-background-color: " + COLOR_SUCCESS + ";");
+                } else {
+                    r.setStyle(baseStyle + "-fx-background-color: " + COLOR_BORDER_SOFT + ";");
+                }
+            }
+        }
     }
 
     public void updateSchedule(String name) {
@@ -89,34 +240,30 @@ public class DashboardInfoRow extends HBox {
 
     public void updateVolume(int volume) {
         currentVolumeValue = normalizeVolume(volume);
-        safeSetText(volStatusLabel, currentVolumeValue + "%");
+        safeSetText(volPercentLabel, currentVolumeValue + "%");
         updateVolumeStyle();
     }
 
     public void updateBroadcast() {
-        safeSetText(brStatusLabel, config.isBroadcastEnabled() ? "Увімкнено" : "Вимкнено");
+        boolean active = config.isBroadcastEnabled();
+        safeSetText(brStatusLabel, active ? "Активно" : "Вимкнено");
+        brStatusLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + (active ? COLOR_SUCCESS : COLOR_DANGER) + ";");
     }
 
     public void updateMedia() {
         String currentTrack = mainApp.getAudioService().getCurrentPlayingTrack();
         if (currentTrack != null) {
-            safeSetText(mediaValue, "ЗАРАЗ: " + currentTrack.toUpperCase());
-            applyInfoValueStyle(mediaValue, COLOR_TANGERINE);
+            safeSetText(mediaValue, currentTrack);
+            mediaValue.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_TANGERINE + ";");
         } else {
             MediaEvent nextEvent = mainApp.getMediaSchedulerService().getNextEvent();
             if (nextEvent != null) {
-                safeSetText(mediaValue, nextEvent.time() + " — " + nextEvent.name().toUpperCase());
+                safeSetText(mediaValue, nextEvent.time() + " — " + nextEvent.name());
             } else {
-                safeSetText(mediaValue, "ПОДІЙ НЕ ЗАПЛАНОВАНО");
+                safeSetText(mediaValue, "Подій немає");
             }
-            applyInfoValueStyle(mediaValue, COLOR_NAVY);
+            mediaValue.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         }
-    }
-
-    private void applyInfoValueStyle(Label label, String color) {
-        label.setStyle("-fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: " + color + ";");
-        label.setWrapText(true);
-        label.setMaxWidth(200);
     }
 
     private void safeSetText(Label label, String text) {
@@ -133,23 +280,5 @@ public class DashboardInfoRow extends HBox {
         if (value <= 70) return 60;
         if (value <= 90) return 80;
         return 100;
-    }
-
-    private void updateVolumeStyle() {
-        if (volumePresetBox == null) return;
-        for (Node n : volumePresetBox.getChildren()) {
-            if (n instanceof Button b) {
-                int val = (int) b.getUserData();
-                if (val == currentVolumeValue) {
-                    b.setStyle(PREMIUM_TOGGLE_ACTIVE);
-                    b.setOnMouseEntered(null);
-                    b.setOnMouseExited(null);
-                } else {
-                    b.setStyle(PREMIUM_TOGGLE_INACTIVE);
-                    b.setOnMouseEntered(e -> b.setStyle(PREMIUM_TOGGLE_INACTIVE + "-fx-background-color: " + TR_WHITE_08 + ";"));
-                    b.setOnMouseExited(e -> b.setStyle(PREMIUM_TOGGLE_INACTIVE));
-                }
-            }
-        }
     }
 }

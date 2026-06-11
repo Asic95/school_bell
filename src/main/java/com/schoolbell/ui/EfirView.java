@@ -50,9 +50,9 @@ public class EfirView {
         announcementsSection.setMinWidth(400);
 
         sideSection = new EfirSideSection(mainApp);
-        sideSection.setPrefWidth(480); 
-        sideSection.setMinWidth(480);
-        sideSection.setMaxWidth(480);
+        sideSection.setPrefWidth(450); 
+        sideSection.setMinWidth(450);
+        sideSection.setMaxWidth(450);
 
         mainContent.getChildren().addAll(announcementsSection, sideSection);
 
@@ -65,6 +65,16 @@ public class EfirView {
         ScrollPane scrollPane = new ScrollPane(root);
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        // Responsive Logic
+        root.widthProperty().addListener((obs, oldVal, newVal) -> {
+            boolean isLaptop = newVal.doubleValue() < 1350;
+            javafx.application.Platform.runLater(() -> {
+                if (statusCard != null) statusCard.setCompactMode(isLaptop);
+                if (networkSection != null) networkSection.setStretchMode(!isLaptop);
+            });
+        });
+
         return scrollPane;
     }
 
