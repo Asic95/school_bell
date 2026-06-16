@@ -140,10 +140,13 @@ public class MediaQuickControlDialog extends BasePremiumDialog {
                     todayPlan.add(e);
                 }
             } else if ("BREAKS".equals(e.type()) && schedule != null) {
+                int dayOfWeek = java.time.LocalDate.now().getDayOfWeek().getValue();
+                if (!e.daysOfWeek().contains(String.valueOf(dayOfWeek))) continue;
+
                 for (int i = 0; i < schedule.size() - 1; i++) {
                     com.schoolbell.model.BellEntry curr = schedule.get(i);
                     com.schoolbell.model.BellEntry nxt = schedule.get(i + 1);
-                    if (curr.type().startsWith("OUT") && nxt.type().startsWith("IN")) {
+                    if (curr.type().contains("кінець") && nxt.type().contains("початок")) {
                         LocalTime trigger = calculateTrigger(e, curr.time(), nxt.time());
                         todayPlan.add(new MediaEvent(e.id(), e.name(), e.path(), e.type(), 
                                 trigger.toString().substring(0, 5), e.daysOfWeek(), e.date(), 

@@ -415,6 +415,65 @@ public class ControlFactory {
         }
     }
 
+    public static HBox createSegmentedFilter(String leftText, String rightText, boolean initialState, java.util.function.Consumer<Boolean> onToggle) {
+        HBox container = new HBox(0);
+        container.setAlignment(Pos.CENTER);
+        // Height 44px, Width 280px, Radius 22px - Identical to SystemView Relay Toggle for consistency
+        container.setStyle(PREMIUM_TOGGLE_CONTAINER + "-fx-background-color: white; -fx-background-radius: 22; -fx-padding: 2; -fx-border-color: " + BORDER_SLATE_70 + "; -fx-border-radius: 22; -fx-border-width: 1;");
+        container.setMinWidth(280);
+        container.setMaxWidth(280);
+        container.setPrefHeight(44);
+        container.setMinHeight(44);
+        container.setMaxHeight(44);
+
+        Button leftBtn = new Button(leftText.toUpperCase());
+        Button rightBtn = new Button(rightText.toUpperCase());
+
+        leftBtn.setPrefHeight(Double.MAX_VALUE);
+        rightBtn.setPrefHeight(Double.MAX_VALUE);
+        HBox.setHgrow(leftBtn, Priority.ALWAYS);
+        HBox.setHgrow(rightBtn, Priority.ALWAYS);
+        leftBtn.setMaxWidth(Double.MAX_VALUE);
+        rightBtn.setMaxWidth(Double.MAX_VALUE);
+
+        // State tracking
+        final boolean[] isRight = {initialState};
+
+        java.lang.Runnable updateStyles = () -> {
+            // Font size 13px, weight 900 to match the "Small Primary Action Button"
+            String baseBtnStyle = "-fx-font-size: 13px; -fx-font-weight: 900; -fx-padding: 0 20; -fx-cursor: hand; -fx-letter-spacing: 0.5px;";
+            String activeStyle = baseBtnStyle + "-fx-background-color: linear-gradient(to right, " + COLOR_INDIGO + ", " + COLOR_PRIMARY + "); -fx-text-fill: white; -fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_28 + ", 10, 0, 0, 3);";
+            String inactiveStyle = baseBtnStyle + "-fx-background-color: transparent; -fx-text-fill: " + COLOR_SLATE + "; -fx-effect: null;";
+            
+            leftBtn.setStyle(isRight[0] ? inactiveStyle : activeStyle);
+            rightBtn.setStyle(isRight[0] ? activeStyle : inactiveStyle);
+            
+            // Perfect radii for segmented pill look (20px inside 22px container)
+            leftBtn.setStyle(leftBtn.getStyle() + "-fx-background-radius: 20 0 0 20;");
+            rightBtn.setStyle(rightBtn.getStyle() + "-fx-background-radius: 0 20 20 0;");
+        };
+
+        leftBtn.setOnAction(e -> {
+            if (isRight[0]) {
+                isRight[0] = false;
+                updateStyles.run();
+                onToggle.accept(false);
+            }
+        });
+
+        rightBtn.setOnAction(e -> {
+            if (!isRight[0]) {
+                isRight[0] = true;
+                updateStyles.run();
+                onToggle.accept(true);
+            }
+        });
+
+        updateStyles.run();
+        container.getChildren().addAll(leftBtn, rightBtn);
+        return container;
+    }
+
     public static VBox createEmptyState(String iconPath, String title, String subtitle) {
         VBox empty = new VBox(20);
         empty.setAlignment(Pos.CENTER);

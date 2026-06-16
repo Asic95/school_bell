@@ -183,14 +183,14 @@ public class SignalService {
         if (isActionInProgress) return;
         new Thread(() -> {
             isActionInProgress = true;
-            addLog("ЗАПУСК СИГНАЛУ: СКАСУВАННЯ ЕКСТРЕННОЇ СИТУАЦІЇ", "SUCCESS");
+            addLog("ЗАПУСК СИГНАЛУ: СКАСУВАННЯ ЕКСТРЕНОЇ СИТУАЦІЇ", "SUCCESS");
             try {
                 // Дзеркально до сигналу НС: використовуємо налаштовану тривалість
                 relayController.turnOn();
                 Thread.sleep(configService.getEmergencyDuration() * 1000L);
                 relayController.turnOff();
                 currentAlertType = "NONE";
-                addLog("Екстренну ситуацію скасовано.", "SUCCESS");
+                addLog("Екстрену ситуацію скасовано.", "SUCCESS");
             } catch (InterruptedException e) {
                 relayController.turnOff();
                 currentAlertType = "NONE";

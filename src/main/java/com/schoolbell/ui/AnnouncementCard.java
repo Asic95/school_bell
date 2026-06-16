@@ -47,13 +47,26 @@ public class AnnouncementCard extends VBox {
         text.setMaxWidth(Double.MAX_VALUE);
         text.setMinWidth(0); // Crucial for text wrapping in HBox
 
-        HBox meta = new HBox(12);
+        javafx.scene.layout.FlowPane meta = new javafx.scene.layout.FlowPane();
+        meta.setHgap(12);
+        meta.setVgap(8);
         meta.setAlignment(Pos.CENTER_LEFT);
         meta.getChildren().addAll(
             createChip(a.startDate().format(DateTimeFormatter.ofPattern("dd.MM")) + " - " + a.endDate().format(DateTimeFormatter.ofPattern("dd.MM")), COLOR_PRIMARY, ICON_CALENDAR),
             createChip(a.startTime() + " - " + a.endTime(), COLOR_SUCCESS, ICON_CLOCK),
             createChip(getDaysShortText(a.daysOfWeek()), COLOR_ORANGE, ICON_CALENDAR)
         );
+
+        java.time.LocalDate today = java.time.LocalDate.now();
+        boolean isExpired = a.endDate() != null && a.endDate().isBefore(today);
+        
+        if (!a.isActive()) {
+            meta.getChildren().add(createChip("ВИМКНЕНО", COLOR_SLATE, ICON_INFO));
+            this.setOpacity(0.7);
+        } else if (isExpired) {
+            meta.getChildren().add(createChip("ЗАВЕРШЕНО", COLOR_DANGER, ICON_INFO));
+            this.setOpacity(0.85);
+        }
 
         info.getChildren().addAll(text, meta);
         HBox.setHgrow(info, Priority.ALWAYS);

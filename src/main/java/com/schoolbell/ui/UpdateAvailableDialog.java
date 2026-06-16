@@ -133,8 +133,13 @@ public class UpdateAvailableDialog extends BasePremiumDialog {
 
         updateService.downloadUpdate(manifest, progress -> {
             Platform.runLater(() -> {
-                progressBar.setProgress(progress);
-                statusLabel.setText(String.format("Завантаження: %.0f%%", progress * 100));
+                if (progress >= 0) {
+                    progressBar.setProgress(progress);
+                    statusLabel.setText(String.format("Завантаження: %.0f%%", progress * 100));
+                } else {
+                    progressBar.setProgress(-1); // Indeterminate
+                    statusLabel.setText(String.format("Завантажено: %.1f MB", -progress));
+                }
             });
         }).thenAccept(file -> {
             Platform.runLater(() -> {

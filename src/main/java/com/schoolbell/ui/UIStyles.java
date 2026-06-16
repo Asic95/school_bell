@@ -195,24 +195,24 @@ public class UIStyles {
 
     public static final String PREMIUM_TOGGLE_CONTAINER =
             "-fx-background-color: " + TR_SLATE_92 + ";" +
-            "-fx-background-radius: 22;" +
-            "-fx-padding: 4;";
+            "-fx-background-radius: 20;" +
+            "-fx-padding: 3;";
 
     public static final String PREMIUM_TOGGLE_ACTIVE =
             "-fx-background-color: linear-gradient(to right, " + COLOR_INDIGO + ", " + COLOR_PRIMARY + ");" +
             "-fx-text-fill: white;" +
-            "-fx-background-radius: 16;" +
+            "-fx-background-radius: 17;" +
             "-fx-font-weight: bold;" +
-            "-fx-padding: 8 16;" +
+            "-fx-padding: 6 16;" +
             "-fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_28 + ", 12, 0, 0, 4);" +
             "-fx-cursor: hand;";
 
     public static final String PREMIUM_TOGGLE_INACTIVE =
             "-fx-background-color: transparent;" +
             "-fx-text-fill: " + COLOR_SLATE + ";" +
-            "-fx-background-radius: 16;" +
+            "-fx-background-radius: 17;" +
             "-fx-font-weight: bold;" +
-            "-fx-padding: 8 16;" +
+            "-fx-padding: 6 16;" +
             "-fx-cursor: hand;";
 
     public static final String HEADER_STYLE = "-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE + "; -fx-text-transform: uppercase; -fx-letter-spacing: 1.5px;";

@@ -23,6 +23,7 @@ public class UpdateService {
     private static final Logger logger = LoggerFactory.getLogger(UpdateService.class);
     private static final String MANIFEST_URL = "https://raw.githubusercontent.com/Asic95/school_bell/master/updates.json";
     private static final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(java.time.Duration.ofSeconds(10))
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
     private static final Gson gson = new Gson();
@@ -54,6 +55,7 @@ public class UpdateService {
                 logToJournal("Перевірка оновлень за адресою: " + MANIFEST_URL);
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(MANIFEST_URL))
+                        .timeout(java.time.Duration.ofSeconds(15))
                         .GET()
                         .build();
 
@@ -110,9 +112,11 @@ public class UpdateService {
 
     public CompletableFuture<File> downloadUpdate(UpdateManifest manifest, Consumer<Double> progressConsumer) {
         return CompletableFuture.supplyAsync(() -> {
+            Path tempFile = null;
             try {
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(manifest.downloadUrl()))
+                        .timeout(java.time.Duration.ofMinutes(10))
                         .GET()
                         .build();
 
@@ -122,20 +126,34 @@ public class UpdateService {
                 }
 
                 long totalBytes = response.headers().firstValueAsLong("Content-Length").orElse(-1L);
-                Path tempFile = Files.createTempFile("schoolbell_update_", ".exe");
+                tempFile = Files.createTempFile("schoolbell_update_", ".exe");
                 
                 try (InputStream is = response.body();
-                     OutputStream os = new FileOutputStream(tempFile.toFile())) {
+                     OutputStream os = Files.newOutputStream(tempFile)) {
                     
                     byte[] buffer = new byte[8192];
                     long downloadedBytes = 0;
                     int bytesRead;
+                    int lastPercent = -1;
+                    long lastLoggedMB = -1;
                     
                     while ((bytesRead = is.read(buffer)) != -1) {
                         os.write(buffer, 0, bytesRead);
                         downloadedBytes += bytesRead;
+                        
                         if (totalBytes > 0) {
-                            progressConsumer.accept((double) downloadedBytes / totalBytes);
+                            int percent = (int) ((double) downloadedBytes / totalBytes * 100);
+                            if (percent > lastPercent) {
+                                lastPercent = percent;
+                                progressConsumer.accept((double) percent / 100);
+                            }
+                        } else {
+                            long downloadedMB = downloadedBytes / (1024 * 1024);
+                            if (downloadedMB > lastLoggedMB) {
+                                lastLoggedMB = downloadedMB;
+                                // Pass negative value to indicate unknown total size, value is MBs
+                                progressConsumer.accept(-(double) downloadedBytes / (1024 * 1024));
+                            }
                         }
                     }
                 }
@@ -150,6 +168,9 @@ public class UpdateService {
 
                 return tempFile.toFile();
             } catch (Exception e) {
+                if (tempFile != null) {
+                    try { Files.deleteIfExists(tempFile); } catch (IOException ignored) {}
+                }
                 logger.error("Failed to download update: {}", e.getMessage());
                 throw new RuntimeException(e);
             }

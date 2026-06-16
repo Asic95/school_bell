@@ -98,7 +98,7 @@ public class MediaSchedulerService {
             BellEntry current = schedule.get(i);
             BellEntry next = schedule.get(i + 1);
 
-            if (current.type().startsWith("OUT") && next.type().startsWith("IN")) {
+            if (current.type().contains("кінець") && next.type().contains("початок")) {
                 LocalTime start = current.time();
                 LocalTime end = next.time();
 
@@ -109,6 +109,9 @@ public class MediaSchedulerService {
                     for (MediaEvent event : events) {
                         if (!event.isActive() || !"BREAKS".equals(event.type())) continue;
                         
+                        // Check if today is an active day for this event
+                        if (event.daysOfWeek() != null && !event.daysOfWeek().contains(String.valueOf(dayOfWeek))) continue;
+
                         String trackingKey = event.id() + "@" + breakId;
                         if (playedEventsInCurrentBreak.contains(trackingKey)) continue;
 
@@ -151,17 +154,32 @@ public class MediaSchedulerService {
         if (!isPlayingOnBreak) return;
 
         List<BellEntry> schedule = mainApp.getSchedule();
+        ConfigService config = mainApp.getConfigService();
         if (schedule == null) return;
+
+        int earlyMin = config.getEarlyBellMinutes();
+        int earlySec = config.getEarlyBellSeconds();
+        int totalEarlyOffsetSeconds = (earlyMin * 60) + earlySec;
 
         boolean shouldStop = true;
         for (int i = 0; i < schedule.size() - 1; i++) {
             BellEntry current = schedule.get(i);
             BellEntry next = schedule.get(i + 1);
 
-            if (current.type().startsWith("OUT") && next.type().startsWith("IN")) {
+            if (current.type().contains("кінець") && next.type().contains("початок")) {
                 if (now.isAfter(current.time()) && now.isBefore(next.time())) {
-                    long secondsToNext = java.time.Duration.between(now, next.time()).getSeconds();
-                    if (secondsToNext > 10) {
+                    long secondsToNextBell = java.time.Duration.between(now, next.time()).getSeconds();
+                    
+                    // We must stop 3 seconds before the EARLIEST possible bell trigger
+                    // (either the main bell or the early notification bell)
+                    long secondsToStop;
+                    if (totalEarlyOffsetSeconds > 0) {
+                        secondsToStop = secondsToNextBell - totalEarlyOffsetSeconds - 3;
+                    } else {
+                        secondsToStop = secondsToNextBell - 10; // Standard 10s fade for normal bells
+                    }
+
+                    if (secondsToStop > 0) {
                         shouldStop = false;
                     }
                     break;
@@ -180,27 +198,49 @@ public class MediaSchedulerService {
     }
 
     private void playEvent(MediaEvent event) {
-        String path = event.path();
-        if (event.isFolder()) {
-            File folder = new File(path);
-            if (folder.exists() && folder.isDirectory()) {
-                File[] files = folder.listFiles((dir, name) -> {
-                    String n = name.toLowerCase();
-                    return n.endsWith(".mp3") || n.endsWith(".wav") || n.endsWith(".m4a") || n.endsWith(".aac");
-                });
-                if (files != null && files.length > 0) {
-                    List<File> playlist = new ArrayList<>(List.of(files));
-                    // Shuffle for variety
-                    java.util.Collections.shuffle(playlist);
-                    logger.info("Starting media event (Folder): {} -> {} tracks", event.name(), playlist.size());
-                    audioService.playPlaylist(playlist, true); // Loop playlist for folders
+        new Thread(() -> {
+            // Wait for bell to finish if it's currently ringing
+            boolean hadBell = false;
+            while (mainApp.getSignalService().isActionInProgress()) {
+                hadBell = true;
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
                     return;
                 }
             }
-        }
-        
-        logger.info("Starting media event (Source): {} -> {}", event.name(), path);
-        audioService.playAudioFile(path, event.name());
+
+            // If we waited for a bell, add a 3-second grace period
+            if (hadBell) {
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    return;
+                }
+            }
+
+            String path = event.path();
+            if (event.isFolder()) {
+                File folder = new File(path);
+                if (folder.exists() && folder.isDirectory()) {
+                    File[] files = folder.listFiles((dir, name) -> {
+                        String n = name.toLowerCase();
+                        return n.endsWith(".mp3") || n.endsWith(".wav") || n.endsWith(".m4a") || n.endsWith(".aac");
+                    });
+                    if (files != null && files.length > 0) {
+                        List<File> playlist = new ArrayList<>(List.of(files));
+                        // Shuffle for variety
+                        java.util.Collections.shuffle(playlist);
+                        logger.info("Starting media event (Folder): {} -> {} tracks", event.name(), playlist.size());
+                        audioService.playPlaylist(playlist, true); // Loop playlist for folders
+                        return;
+                    }
+                }
+            }
+            
+            logger.info("Starting media event (Source): {} -> {}", event.name(), path);
+            audioService.playAudioFile(path, event.name());
+        }, "MediaEvent-Play-Thread").start();
     }
 
     public List<MediaEvent> getEvents() { return events; }
@@ -246,7 +286,7 @@ public class MediaSchedulerService {
                         for (int i = 0; i < schedule.size() - 1; i++) {
                             BellEntry curr = schedule.get(i);
                             BellEntry nxt = schedule.get(i + 1);
-                            if (curr.type().startsWith("OUT") && nxt.type().startsWith("IN")) {
+                            if (curr.type().contains("кінець") && nxt.type().contains("початок")) {
                                 LocalTime trigger = calculateTriggerTime(e, curr.time(), nxt.time());
                                 if (trigger.isAfter(now) && trigger.isBefore(minTime)) {
                                     minTime = trigger;

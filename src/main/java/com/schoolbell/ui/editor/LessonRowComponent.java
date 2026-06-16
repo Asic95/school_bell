@@ -73,27 +73,43 @@ public class LessonRowComponent extends HBox {
 
         HBox lessonBox = new HBox(badge);
         lessonBox.setAlignment(Pos.CENTER_LEFT);
-        lessonBox.setPrefWidth(100);
-        lessonBox.setMinWidth(100);
+        lessonBox.setPrefWidth(90);
+        lessonBox.setMinWidth(90);
 
-        VBox startBox = labeledTimeBox("ПОЧАТОК", sh, sm);
-        VBox endBox = labeledTimeBox("КІНЕЦЬ", eh, em);
-        VBox breakBox = breakLabeledBox(breakF);
-
+        // --- UNIFIED EDITOR BLOCK ---
         Label dash = new Label("—");
-        dash.setStyle("-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_MUTED + "; -fx-padding: 14 0 0 0;");
+        dash.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_PALE + "; -fx-padding: 15 0 0 0;");
 
-        HBox timeRange = new HBox(10, startBox, dash, endBox);
+        HBox timeRange = new HBox(12, 
+            labeledTimeBox("ПОЧАТОК", sh, sm), 
+            dash, 
+            labeledTimeBox("КІНЕЦЬ", eh, em)
+        );
         timeRange.setAlignment(Pos.CENTER_LEFT);
 
-        HBox.setHgrow(timeRange, Priority.ALWAYS);
-        HBox.setHgrow(breakBox, Priority.ALWAYS);
+        // Vertical Separator
+        javafx.scene.layout.Region vSep = new javafx.scene.layout.Region();
+        vSep.setPrefSize(1, 35);
+        vSep.setMinSize(1, 35);
+        vSep.setStyle("-fx-background-color: " + COLOR_BORDER_SOFT + "; -fx-opacity: 0.6;");
+        VBox vSepContainer = new VBox(vSep);
+        vSepContainer.setAlignment(Pos.BOTTOM_CENTER);
+        vSepContainer.setPadding(new Insets(0, 0, 5, 0));
+
+        VBox breakBox = breakLabeledBox(breakF);
+
+        HBox editorBlock = new HBox(30, timeRange, vSepContainer, breakBox);
+        editorBlock.setAlignment(Pos.CENTER_LEFT);
+
+        // Spacer to push delete button to the right
+        javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button delBtn = com.schoolbell.ui.CardFactory.createCardActionButton(ICON_TRASH, COLOR_DANGER_LIGHT, COLOR_DANGER);
         delBtn.setOnAction(e -> onDelete.accept(this));
 
         // Row Assembly
-        this.getChildren().addAll(lessonBox, timeRange, breakBox, delBtn);
+        this.getChildren().addAll(lessonBox, editorBlock, spacer, delBtn);
         this.setAlignment(Pos.CENTER_LEFT);
         this.setPadding(new Insets(14, 20, 14, 20));
         
@@ -137,15 +153,15 @@ public class LessonRowComponent extends HBox {
         sep.setStyle("-fx-font-weight: 800; -fx-font-size: 14px; -fx-text-fill: " + COLOR_SLATE_PALE + ";");
         HBox box = new HBox(6, h, sep, m);
         box.setAlignment(Pos.CENTER_LEFT);
-        return new VBox(6, label, box);
+        return new VBox(5, label, box);
     }
 
     private VBox breakLabeledBox(TextField breakF) {
         Label label = new Label("ПЕРЕРВА");
         label.setStyle(HEADER_STYLE + "-fx-font-size: 10px;");
-        HBox row = new HBox(8, createSVGIcon(ICON_CLOCK, Color.web(COLOR_SLATE_LIGHT), 20), breakF, new Label("ХВ"));
-        ((Label) row.getChildren().get(2)).setStyle("-fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE + ";");
+        HBox row = new HBox(10, createSVGIcon(ICON_CLOCK, Color.web(COLOR_SLATE_LIGHT), 18), breakF, new Label("ХВ"));
+        ((Label) row.getChildren().get(2)).setStyle("-fx-font-size: 13px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SLATE + ";");
         row.setAlignment(Pos.CENTER_LEFT);
-        return new VBox(6, label, row);
+        return new VBox(5, label, row);
     }
 }

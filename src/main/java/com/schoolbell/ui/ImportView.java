@@ -162,7 +162,8 @@ public class ImportView {
         HBox helpRow = new HBox(25);
         helpRow.getChildren().addAll(
             createHelpCard(ICON_INFO, "Автоматична нормалізація", "Система автоматично розпізнає вчителів, предмети та кабінети.", COLOR_PURPLE),
-            createHelpCard(ICON_SETTINGS, "Оновлення даних", "Якщо в розкладі з'явився новий предмет, система автоматично додасть цей зв'язок.", COLOR_SUCCESS)
+            createHelpCard(ICON_SETTINGS, "Оновлення даних", "Якщо в розкладі з'явився новий предмет, система автоматично додасть цей зв'язок.", COLOR_SUCCESS),
+            createHelpCard(ICON_EDIT, "Гнучке коригування", "Якщо розпізнавання відбулося некоректно, дані завжди можна поправити в розділі 'Школа'.", COLOR_WARNING)
         );
 
         root.getChildren().addAll(header, settingsCard, dropZone, helpRow);
@@ -225,7 +226,7 @@ public class ImportView {
         ColumnConstraints col2 = new ColumnConstraints(); col2.setPercentWidth(50);
         grid.getColumnConstraints().addAll(col1, col2);
 
-        grid.add(createCategorySection("НОВІ ВЧИТЕЛІ", report.newTeachers(), ICON_PERSON, COLOR_PURPLE), 0, 0);
+        grid.add(createCategorySection("НОВІ ВЧИТЕЛІ", report.newTeachers(), ICON_PERSON, COLOR_INDIGO), 0, 0);
         grid.add(createCategorySection("НОВІ ПРЕДМЕТИ", report.newSubjects(), ICON_BOOK, COLOR_SUCCESS), 1, 0);
         grid.add(createCategorySection("НОВІ КЛАСИ", report.newClasses(), ICON_CLASS, COLOR_WARNING), 0, 1);
         grid.add(createCategorySection("НОВІ КАБІНЕТИ", report.newRooms(), ICON_ROOM, COLOR_DANGER), 1, 1);
@@ -278,28 +279,36 @@ public class ImportView {
     }
 
     private VBox createCategorySection(String title, java.util.Set<String> items, String icon, String color) {
-        VBox section = new VBox(12);
-        section.setPadding(new Insets(20));
+        VBox section = new VBox(18);
+        section.setPadding(new Insets(24));
         section.setStyle(SOFT_CARD);
         VBox.setVgrow(section, Priority.ALWAYS);
 
-        HBox header = new HBox(10);
+        HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
-        Node iconNode = createSVGIcon(icon, Color.web(color), 18);
+        Node iconNode = createSVGIcon(icon, Color.web(color), 22);
         Label titleLabel = new Label(title);
-        titleLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 12px; -fx-text-fill: " + COLOR_TEXT + "; -fx-letter-spacing: 0.5px;");
+        titleLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 15px; -fx-text-fill: " + COLOR_NAVY + "; -fx-letter-spacing: 1px;");
         header.getChildren().addAll(iconNode, titleLabel);
 
         if (items.isEmpty()) {
             Label none = new Label("Нових елементів не знайдено");
-            none.setStyle("-fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-font-size: 12px; -fx-font-style: italic;");
+            none.setStyle("-fx-text-fill: " + COLOR_TEXT_DIM + "; -fx-font-size: 14px; -fx-font-style: italic;");
             section.getChildren().addAll(header, none);
             section.setOpacity(0.5);
         } else {
-            FlowPane chips = new FlowPane(8, 8);
+            FlowPane chips = new FlowPane(10, 10);
             for (String item : items) {
-                Label chip = new Label(item);
-                chip.setStyle("-fx-background-color: " + color + "10; -fx-text-fill: " + color + "; -fx-font-weight: 900; -fx-font-size: 10px; -fx-padding: 5 12; -fx-background-radius: 10; -fx-border-color: " + color + "30; -fx-border-radius: 10;");
+                Label chip = new Label(item.toUpperCase());
+                chip.setStyle("-fx-background-color: " + color + "15;" +
+                             "-fx-text-fill: " + color + ";" +
+                             "-fx-font-weight: 900;" +
+                             "-fx-font-size: 12px;" +
+                             "-fx-padding: 7 15;" +
+                             "-fx-background-radius: 12;" +
+                             "-fx-border-color: " + color + "40;" +
+                             "-fx-border-width: 1.5;" +
+                             "-fx-border-radius: 12;");
                 chips.getChildren().add(chip);
             }
             section.getChildren().addAll(header, chips);
