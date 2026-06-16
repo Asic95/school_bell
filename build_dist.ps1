@@ -61,4 +61,3 @@ if (Test-Path $ISCC) {
 }
 
 Write-Host "`nÃ¢Å“â€¦ BUILD COMPLETE!" -ForegroundColor Green
-

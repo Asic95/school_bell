@@ -1,9 +1,9 @@
 {
     "latest_version":  "1.1.1-test",
     "critical":  false,
-    "checksum":  "d16d7b4b7d14beed210439460f548ce6c5c70b78b337bedcdd3a66a9a9617dc8",
+    "checksum":  "06591973176c619ebf637443a0ba987538eae55ebbc320a0bfb2c1f736abe291",
     "changelog":  [
-                      "Виправлено проблему з іконкою додатка та кодуванням. Тепер використовується multi-size ICO та UTF-8 без BOM для сумісності з Java."
+                      "Виправлено проблему з іконкою додатка та кодуванням. Тепер використовується multi-size ICO та UTF-8 без BOM для сумісності з Java. Оновлено чексуму для коректної перевірки."
                   ],
     "download_url":  "https://github.com/Asic95/school_bell/releases/download/v1.1.1-test/SchoolBell_Setup_v1.1.1-test.exe",
     "release_date":  "2026-06-16"
