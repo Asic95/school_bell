@@ -225,7 +225,7 @@ public class MainApp extends Application {
                         return;
                     }
 
-                    String message = "Ãâ€ÃÂ¾Ã‘ÂÃ‘â€šÃ‘Æ’ÃÂ¿ÃÂ½ÃÂ° ÃÂ½ÃÂ¾ÃÂ²ÃÂ° ÃÂ²ÃÂµÃ‘â‚¬Ã‘ÂÃ‘â€“Ã‘Â " + manifest.latestVersion() + ". ÃÂÃÂ°Ã‘â€šÃÂ¸Ã‘ÂÃÂ½Ã‘â€“Ã‘â€šÃ‘Å’ ÃÂ´ÃÂ»Ã‘Â ÃÂ¿ÃÂµÃ‘â‚¬ÃÂµÃÂ³ÃÂ»Ã‘ÂÃÂ´Ã‘Æ’.";
+                    String message = "ÃƒÂÃ¢â‚¬ÂÃƒÂÃ‚Â¾Ãƒâ€˜Ã‚ÂÃƒâ€˜Ã¢â‚¬Å¡Ãƒâ€˜Ã†â€™ÃƒÂÃ‚Â¿ÃƒÂÃ‚Â½ÃƒÂÃ‚Â° ÃƒÂÃ‚Â½ÃƒÂÃ‚Â¾ÃƒÂÃ‚Â²ÃƒÂÃ‚Â° ÃƒÂÃ‚Â²ÃƒÂÃ‚ÂµÃƒâ€˜Ã¢â€šÂ¬Ãƒâ€˜Ã‚ÂÃƒâ€˜Ã¢â‚¬â€œÃƒâ€˜Ã‚Â " + manifest.latestVersion() + ". ÃƒÂÃ‚ÂÃƒÂÃ‚Â°Ãƒâ€˜Ã¢â‚¬Å¡ÃƒÂÃ‚Â¸Ãƒâ€˜Ã‚ÂÃƒÂÃ‚Â½Ãƒâ€˜Ã¢â‚¬â€œÃƒâ€˜Ã¢â‚¬Å¡Ãƒâ€˜Ã…â€™ ÃƒÂÃ‚Â´ÃƒÂÃ‚Â»Ãƒâ€˜Ã‚Â ÃƒÂÃ‚Â¿ÃƒÂÃ‚ÂµÃƒâ€˜Ã¢â€šÂ¬ÃƒÂÃ‚ÂµÃƒÂÃ‚Â³ÃƒÂÃ‚Â»Ãƒâ€˜Ã‚ÂÃƒÂÃ‚Â´Ãƒâ€˜Ã†â€™.";
                     ToastService.show(message, ToastService.ToastType.INFO, () -> {
                         if (activeUpdateDialog == null || !activeUpdateDialog.isShowing()) {
                             activeUpdateDialog = new UpdateAvailableDialog(primaryStage, updateService, manifest);
@@ -300,9 +300,9 @@ public class MainApp extends Application {
         classCache.addAll(academicService.getAllClasses());
     }
 
-    public String getSubjectName(int id) { return subjectCache.getOrDefault(id, "ÃÂÃÂµÃÂ²Ã‘â€“ÃÂ´ÃÂ¾ÃÂ¼ÃÂ¾"); }
-    public String getTeacherName(int id) { return teacherCache.getOrDefault(id, "ÃÂÃÂµÃÂ²Ã‘â€“ÃÂ´ÃÂ¾ÃÂ¼ÃÂ¾"); }
-    public String getClassroomName(int id) { return classroomCache.getOrDefault(id, "ÃÂÃÂµÃÂ²Ã‘â€“ÃÂ´ÃÂ¾ÃÂ¼ÃÂ¾"); }
+    public String getSubjectName(int id) { return subjectCache.getOrDefault(id, "ÃƒÂÃ‚ÂÃƒÂÃ‚ÂµÃƒÂÃ‚Â²Ãƒâ€˜Ã¢â‚¬â€œÃƒÂÃ‚Â´ÃƒÂÃ‚Â¾ÃƒÂÃ‚Â¼ÃƒÂÃ‚Â¾"); }
+    public String getTeacherName(int id) { return teacherCache.getOrDefault(id, "ÃƒÂÃ‚ÂÃƒÂÃ‚ÂµÃƒÂÃ‚Â²Ãƒâ€˜Ã¢â‚¬â€œÃƒÂÃ‚Â´ÃƒÂÃ‚Â¾ÃƒÂÃ‚Â¼ÃƒÂÃ‚Â¾"); }
+    public String getClassroomName(int id) { return classroomCache.getOrDefault(id, "ÃƒÂÃ‚ÂÃƒÂÃ‚ÂµÃƒÂÃ‚Â²Ãƒâ€˜Ã¢â‚¬â€œÃƒÂÃ‚Â´ÃƒÂÃ‚Â¾ÃƒÂÃ‚Â¼ÃƒÂÃ‚Â¾"); }
     public List<SchoolClass> getClassCache() { return classCache; }
 
     public ConfigService getConfigService() { return configService; }
