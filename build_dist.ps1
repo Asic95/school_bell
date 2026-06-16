@@ -22,13 +22,14 @@ Write-Host "--- Step 1: Building with Maven ---" -ForegroundColor Cyan
 mvn clean package -DskipTests
 
 Write-Host "`n--- Step 1.5: Generating multi-size ICO ---" -ForegroundColor Cyan
-if (Test-Path "src\main\java\com\schoolbell\IcoWrapper.java") {
-    javac src\main\java\com\schoolbell\IcoWrapper.java -d target\classes
-    java -cp target\classes com.schoolbell.IcoWrapper
+if (Test-Path "src/main/java/com/schoolbell/IcoGenerator.java") {
+    if (-not (Test-Path "target/classes")) { New-Item -ItemType Directory "target/classes" | Out-Null }
+    javac -d target/classes src/main/java/com/schoolbell/IcoGenerator.java
+    java -cp target/classes com.schoolbell.IcoGenerator
 } elseif (Test-Path $ICON) {
     Write-Host "$ICON already exists, using it."
 } else {
-    throw "IcoWrapper.java not found and $ICON missing."
+    throw "IcoGenerator.java not found and $ICON missing."
 }
 
 Write-Host "`n--- Step 2: Preparing jpackage input ---" -ForegroundColor Cyan
@@ -53,10 +54,11 @@ Write-Host "`n--- Step 4: Building Installer (Inno Setup) ---" -ForegroundColor 
 $ISCC = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 if (Test-Path $ISCC) {
     & $ISCC schoolbell_installer.iss
-    Write-Host "`n✅ INSTALLER SUCCESS! Created in 'installer_output\'" -ForegroundColor Green
+    Write-Host "`nÃ¢Å“â€¦ INSTALLER SUCCESS! Created in 'installer_output\'" -ForegroundColor Green
 } else {
-    Write-Host "`n⚠️ ISCC.exe not found at $ISCC. Skipping installer build." -ForegroundColor Yellow
+    Write-Host "`nÃ¢Å¡Â Ã¯Â¸Â ISCC.exe not found at $ISCC. Skipping installer build." -ForegroundColor Yellow
     Write-Host "You can build it manually by opening 'schoolbell_installer.iss' in Inno Setup." -ForegroundColor Gray
 }
 
-Write-Host "`n✅ BUILD COMPLETE!" -ForegroundColor Green
+Write-Host "`nÃ¢Å“â€¦ BUILD COMPLETE!" -ForegroundColor Green
+
