@@ -223,54 +223,32 @@ public class SystemView {
         VBox card = createCard("КЕРУВАННЯ ПРИСТРОЄМ ВИКОНАННЯ", ICON_POWER_PLUG, COLOR_INDIGO);
         VBox rows = new VBox(20);
 
-        // --- MODERN PREMIUM TOGGLE ALIGNED TO RIGHT ---
-        HBox toggleContainer = new HBox();
-        toggleContainer.setAlignment(Pos.CENTER);
-        toggleContainer.setStyle(PREMIUM_TOGGLE_CONTAINER + "-fx-background-color: white; -fx-border-color: " + BORDER_SLATE_70 + "; -fx-border-width: 1; -fx-border-radius: 22; -fx-padding: 2;");
+        VBox shellySetup = new VBox(15);
+        shellySetup.setPadding(new Insets(10, 0, 0, 18));
+        Label statusLbl = new Label(mainApp.getRelayController().getConnectionDetails());
+        statusLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 600;");
+
+        // --- UNIFIED PREMIUM TOGGLE ---
+        HBox toggleContainer = ControlFactory.createSegmentedFilter("USB HID", "WI-FI SHELLY", "SHELLY".equals(config.getRelayType()), isShelly -> {
+            if (isShelly) {
+                mainApp.getRelayController().switchDevice("SHELLY", config.getShellyIp(), config.getShellyName());
+                shellySetup.setVisible(true);
+                shellySetup.setManaged(true);
+                ToastService.showSuccess("Перемкнуто на WI-FI");
+            } else {
+                mainApp.getRelayController().switchDevice("USB", "", "");
+                shellySetup.setVisible(false);
+                shellySetup.setManaged(false);
+                ToastService.showSuccess("Перемкнуто на USB");
+            }
+            mainApp.saveConfig();
+            statusLbl.setText(mainApp.getRelayController().getConnectionDetails());
+        });
         toggleContainer.setMinWidth(320);
         toggleContainer.setMaxWidth(320);
-        toggleContainer.setPrefHeight(44);
-        toggleContainer.setMinHeight(44);
-        toggleContainer.setMaxHeight(44);
-
-        Button usbBtn = new Button("USB HID");
-        Button shellyBtn = new Button("WI-FI SHELLY");
-
-        usbBtn.setPrefHeight(Double.MAX_VALUE);
-        shellyBtn.setPrefHeight(Double.MAX_VALUE);
-
-        HBox.setHgrow(usbBtn, Priority.ALWAYS);
-        HBox.setHgrow(shellyBtn, Priority.ALWAYS);
-        usbBtn.setMaxWidth(Double.MAX_VALUE);
-        shellyBtn.setMaxWidth(Double.MAX_VALUE);
-
-        Runnable updateToggleStyles = () -> {
-            boolean isShelly = "SHELLY".equals(config.getRelayType());
-            usbBtn.setStyle(isShelly ? PREMIUM_TOGGLE_INACTIVE : PREMIUM_TOGGLE_ACTIVE);
-            shellyBtn.setStyle(isShelly ? PREMIUM_TOGGLE_ACTIVE : PREMIUM_TOGGLE_INACTIVE);
-        };
-
-        usbBtn.setOnAction(e -> {
-            mainApp.getRelayController().switchDevice("USB", "", "");
-            mainApp.saveConfig();
-            updateToggleStyles.run();
-            ToastService.showSuccess("Перемкнуто на USB");
-        });
-
-        shellyBtn.setOnAction(e -> {
-            mainApp.getRelayController().switchDevice("SHELLY", config.getShellyIp(), config.getShellyName());
-            mainApp.saveConfig();
-            updateToggleStyles.run();
-            ToastService.showSuccess("Перемкнуто на WI-FI");
-        });
-
-        updateToggleStyles.run();
-        toggleContainer.getChildren().addAll(usbBtn, shellyBtn);
 
         HBox deviceRow = createActionRow("Тип пристрою комутації",
                 "Вибір способу зв'язку з фізичним реле для автоматичного керування дзвінками", ICON_LINK, COLOR_INDIGO, toggleContainer);
-        VBox shellySetup = new VBox(15);
-        shellySetup.setPadding(new Insets(10, 0, 0, 18));
 
         ComboBox<com.schoolbell.hardware.ShellyRelayDevice> shellyCombo = new ComboBox<>();
         shellyCombo.setStyle(PREMIUM_SELECT_STYLE);
@@ -317,10 +295,6 @@ public class SystemView {
         scanBtn.setMinHeight(55);
         scanBtn.setMaxHeight(55);
 
-        Label statusLbl = new Label(mainApp.getRelayController().getConnectionDetails());
-
-        statusLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: " + COLOR_SLATE + "; -fx-font-weight: 600;");
-
         scanBtn.setOnAction(e -> {
             scanBtn.setDisable(true);
             scanBtn.setText("ШУКАЮ...");
@@ -347,26 +321,6 @@ public class SystemView {
                 statusLbl.setText(mainApp.getRelayController().getConnectionDetails());
                 ToastService.showSuccess("Shelly підключено!");
             }
-        });
-
-        usbBtn.setOnAction(e -> {
-            mainApp.getRelayController().switchDevice("USB", "", "");
-            mainApp.saveConfig();
-            updateToggleStyles.run();
-            shellySetup.setVisible(false);
-            shellySetup.setManaged(false);
-            statusLbl.setText(mainApp.getRelayController().getConnectionDetails());
-            ToastService.showSuccess("Перемкнуто на USB");
-        });
-
-        shellyBtn.setOnAction(e -> {
-            mainApp.getRelayController().switchDevice("SHELLY", config.getShellyIp(), config.getShellyName());
-            mainApp.saveConfig();
-            updateToggleStyles.run();
-            shellySetup.setVisible(true);
-            shellySetup.setManaged(true);
-            statusLbl.setText(mainApp.getRelayController().getConnectionDetails());
-            ToastService.showSuccess("Перемкнуто на WI-FI");
         });
 
         shellySetup.setVisible("SHELLY".equals(config.getRelayType()));

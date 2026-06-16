@@ -2,6 +2,7 @@ package com.schoolbell.ui.editor;
 
 import com.schoolbell.MainApp;
 import com.schoolbell.model.*;
+import com.schoolbell.ui.ControlFactory;
 import com.schoolbell.ui.ScheduleEditorDialog;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -71,34 +72,10 @@ public class SubstitutionsEditorTab {
             refreshSubstitutions.run();
         });
 
-        HBox toggleGroup = new HBox(0);
-        toggleGroup.setAlignment(Pos.CENTER);
-        toggleGroup.setStyle(PREMIUM_TOGGLE_CONTAINER);
-        
-        ToggleButton activeBtn = new ToggleButton("Активні");
-        ToggleButton archiveBtn = new ToggleButton("Архів");
-        ToggleGroup group = new ToggleGroup();
-        activeBtn.setToggleGroup(group);
-        archiveBtn.setToggleGroup(group);
-        activeBtn.setSelected(true);
-
-        activeBtn.setStyle(PREMIUM_TOGGLE_ACTIVE);
-        archiveBtn.setStyle(PREMIUM_TOGGLE_INACTIVE);
-
-        group.selectedToggleProperty().addListener((o, ov, nv) -> {
-            if (nv == activeBtn) {
-                activeBtn.setStyle(PREMIUM_TOGGLE_ACTIVE);
-                archiveBtn.setStyle(PREMIUM_TOGGLE_INACTIVE);
-                showArchived = false;
-            } else {
-                activeBtn.setStyle(PREMIUM_TOGGLE_INACTIVE);
-                archiveBtn.setStyle(PREMIUM_TOGGLE_ACTIVE);
-                showArchived = true;
-            }
+        HBox toggleGroup = ControlFactory.createSegmentedFilter("Активні", "Архів", showArchived, archived -> {
+            showArchived = archived;
             refreshSubstitutions.run();
         });
-
-        toggleGroup.getChildren().addAll(activeBtn, archiveBtn);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);

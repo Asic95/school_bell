@@ -1,7 +1,6 @@
 package com.schoolbell.ui;
 
 import com.schoolbell.MainApp;
-import com.schoolbell.ui.editor.AnnouncementsEditorTab;
 import com.schoolbell.ui.editor.BellsEditorTab;
 import com.schoolbell.ui.editor.ClassesEditorTab;
 import com.schoolbell.ui.editor.ClassroomsEditorTab;
@@ -21,7 +20,6 @@ public class ScheduleEditorDialog {
     private final ClassesEditorTab classesTab;
     private final WeeklyScheduleEditorTab weeklyTab;
     private final SubstitutionsEditorTab substitutionsTab;
-    private final AnnouncementsEditorTab announcementsTab;
     private final ClassroomsEditorTab classroomsTab;
 
     public ScheduleEditorDialog(MainApp mainApp) {
@@ -32,7 +30,6 @@ public class ScheduleEditorDialog {
         this.classesTab = new ClassesEditorTab(mainApp);
         this.weeklyTab = new WeeklyScheduleEditorTab(mainApp, this);
         this.substitutionsTab = new SubstitutionsEditorTab(mainApp, this);
-        this.announcementsTab = new AnnouncementsEditorTab(mainApp);
         this.classroomsTab = new ClassroomsEditorTab(mainApp);
     }
 
@@ -44,7 +41,6 @@ public class ScheduleEditorDialog {
             case 3 -> classesTab.createContent();
             case 4 -> weeklyTab.createContent();
             case 5 -> substitutionsTab.createContent();
-            case 6 -> announcementsTab.createContent();
             case 7 -> classroomsTab.createContent();
             default -> new Label("Unknown Tab");
         };

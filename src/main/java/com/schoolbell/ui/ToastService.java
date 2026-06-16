@@ -48,6 +48,10 @@ public class ToastService {
     }
 
     public static void show(String message, ToastType type) {
+        show(message, type, null);
+    }
+
+    public static void show(String message, ToastType type, Runnable onClickAction) {
         if (toastContainer == null) {
             System.err.println("ToastService not initialized. Call setup(root) first.");
             return;
@@ -55,6 +59,13 @@ public class ToastService {
 
         Platform.runLater(() -> {
             HBox toast = createToastNode(message, type);
+            if (onClickAction != null) {
+                toast.setCursor(javafx.scene.Cursor.HAND);
+                toast.setOnMouseClicked(e -> {
+                    onClickAction.run();
+                    toastContainer.getChildren().remove(toast);
+                });
+            }
             toastContainer.getChildren().add(toast);
 
             // Animations

@@ -38,7 +38,7 @@ public class RestoreConfirmationDialog extends BasePremiumDialog {
         warningBox.setStyle("-fx-background-color: " + COLOR_DANGER_PALE + "; -fx-background-radius: 18; -fx-border-color: " + COLOR_DANGER_BORDER + "; -fx-border-width: 1.5; -fx-border-radius: 18;");
         warningBox.setAlignment(Pos.CENTER_LEFT);
 
-        Label warningTitle = new Label("ЦЯ ДІЯ Є НЕЗВОРОТНЬОЮ");
+        Label warningTitle = new Label("ЦЯ ДІЯ Є НЕЗВОРОТНОЮ");
         warningTitle.setStyle("-fx-font-weight: 900; -fx-font-size: 13px; -fx-text-fill: " + COLOR_DANGER + ";");
         
         Label warningText = new Label("Всі зміни, внесені після створення обраної резервної копії, будуть втрачені. " +

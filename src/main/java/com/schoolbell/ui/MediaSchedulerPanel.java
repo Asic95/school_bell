@@ -33,7 +33,7 @@ public class MediaSchedulerPanel {
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox copy = new VBox(4);
-        Label title = new Label("Автоматичні аудіо-повідомлення");
+        Label title = new Label("Автоматичні аудіоповідомлення");
         title.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 22px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_NAVY + ";");
         Label subtitle = new Label("Керуйте розкладом автоматичного відтворення аудіо для шкільних повідомлень та подій.");
         subtitle.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_SLATE + ";");

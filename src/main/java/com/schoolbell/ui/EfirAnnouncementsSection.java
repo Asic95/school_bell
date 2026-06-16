@@ -51,33 +51,10 @@ public class EfirAnnouncementsSection extends VBox {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         // Filter Toggle Group
-        HBox toggleGroup = new HBox(0);
-        toggleGroup.setAlignment(Pos.CENTER);
-        toggleGroup.setStyle(PREMIUM_TOGGLE_CONTAINER);
-        
-        ToggleButton activeBtn = new ToggleButton("Активні");
-        ToggleButton archiveBtn = new ToggleButton("Архів");
-        ToggleGroup group = new ToggleGroup();
-        activeBtn.setToggleGroup(group);
-        archiveBtn.setToggleGroup(group);
-        activeBtn.setSelected(true);
-
-        activeBtn.setStyle(PREMIUM_TOGGLE_ACTIVE);
-        archiveBtn.setStyle(PREMIUM_TOGGLE_INACTIVE);
-
-        group.selectedToggleProperty().addListener((o, ov, nv) -> {
-            if (nv == activeBtn) {
-                activeBtn.setStyle(PREMIUM_TOGGLE_ACTIVE);
-                archiveBtn.setStyle(PREMIUM_TOGGLE_INACTIVE);
-                showArchivedAnnouncements = false;
-            } else {
-                activeBtn.setStyle(PREMIUM_TOGGLE_INACTIVE);
-                archiveBtn.setStyle(PREMIUM_TOGGLE_ACTIVE);
-                showArchivedAnnouncements = true;
-            }
+        HBox toggleGroup = ControlFactory.createSegmentedFilter("Активні", "Архів", showArchivedAnnouncements, archived -> {
+            showArchivedAnnouncements = archived;
             refreshAnnouncements();
         });
-        toggleGroup.getChildren().addAll(activeBtn, archiveBtn);
 
         Button addBtn = createSmallPrimaryActionButton("СТВОРИТИ", ICON_PLUS);
         addBtn.setOnAction(e -> openEditDialog(null));
@@ -94,8 +71,13 @@ public class EfirAnnouncementsSection extends VBox {
     }
 
     public void refreshAnnouncements() {
+        java.time.LocalDate today = java.time.LocalDate.now();
         List<Announcement> filtered = announcementService.getAllAnnouncements().stream()
-                .filter(a -> a.isActive() != showArchivedAnnouncements)
+                .filter(a -> {
+                    // An announcement is effectively active ONLY if it's marked as active AND hasn't expired
+                    boolean isEffectivelyActive = a.isActive() && (a.endDate() == null || !a.endDate().isBefore(today));
+                    return isEffectivelyActive != showArchivedAnnouncements;
+                })
                 .toList();
         
         if (filtered.isEmpty()) {

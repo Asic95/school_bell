@@ -215,11 +215,24 @@ public class MainApp extends Application {
         logger.info("System fully initialized and ready.");
     }
 
+    private UpdateAvailableDialog activeUpdateDialog;
+
     private void checkForUpdates() {
         updateService.checkForUpdates().thenAccept(manifest -> {
             if (manifest != null) {
                 Platform.runLater(() -> {
-                    new UpdateAvailableDialog(primaryStage, updateService, manifest).show();
+                    if (activeUpdateDialog != null && activeUpdateDialog.isShowing()) {
+                        return;
+                    }
+
+                    String message = "Доступна нова версія " + manifest.latestVersion() + ". Натисніть для перегляду.";
+                    ToastService.show(message, ToastService.ToastType.INFO, () -> {
+                        if (activeUpdateDialog == null || !activeUpdateDialog.isShowing()) {
+                            activeUpdateDialog = new UpdateAvailableDialog(primaryStage, updateService, manifest);
+                            activeUpdateDialog.show();
+                        }
+                    });
+                    
                     logger.info("Update available: {}", manifest.latestVersion());
                 });
             }
