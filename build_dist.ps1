@@ -54,10 +54,10 @@ Write-Host "`n--- Step 4: Building Installer (Inno Setup) ---" -ForegroundColor 
 $ISCC = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 if (Test-Path $ISCC) {
     & $ISCC schoolbell_installer.iss
-    Write-Host "`nÃ¢Å“â€¦ INSTALLER SUCCESS! Created in 'installer_output\'" -ForegroundColor Green
+    Write-Host "`n[OK] INSTALLER SUCCESS! Created in 'installer_output\'" -ForegroundColor Green
 } else {
-    Write-Host "`nÃ¢Å¡Â Ã¯Â¸Â ISCC.exe not found at $ISCC. Skipping installer build." -ForegroundColor Yellow
+    Write-Host "`n[!] ISCC.exe not found at $ISCC. Skipping installer build." -ForegroundColor Yellow
     Write-Host "You can build it manually by opening 'schoolbell_installer.iss' in Inno Setup." -ForegroundColor Gray
 }
 
-Write-Host "`nÃ¢Å“â€¦ BUILD COMPLETE!" -ForegroundColor Green
+Write-Host "`n[DONE] BUILD COMPLETE!" -ForegroundColor Green
