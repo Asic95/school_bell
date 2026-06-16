@@ -2,11 +2,11 @@ $ErrorActionPreference = "Stop"
 
 # Configuration
 $NAME = "SchoolBell"
-$VERSION = "1.1.0"
+$VERSION = "1.1.1-test"
 $VENDOR = "SchoolBell Team"
 $DESC = "School Bell Management System"
 $MAIN_CLASS = "com.schoolbell.Launcher"
-$MAIN_JAR = "untitled-1.1.0.jar"
+$MAIN_JAR = "untitled-1.1.1-test.jar"
 $ICON = "icon.ico"
 
 # Paths
