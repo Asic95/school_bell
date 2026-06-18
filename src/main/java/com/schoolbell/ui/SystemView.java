@@ -177,6 +177,26 @@ public class SystemView {
         });
         rows.getChildren().add(createActionRow("Каталог онлайн-радіо", "Завантажити актуальний список станцій з Radio Browser API", ICON_RADIO, COLOR_PRIMARY, refreshRadioBtn));
 
+        Button checkUpdateBtn = new Button("ПЕРЕВІРИТИ");
+        checkUpdateBtn.setGraphic(createSVGIcon(ICON_REFRESH, Color.web(COLOR_PRIMARY), 14));
+        checkUpdateBtn.setStyle(secondaryStyle + btnStyle);
+        checkUpdateBtn.setPrefWidth(190);
+        checkUpdateBtn.setOnAction(e -> {
+            checkUpdateBtn.setDisable(true);
+            ToastService.showInfo("Перевірка наявності оновлень...");
+            mainApp.getUpdateService().checkForUpdates().thenAccept(manifest -> {
+                javafx.application.Platform.runLater(() -> {
+                    checkUpdateBtn.setDisable(false);
+                    if (manifest != null) {
+                        new UpdateAvailableDialog((javafx.stage.Stage) mainCol.getScene().getWindow(), mainApp.getUpdateService(), manifest).display();
+                    } else {
+                        ToastService.showInfo("У вас встановлена остання версія програми.");
+                    }
+                });
+            });
+        });
+        rows.getChildren().add(createActionRow("Перевірка оновлень", "Перевірити наявність нової версії програмного забезпечення", ICON_REFRESH, COLOR_PRIMARY, checkUpdateBtn));
+
         rows.getChildren().add(createToggleRow("Автоматизація повітряної тривоги",
                 "Пошук та автоматичне оповіщення про повітряну тривогу", ICON_SETTINGS, COLOR_TANGERINE, airRaidTg));
 
