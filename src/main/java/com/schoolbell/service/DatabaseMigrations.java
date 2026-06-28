@@ -140,6 +140,22 @@ public class DatabaseMigrations {
                     "message TEXT" +
                     ")");
 
+            // Bell Schedules table
+            stmt.execute("CREATE TABLE IF NOT EXISTS bell_schedules (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "name TEXT NOT NULL" +
+                    ")");
+
+            // Bell Lessons table
+            stmt.execute("CREATE TABLE IF NOT EXISTS bell_lessons (" +
+                    "schedule_id INTEGER," +
+                    "lesson_number INTEGER," +
+                    "start_time TEXT," +
+                    "end_time TEXT," +
+                    "break_duration INTEGER," +
+                    "FOREIGN KEY (schedule_id) REFERENCES bell_schedules(id) ON DELETE CASCADE" +
+                    ")");
+
             // --- INCREMENTAL MIGRATIONS ---
 
             // Migration: Add break_anchor and break_offset to media_events if they don't exist

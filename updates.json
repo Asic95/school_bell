@@ -1,10 +1,10 @@
 {
-    "latest_version":  "1.0.0",
+    "latest_version":  "1.1.0",
     "critical":  false,
-    "checksum":  "fbca02bcc9a1ce6e3a35436994a9315b526f06ce0e85e4ffbd8977f37dc06a5d",
+    "checksum":  "987cc3dee27a923797ee9e4519e689547f6f4df8fc95fc1d699998290dece9ca",
     "changelog":  [
-                      "Реліз версії 1.0.0"
+                      "- Автоматичний розрахунок розкладу: початок наступних уроків вираховується автоматично. - Миттєве оновлення головного екрана при активації розкладу. - Надійне збереження розкладів у БД SQLite. - Виправлено зупинку музики перед першим дзвоником. - Додано обов\u0027язкову 5-секундну паузу між запланованими аудіосповіщеннями."
                   ],
-    "download_url":  "https://github.com/Asic95/school_bell/releases/download/v1.0.0/SchoolBell_Setup_v1.0.0.exe",
-    "release_date":  "2026-06-21"
+    "download_url":  "https://github.com/Asic95/school_bell/releases/download/v1.1.0/SchoolBell_Setup_v1.1.0.exe",
+    "release_date":  "2026-06-28"
 }

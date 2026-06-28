@@ -172,9 +172,9 @@ public class MediaSchedulerPanel {
             case "BREAKS" -> {
                 String anchorText = switch (event.breakAnchor() != null ? event.breakAnchor() : "START") {
                     case "START" -> "початок перерви";
-                    case "END" -> "кінець перерви";
+                    case "END" -> "зміщення від кінця на " + (event.breakOffset() > 0 ? event.breakOffset() : 2) + " хв.";
                     case "MIDDLE" -> "середина перерви";
-                    case "OFFSET" -> "зміщення на " + event.breakOffset() + " хв.";
+                    case "OFFSET" -> "зміщення від початку на " + event.breakOffset() + " хв.";
                     default -> "початок перерви";
                 };
                 yield daysInfo + ": " + anchorText;

@@ -146,6 +146,17 @@ public class LessonRowComponent extends HBox {
         }
     }
 
+    public void updateTime(LocalTime start, LocalTime end) {
+        if (start != null) {
+            sh.setValue(String.format("%02d", start.getHour()));
+            sm.setValue(String.format("%02d", start.getMinute()));
+        }
+        if (end != null) {
+            eh.setValue(String.format("%02d", end.getHour()));
+            em.setValue(String.format("%02d", end.getMinute()));
+        }
+    }
+
     private VBox labeledTimeBox(String labelText, ComboBox<String> h, ComboBox<String> m) {
         Label label = new Label(labelText);
         label.setStyle(HEADER_STYLE + "-fx-font-size: 10px;");

@@ -25,8 +25,11 @@ public class MediaSchedulerService {
     private final Random random = new Random();
 
     private LocalTime lastCheckedMinute = null;
-    private boolean isPlayingOnBreak = false;
+    private boolean isScheduledMediaPlaying = false;
     private final java.util.Set<String> playedEventsInCurrentBreak = new java.util.HashSet<>();
+    
+    private long lastAudioFinishedTimeMs = 0;
+    private boolean wasAudioPlayingLastSecond = false;
 
     public MediaSchedulerService(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -50,8 +53,8 @@ public class MediaSchedulerService {
         String alertType = mainApp.getSignalService().getCurrentAlertType();
         if ("AIR_RAID".equals(alertType) || "EMERGENCY".equals(alertType)) {
             // ONLY stop if it's break music. Don't touch the emergency alert sound!
-            if (isPlayingOnBreak) {
-                stopBreakMusic();
+            if (isScheduledMediaPlaying) {
+                stopScheduledMedia();
             }
             return;
         }
@@ -60,6 +63,14 @@ public class MediaSchedulerService {
         LocalDate today = LocalDate.now();
         int dayOfWeek = today.getDayOfWeek().getValue(); // 1-7
 
+        // Track when the scheduled media finishes playing
+        String currentTrack = audioService.getCurrentPlayingTrack();
+        boolean isAudioPlayingNow = (currentTrack != null);
+        if (wasAudioPlayingLastSecond && !isAudioPlayingNow) {
+            lastAudioFinishedTimeMs = System.currentTimeMillis();
+        }
+        wasAudioPlayingLastSecond = isAudioPlayingNow;
+
         // Check for specific time events (once per minute)
         if (lastCheckedMinute == null || !lastCheckedMinute.equals(now.withSecond(0).withNano(0))) {
             lastCheckedMinute = now.withSecond(0).withNano(0);
@@ -67,8 +78,8 @@ public class MediaSchedulerService {
             processBreakEvents(now, dayOfWeek);
         }
 
-        // Logic for stopping/fading break music before bell
-        handleBreakMusicStop(now);
+        // Logic for stopping/fading scheduled media before bell
+        handleScheduledMediaStop(now);
     }
 
     private void processTimeEvents(LocalTime now, int dayOfWeek, LocalDate today) {
@@ -121,9 +132,6 @@ public class MediaSchedulerService {
                             if (!now.isBefore(triggerTime) && now.isBefore(end)) {
                                 playEvent(event);
                                 playedEventsInCurrentBreak.add(trackingKey);
-                                if (event.breakAnchor().equals("START") || event.breakAnchor().equals("MIDDLE") || (event.breakAnchor().equals("OFFSET") && event.breakOffset() >= 0)) {
-                                    isPlayingOnBreak = true;
-                                }
                             }
                         }
                     }
@@ -150,54 +158,55 @@ public class MediaSchedulerService {
         };
     }
 
-    private void handleBreakMusicStop(LocalTime now) {
-        if (!isPlayingOnBreak) return;
+    private void handleScheduledMediaStop(LocalTime now) {
+        if (!isScheduledMediaPlaying) return;
 
         List<BellEntry> schedule = mainApp.getSchedule();
         ConfigService config = mainApp.getConfigService();
-        if (schedule == null) return;
+        if (schedule == null || schedule.isEmpty()) return;
 
         int earlyMin = config.getEarlyBellMinutes();
         int earlySec = config.getEarlyBellSeconds();
         int totalEarlyOffsetSeconds = (earlyMin * 60) + earlySec;
 
-        boolean shouldStop = true;
-        for (int i = 0; i < schedule.size() - 1; i++) {
-            BellEntry current = schedule.get(i);
-            BellEntry next = schedule.get(i + 1);
+        boolean shouldStop = false;
+        long minSecondsToBell = -1;
 
-            if (current.type().contains("кінець") && next.type().contains("початок")) {
-                if (now.isAfter(current.time()) && now.isBefore(next.time())) {
-                    long secondsToNextBell = java.time.Duration.between(now, next.time()).getSeconds();
-                    
-                    // We must stop 3 seconds before the EARLIEST possible bell trigger
-                    // (either the main bell or the early notification bell)
-                    long secondsToStop;
-                    if (totalEarlyOffsetSeconds > 0) {
-                        secondsToStop = secondsToNextBell - totalEarlyOffsetSeconds - 3;
-                    } else {
-                        secondsToStop = secondsToNextBell - 10; // Standard 10s fade for normal bells
-                    }
-
-                    if (secondsToStop > 0) {
-                        shouldStop = false;
-                    }
-                    break;
+        for (BellEntry entry : schedule) {
+            LocalTime bellTime = entry.time();
+            if (bellTime.isAfter(now)) {
+                long diff = java.time.Duration.between(now, bellTime).getSeconds();
+                if (minSecondsToBell == -1 || diff < minSecondsToBell) {
+                    minSecondsToBell = diff;
                 }
             }
         }
 
+        if (minSecondsToBell != -1) {
+            long secondsToStop;
+            if (totalEarlyOffsetSeconds > 0) {
+                secondsToStop = minSecondsToBell - totalEarlyOffsetSeconds - 3;
+            } else {
+                secondsToStop = minSecondsToBell - 10; // Standard 10s fade for normal bells
+            }
+
+            if (secondsToStop <= 0) {
+                shouldStop = true;
+            }
+        }
+
         if (shouldStop) {
-            stopBreakMusic();
+            stopScheduledMedia();
         }
     }
 
-    private void stopBreakMusic() {
+    private void stopScheduledMedia() {
         audioService.stopAll();
-        isPlayingOnBreak = false;
+        isScheduledMediaPlaying = false;
     }
 
     private void playEvent(MediaEvent event) {
+        isScheduledMediaPlaying = true;
         new Thread(() -> {
             // Wait for bell to finish if it's currently ringing
             boolean hadBell = false;
@@ -216,6 +225,27 @@ public class MediaSchedulerService {
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     return;
+                }
+            }
+
+            // If another media event is currently playing, stop it and wait 5 seconds of silence
+            if (audioService.getCurrentPlayingTrack() != null) {
+                audioService.stopImmediate();
+                try {
+                    Thread.sleep(5000); // 5 seconds pause
+                } catch (InterruptedException e) {
+                    return;
+                }
+            } else {
+                // If it finished naturally, ensure a minimum of 5 seconds of silence since last track
+                long elapsed = System.currentTimeMillis() - lastAudioFinishedTimeMs;
+                long requiredPauseMs = 5000;
+                if (elapsed < requiredPauseMs) {
+                    try {
+                        Thread.sleep(requiredPauseMs - elapsed);
+                    } catch (InterruptedException e) {
+                        return;
+                    }
                 }
             }
 

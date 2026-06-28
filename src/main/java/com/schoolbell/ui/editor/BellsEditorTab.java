@@ -43,20 +43,45 @@ public class BellsEditorTab {
         this.mainApp = mainApp;
     }
 
+    private boolean isUpdating = false;
+
     private void save() {
+        if (isUpdating) return;
         if (currentScheduleName == null) return;
         DaySchedule ds = mainApp.getInternalSchedules().stream()
                 .filter(d -> d.getName().equals(currentScheduleName)).findFirst().orElse(null);
         if (ds == null) return;
         
-        List<DaySchedule.LessonInfo> list = lessonRows.stream()
-                .map(LessonRowComponent::getLessonInfo)
-                .filter(Objects::nonNull)
-                .toList();
+        isUpdating = true;
+        try {
+            for (int i = 1; i < lessonRows.size(); i++) {
+                LessonRowComponent prevRow = lessonRows.get(i - 1);
+                LessonRowComponent currRow = lessonRows.get(i);
+                DaySchedule.LessonInfo prevInfo = prevRow.getLessonInfo();
+                DaySchedule.LessonInfo currInfo = currRow.getLessonInfo();
                 
-        ds.setLessons(new ArrayList<>(list));
-        mainApp.getScheduleService().saveInternalSchedules(mainApp.getInternalSchedules());
-        mainApp.reloadSchedule();
+                if (prevInfo != null && currInfo != null) {
+                    LocalTime nextStart = prevInfo.end.plusMinutes(prevInfo.breakAfterMinutes);
+                    long durationMinutes = java.time.Duration.between(currInfo.start, currInfo.end).toMinutes();
+                    if (durationMinutes < 0) {
+                        durationMinutes = 0;
+                    }
+                    LocalTime nextEnd = nextStart.plusMinutes(durationMinutes);
+                    currRow.updateTime(nextStart, nextEnd);
+                }
+            }
+
+            List<DaySchedule.LessonInfo> list = lessonRows.stream()
+                    .map(LessonRowComponent::getLessonInfo)
+                    .filter(Objects::nonNull)
+                    .toList();
+                    
+            ds.setLessons(new ArrayList<>(list));
+            mainApp.getScheduleService().saveInternalSchedules(mainApp.getInternalSchedules());
+            mainApp.reloadSchedule();
+        } finally {
+            isUpdating = false;
+        }
     }
 
     private void reindexRows() {
@@ -241,6 +266,7 @@ public class BellsEditorTab {
             if (selected != null) {
                 mainApp.getConfigService().setSelectedScheduleName(selected);
                 mainApp.saveConfig();
+                mainApp.reloadSchedule();
                 mainApp.getDashboardView().refreshActiveScheduleLabel();
                 ToastService.showSuccess("Розклад '" + selected + "' тепер активний!");
                 

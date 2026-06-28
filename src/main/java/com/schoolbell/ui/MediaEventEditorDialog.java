@@ -210,16 +210,16 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
         dateP.setMaxWidth(200);
 
         breakAnchorC = new ComboBox<>();
-        breakAnchorC.getItems().addAll("Початок перерви", "Кінець перерви", "Середина перерви", "Зі зміщенням (хв)");
+        breakAnchorC.getItems().addAll("Початок перерви", "Середина перерви", "Зі зміщенням від початку (хв)", "Зі зміщенням від кінця (хв)");
         breakAnchorC.setValue(event != null ? switch (event.breakAnchor() != null ? event.breakAnchor() : "START") {
             case "START" -> "Початок перерви";
-            case "END" -> "Кінець перерви";
+            case "END" -> "Зі зміщенням від кінця (хв)";
             case "MIDDLE" -> "Середина перерви";
-            case "OFFSET" -> "Зі зміщенням (хв)";
+            case "OFFSET" -> "Зі зміщенням від початку (хв)";
             default -> "Початок перерви";
         } : "Початок перерви");
         breakAnchorC.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-background-radius: 12; -fx-border-radius: 12; -fx-background-color: white; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-padding: 8;");
-        breakAnchorC.setPrefWidth(200);
+        breakAnchorC.setPrefWidth(320);
 
         offsetF = createStyledField(String.valueOf(event != null ? event.breakOffset() : 0));
         offsetF.setPrefWidth(80);
@@ -253,7 +253,8 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
                     dynamicGrid.add(createLabel("КОЛИ ГРАТИ"), 0, 1);
                     HBox h = new HBox(15, breakAnchorC);
                     h.setAlignment(Pos.CENTER_LEFT);
-                    if (breakAnchorC.getValue().equals("Зі зміщенням (хв)")) {
+                    if (breakAnchorC.getValue().equals("Зі зміщенням від початку (хв)") || 
+                        breakAnchorC.getValue().equals("Зі зміщенням від кінця (хв)")) {
                         h.getChildren().add(offsetF);
                     }
                     dynamicGrid.add(h, 1, 1);
@@ -316,9 +317,9 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
 
         String anchor = switch (breakAnchorC.getValue()) {
             case "Початок перерви" -> "START";
-            case "Кінець перерви" -> "END";
+            case "Зі зміщенням від кінця (хв)" -> "END";
             case "Середина перерви" -> "MIDDLE";
-            case "Зі зміщенням (хв)" -> "OFFSET";
+            case "Зі зміщенням від початку (хв)" -> "OFFSET";
             default -> "START";
         };
         int offset = 0;
