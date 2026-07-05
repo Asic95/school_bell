@@ -21,6 +21,7 @@ public class AudioService {
     
     private volatile int globalSessionId = 0;
     private volatile SourceDataLine activeLine = null;
+    private volatile Process activeRadioProcess = null;
 
     public AudioService(ConfigService configService) {
         this.configService = configService;
@@ -44,49 +45,49 @@ public class AudioService {
     }
 
     private synchronized void playStream(String url, String displayName) {
-        stopImmediate(); // Increment session and kill previous line
-        int sessionId = ++globalSessionId;
+        stopForTransition(); 
+        int sessionId = globalSessionId;
 
         new Thread(() -> {
+            Process process = null;
             try {
                 Mixer.Info mixerInfo = getSelectedMixerInfo();
                 currentPlayingTrack = displayName != null ? displayName : "Радіо: " + url;
                 isStopping = false;
 
-                logger.info("Stream [Session {}]: starting '{}' ({})", sessionId, url, currentPlayingTrack);
+                logger.info("Stream [Session {}]: starting via FFmpeg pipe: {}", sessionId, url);
 
-                try (AudioInputStream baseStream = getCleanAudioStreamFromUrl(url)) {
-                    AudioFormat targetFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
+                // Запускаємо FFmpeg процес
+                process = FFmpegAudioHelper.startRadioStreamProcess(url);
+                activeRadioProcess = process;
+                
+                // Задаємо формат PCM відповідно до налаштувань FFmpeg
+                AudioFormat format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
+                
+                // Обгортаємо вивід процесу в AudioInputStream
+                try (java.io.InputStream stdout = process.getInputStream();
+                     java.io.BufferedInputStream bis = new java.io.BufferedInputStream(stdout, 1024 * 1024);
+                     AudioInputStream stream = new AudioInputStream(bis, format, AudioSystem.NOT_SPECIFIED)) {
                     
-                    AudioInputStream finalStream = null;
-                    try {
-                        finalStream = AudioSystem.getAudioInputStream(targetFormat, baseStream);
-                    } catch (Exception e) {
-                        try {
-                            AudioInputStream intermediate = AudioSystem.getAudioInputStream(AudioFormat.Encoding.PCM_SIGNED, baseStream);
-                            finalStream = AudioSystem.getAudioInputStream(targetFormat, intermediate);
-                        } catch (Exception e2) {
-                            logger.error("No PCM conversion path for stream: {}", e2.getMessage());
-                        }
+                    if (sessionId == globalSessionId) {
+                        playInternal(stream, mixerInfo, currentPlayingTrack, false, sessionId);
                     }
-
-                    if (finalStream != null && sessionId == globalSessionId) {
-                        try {
-                            playInternal(finalStream, mixerInfo, currentPlayingTrack, false, sessionId);
-                        } finally {
-                            if (finalStream != baseStream) finalStream.close();
-                        }
-                    }
-                } catch (Exception e) {
-                    logger.error("PCM Engine failed for stream: {}", e.getMessage());
                 }
             } catch (Exception e) {
-                logger.error("Stream thread critical error: {}", e.getMessage());
+                logger.error("FFmpeg Stream pipe critical error: {}", e.getMessage());
             } finally {
                 if (sessionId == globalSessionId) {
                     currentPlayingTrack = null;
+                    if (activeRadioProcess == process) {
+                        activeRadioProcess = null;
+                    }
                 }
                 isStopping = false;
+                if (process != null) {
+                    try {
+                        process.destroyForcibly();
+                    } catch (Exception ignored) {}
+                }
                 logger.info("Stream thread [Session {}] finished.", sessionId);
             }
         }, "AudioEngine-Stream-Thread-" + sessionId).start();
@@ -98,8 +99,8 @@ public class AudioService {
     public synchronized void playPlaylist(java.util.List<File> files, boolean loop) {
         if (files == null || files.isEmpty()) return;
 
-        stopImmediate();
-        int sessionId = ++globalSessionId;
+        stopForTransition();
+        int sessionId = globalSessionId;
 
         new Thread(() -> {
             try {
@@ -117,31 +118,47 @@ public class AudioService {
                         logger.info("Playlist [Session {}]: starting track '{}'", sessionId, file.getName());
                         currentPlayingTrack = file.getName(); 
 
-                        try (AudioInputStream baseStream = getCleanAudioStream(file)) {
-                            AudioFormat targetFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
-                            AudioInputStream finalStream = null;
-                            
-                            try {
-                                finalStream = AudioSystem.getAudioInputStream(targetFormat, baseStream);
-                            } catch (Exception e) {
-                                try {
-                                    AudioInputStream intermediate = AudioSystem.getAudioInputStream(AudioFormat.Encoding.PCM_SIGNED, baseStream);
-                                    finalStream = AudioSystem.getAudioInputStream(targetFormat, intermediate);
-                                } catch (Exception e2) {
-                                    logger.error("No PCM conversion path for '{}': {}", file.getName(), e2.getMessage());
-                                }
+                        File originalFile = file;
+                        File fileToPlay = file;
+                        boolean isTemp = false;
+
+                        try {
+                            if (!originalFile.getName().toLowerCase().endsWith(".wav")) {
+                                logger.info("Transcoding '{}' to WAV...", originalFile.getName());
+                                fileToPlay = FFmpegAudioHelper.transcodeToWav(originalFile);
+                                isTemp = true;
                             }
 
-                            if (finalStream != null && sessionId == globalSessionId) {
+                            try (AudioInputStream baseStream = isTemp ? AudioSystem.getAudioInputStream(fileToPlay) : getCleanAudioStream(fileToPlay)) {
+                                AudioFormat targetFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
+                                AudioInputStream finalStream = null;
+                                
                                 try {
-                                    boolean isAlert = file.getPath().toLowerCase().contains("error") || file.getPath().toLowerCase().contains("alert");
-                                    playInternal(finalStream, mixerInfo, file.getName(), isAlert, sessionId);
-                                } finally {
-                                    if (finalStream != baseStream) finalStream.close();
+                                    finalStream = AudioSystem.getAudioInputStream(targetFormat, baseStream);
+                                } catch (Exception e) {
+                                    try {
+                                        AudioInputStream intermediate = AudioSystem.getAudioInputStream(AudioFormat.Encoding.PCM_SIGNED, baseStream);
+                                        finalStream = AudioSystem.getAudioInputStream(targetFormat, intermediate);
+                                    } catch (Exception e2) {
+                                        logger.error("No PCM conversion path for '{}': {}", file.getName(), e2.getMessage());
+                                    }
+                                }
+
+                                if (finalStream != null && sessionId == globalSessionId) {
+                                    try {
+                                        boolean isAlert = file.getPath().toLowerCase().contains("error") || file.getPath().toLowerCase().contains("alert");
+                                        playInternal(finalStream, mixerInfo, file.getName(), isAlert, sessionId);
+                                    } finally {
+                                        if (finalStream != baseStream) finalStream.close();
+                                    }
+                                }
+                            } finally {
+                                if (isTemp && fileToPlay.exists()) {
+                                    fileToPlay.delete();
                                 }
                             }
                         } catch (Exception e) {
-                            logger.error("PCM Engine failed for track '{}': {}", file.getName(), e.getMessage());
+                            logger.error("PCM Engine/Transcoding failed for track '{}': {}", file.getName(), e.getMessage());
                         }
 
                         if (isStopping || sessionId != globalSessionId) break;
@@ -198,8 +215,13 @@ public class AudioService {
                 frameCounter += (bytesRead / format.getFrameSize());
             }
             
-            line.drain();
-            line.stop();
+            if (sessionId != globalSessionId && !isAlert) {
+                // Interrupted by a new session (e.g. transition). Fade out gracefully!
+                fadeOutAndStop(line, stream, buffer, targetSystemVolume, format);
+            } else {
+                line.drain();
+                line.stop();
+            }
         } finally {
             if (sessionId == globalSessionId) {
                 activeLine = null;
@@ -219,7 +241,6 @@ public class AudioService {
         }
         
         line.stop();
-        currentPlayingTrack = null;
     }
 
     /**
@@ -266,6 +287,18 @@ public class AudioService {
     }
 
     /**
+     * Prepares for transition by incrementing session ID but leaving lines and processes running,
+     * so they can fade out gracefully in the background.
+     */
+    private synchronized void stopForTransition() {
+        globalSessionId++; // Invalidate all current threads
+        currentPlayingTrack = null;
+        isStopping = false;
+        activeLine = null;
+        activeRadioProcess = null;
+    }
+
+    /**
      * Immediately kills playback thread and closes lines.
      */
     public synchronized void stopImmediate() {
@@ -280,6 +313,13 @@ public class AudioService {
                 activeLine.close();
             } catch (Exception ignored) {}
             activeLine = null;
+        }
+
+        if (activeRadioProcess != null) {
+            try {
+                activeRadioProcess.destroyForcibly();
+            } catch (Exception ignored) {}
+            activeRadioProcess = null;
         }
         
         try {
@@ -310,22 +350,6 @@ public class AudioService {
         }
     }
 
-    private AudioInputStream getCleanAudioStreamFromUrl(String url) throws Exception {
-        java.net.URL radioUrl = new java.net.URL(url);
-        java.net.URLConnection conn = radioUrl.openConnection();
-        conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-        conn.setConnectTimeout(10000);
-        conn.setReadTimeout(10000);
-
-        java.io.InputStream is = conn.getInputStream();
-        java.io.BufferedInputStream bis = new java.io.BufferedInputStream(is, 1024 * 1024);
-        try {
-            return AudioSystem.getAudioInputStream(bis);
-        } catch (Exception e) {
-            bis.close();
-            throw e;
-        }
-    }
 
     private long findAudioOffset(File file) {
         try (java.io.RandomAccessFile raf = new java.io.RandomAccessFile(file, "r")) {

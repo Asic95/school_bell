@@ -6,7 +6,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>untitled</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -70,26 +70,17 @@
             <version>2.10.1</version>
         </dependency>
 
-        <!-- MP3 Decoding Support -->
+        <!-- FFmpeg wrapper for Java -->
         <dependency>
-            <groupId>javazoom</groupId>
-            <artifactId>jlayer</artifactId>
-            <version>1.0.1</version>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-core</artifactId>
+            <version>3.3.1</version>
         </dependency>
+        <!-- Native binaries for Windows -->
         <dependency>
-            <groupId>com.googlecode.soundlibs</groupId>
-            <artifactId>mp3spi</artifactId>
-            <version>1.9.5.4</version>
-        </dependency>
-        <dependency>
-            <groupId>com.googlecode.soundlibs</groupId>
-            <artifactId>tritonus-share</artifactId>
-            <version>0.3.7.4</version>
-        </dependency>
-        <dependency>
-            <groupId>com.tianscar.javasound</groupId>
-            <artifactId>javasound-aac</artifactId>
-            <version>0.9.8</version>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-nativebin-win64</artifactId>
+            <version>3.3.1</version>
         </dependency>
 
         <!-- mDNS Discovery -->

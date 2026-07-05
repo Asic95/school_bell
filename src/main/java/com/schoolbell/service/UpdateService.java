@@ -40,6 +40,33 @@ public class UpdateService {
         }
     }
 
+    /**
+     * Scans the system temp directory for leftover installer files from previous updates
+     * (schoolbell_update_*.exe) and deletes them. Called once on startup.
+     */
+    public void cleanupLeftoverInstallers() {
+        String tempDir = System.getProperty("java.io.tmpdir");
+        if (tempDir == null) return;
+
+        File dir = new File(tempDir);
+        File[] leftovers = dir.listFiles(
+            (d, name) -> name.startsWith("schoolbell_update_") && name.endsWith(".exe")
+        );
+        if (leftovers == null || leftovers.length == 0) return;
+
+        for (File f : leftovers) {
+            try {
+                if (f.delete()) {
+                    logToJournal("Очистка: видалено залишковий інсталятор оновлення: " + f.getName());
+                } else {
+                    logger.warn("Очистка: не вдалося видалити залишковий інсталятор: {}", f.getName());
+                }
+            } catch (Exception e) {
+                logger.warn("Очистка: помилка при видаленні інсталятора '{}': {}", f.getName(), e.getMessage());
+            }
+        }
+    }
+
     public record UpdateManifest(
             @SerializedName("latest_version") String latestVersion,
             @SerializedName("release_date") String releaseDate,

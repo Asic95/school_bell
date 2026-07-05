@@ -38,7 +38,7 @@ import static com.schoolbell.ui.UIStyles.*;
 
 public class MainApp extends Application {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
-    public static final String VERSION = "1.1.0";
+    public static final String VERSION = "1.1.1";
     private static final String APP_TITLE = "SchoolBell v" + VERSION;
 
     // Services
@@ -109,6 +109,8 @@ public class MainApp extends Application {
         configService.loadConfig();
         updateService = new UpdateService();
         updateService.setJournalConsumer(msg -> addLog(msg, "INFO"));
+        // Clean up leftover installer files from previous auto-updates
+        new Thread(updateService::cleanupLeftoverInstallers, "UpdateCleanup-Thread").start();
         
         // 3. Setup Instance Guard early
         InstanceGuard.startListener(primaryStage);
@@ -153,6 +155,26 @@ public class MainApp extends Application {
         // 5. Initialize Hardware & Background Services
         relayController = new RelayController(this);
         audioService = new AudioService(configService);
+        
+        // Register shutdown hook to clean up active radio process and temporary wav files
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (audioService != null) {
+                audioService.stopImmediate();
+            }
+            try {
+                String tempDir = System.getProperty("java.io.tmpdir");
+                if (tempDir != null) {
+                    File dir = new File(tempDir);
+                    File[] files = dir.listFiles((d, name) -> name.startsWith("schoolbell_track_") && name.endsWith(".wav"));
+                    if (files != null) {
+                        for (File f : files) {
+                            f.delete();
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+        }));
+
         radioStationService = new RadioStationService();
         signalService = new SignalService(relayController, audioService, configService);
         signalService.setLogConsumer(msg -> journal.addLog(msg, "INFO"));
