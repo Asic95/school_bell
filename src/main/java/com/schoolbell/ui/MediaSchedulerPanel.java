@@ -179,6 +179,8 @@ public class MediaSchedulerPanel {
                 };
                 yield daysInfo + ": " + anchorText;
             }
+            case "RANGE" -> daysInfo + ": у проміжку " + event.time() + " (затримка " + event.breakOffset() + " сек)";
+            case "FIRST_LESSON" -> daysInfo + ": за " + event.breakOffset() + " хв. до 1-го уроку (запізнення " + event.durationMinutes() + " хв)";
             case "TIME" -> daysInfo + " о " + event.time();
             case "ONCE" -> {
                 try {

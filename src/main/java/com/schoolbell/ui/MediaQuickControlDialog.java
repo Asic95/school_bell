@@ -153,6 +153,34 @@ public class MediaQuickControlDialog extends BasePremiumDialog {
                                 e.isActive(), e.isFolder(), e.durationMinutes(), e.breakAnchor(), e.breakOffset()));
                     }
                 }
+            } else if ("RANGE".equals(e.type())) {
+                int dayOfWeek = java.time.LocalDate.now().getDayOfWeek().getValue();
+                if (e.daysOfWeek().contains(String.valueOf(dayOfWeek))) {
+                    String timeRange = e.time();
+                    if (timeRange != null && timeRange.contains("-")) {
+                        String startStr = timeRange.split("-")[0].trim();
+                        todayPlan.add(new MediaEvent(e.id(), e.name(), e.path(), e.type(), 
+                                startStr, e.daysOfWeek(), e.date(), 
+                                e.isActive(), e.isFolder(), e.durationMinutes(), e.breakAnchor(), e.breakOffset()));
+                    }
+                }
+            } else if ("FIRST_LESSON".equals(e.type()) && schedule != null) {
+                int dayOfWeek = java.time.LocalDate.now().getDayOfWeek().getValue();
+                if (e.daysOfWeek().contains(String.valueOf(dayOfWeek))) {
+                    LocalTime firstLessonTime = null;
+                    for (com.schoolbell.model.BellEntry entry : schedule) {
+                        if (entry.type().toLowerCase().contains("початок")) {
+                            firstLessonTime = entry.time();
+                            break;
+                        }
+                    }
+                    if (firstLessonTime != null) {
+                        LocalTime trigger = firstLessonTime.minusMinutes(e.breakOffset());
+                        todayPlan.add(new MediaEvent(e.id(), e.name(), e.path(), e.type(), 
+                                trigger.toString().substring(0, 5), e.daysOfWeek(), e.date(), 
+                                e.isActive(), e.isFolder(), e.durationMinutes(), e.breakAnchor(), e.breakOffset()));
+                    }
+                }
             }
         }
 
@@ -185,6 +213,10 @@ public class MediaQuickControlDialog extends BasePremiumDialog {
                 String typeLabel;
                 if ("BREAKS".equals(e.type())) {
                     typeLabel = "НА ПЕРЕРВІ";
+                } else if ("RANGE".equals(e.type())) {
+                    typeLabel = "ДІАПАЗОН ЧАСУ";
+                } else if ("FIRST_LESSON".equals(e.type())) {
+                    typeLabel = "ПЕРЕД 1-М УРОКОМ";
                 } else if (e.path() != null && (e.path().startsWith("http") || e.path().startsWith("https"))) {
                     typeLabel = "ОНЛАЙН РАДІО";
                 } else if (e.isFolder()) {

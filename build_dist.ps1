@@ -2,11 +2,11 @@ $ErrorActionPreference = "Stop"
 
 # Configuration
 $NAME = "SchoolBell"
-$VERSION = "1.1.1"
+$VERSION = "1.2.0"
 $VENDOR = "SchoolBell Team"
 $DESC = "School Bell Management System"
 $MAIN_CLASS = "com.schoolbell.Launcher"
-$MAIN_JAR = "untitled-1.1.1.jar"
+$MAIN_JAR = "untitled-1.2.0.jar"
 $ICON = "icon.ico"
 
 # jpackage requires a version containing only numbers and dots (e.g. 1.1.1) on Windows
@@ -39,7 +39,8 @@ if (Test-Path "src/main/java/com/schoolbell/IcoGenerator.java") {
 }
 
 Write-Host "`n--- Step 2: Preparing jpackage input ---" -ForegroundColor Cyan
-if (-not (Test-Path "jpackage_input")) { New-Item -ItemType Directory "jpackage_input" | Out-Null }
+if (Test-Path "jpackage_input") { Remove-Item -Recurse -Force "jpackage_input" }
+New-Item -ItemType Directory "jpackage_input" | Out-Null
 Copy-Item "target\$MAIN_JAR" "jpackage_input\"
 
 Write-Host "`n--- Step 3: Packaging as App Image (EXE + Runtime) ---" -ForegroundColor Cyan

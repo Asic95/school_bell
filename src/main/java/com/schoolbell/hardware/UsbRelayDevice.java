@@ -67,6 +67,24 @@ public class UsbRelayDevice implements RelayDevice {
             if (!connect()) return;
         }
 
+        if (sendCommandToCurrentDevice(command, index, action)) {
+            return;
+        }
+
+        logger.warn("USB Relay command failed. Reconnecting and retrying: {}", action);
+        closeCurrentDevice();
+        if (connect() && sendCommandToCurrentDevice(command, index, action)) {
+            return;
+        }
+
+        logger.error("USB Relay command failed after reconnect: {}", action);
+    }
+
+    private boolean sendCommandToCurrentDevice(byte command, byte index, String action) {
+        if (relayDevice == null || relayDevice.isClosed()) {
+            return false;
+        }
+
         byte[] featureData = new byte[8];
         featureData[0] = command;
         featureData[1] = index;
@@ -74,17 +92,20 @@ public class UsbRelayDevice implements RelayDevice {
         int val = relayDevice.sendFeatureReport(featureData, (byte) 0x00);
         if (val >= 0) {
             logger.info("USB Relay command sent: {}", action);
-        } else {
-            // Legacy write fallback
-            byte[] report = new byte[9];
-            report[0] = 0x00;
-            System.arraycopy(featureData, 0, report, 1, 8);
-            if (relayDevice.write(report, 9, (byte) 0x00) >= 0) {
-                logger.info("USB Relay command sent (Legacy Write): {}", action);
-            } else {
-                logger.error("USB Relay communication failed: {}", relayDevice.getLastErrorMessage());
-            }
+            return true;
         }
+
+        // Legacy write fallback
+        byte[] report = new byte[9];
+        report[0] = 0x00;
+        System.arraycopy(featureData, 0, report, 1, 8);
+        if (relayDevice.write(report, 9, (byte) 0x00) >= 0) {
+            logger.info("USB Relay command sent (Legacy Write): {}", action);
+            return true;
+        }
+
+        logger.error("USB Relay communication failed: {}", relayDevice.getLastErrorMessage());
+        return false;
     }
 
     @Override
@@ -94,10 +115,15 @@ public class UsbRelayDevice implements RelayDevice {
         boolean found = devices.stream()
                 .anyMatch(d -> d.getVendorId() == VENDOR_ID && d.getProductId() == PRODUCT_ID);
         
-        if (found && (relayDevice == null || relayDevice.isClosed())) {
+        if (!found) {
+            closeCurrentDevice();
+            return false;
+        }
+
+        if (relayDevice == null || relayDevice.isClosed()) {
             connect();
         }
-        return found && relayDevice != null && !relayDevice.isClosed();
+        return relayDevice != null && !relayDevice.isClosed();
     }
 
     @Override
@@ -112,9 +138,14 @@ public class UsbRelayDevice implements RelayDevice {
 
     @Override
     public void close() {
+        closeCurrentDevice();
+        hidServices.stop();
+    }
+
+    private void closeCurrentDevice() {
         if (relayDevice != null && !relayDevice.isClosed()) {
             relayDevice.close();
         }
-        hidServices.stop();
+        relayDevice = null;
     }
 }
