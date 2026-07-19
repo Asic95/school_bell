@@ -39,7 +39,8 @@ if (Test-Path "src/main/java/com/schoolbell/IcoGenerator.java") {
 }
 
 Write-Host "`n--- Step 2: Preparing jpackage input ---" -ForegroundColor Cyan
-if (-not (Test-Path "jpackage_input")) { New-Item -ItemType Directory "jpackage_input" | Out-Null }
+if (Test-Path "jpackage_input") { Remove-Item -Recurse -Force "jpackage_input" }
+New-Item -ItemType Directory "jpackage_input" | Out-Null
 Copy-Item "target\$MAIN_JAR" "jpackage_input\"
 
 Write-Host "`n--- Step 3: Packaging as App Image (EXE + Runtime) ---" -ForegroundColor Cyan

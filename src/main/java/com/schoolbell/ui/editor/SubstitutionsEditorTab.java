@@ -84,11 +84,6 @@ public class SubstitutionsEditorTab {
 
         VBox contentList = new VBox(15);
         contentList.setPadding(new Insets(5, 5, 20, 5));
-        
-        ScrollPane scroll = new ScrollPane(contentList);
-        scroll.setFitToWidth(true);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
-        VBox.setVgrow(scroll, Priority.ALWAYS);
 
         SubstitutionCard cardBuilder = new SubstitutionCard(mainApp, parentDialog, () -> refreshSubstitutions.run());
 
@@ -162,8 +157,13 @@ public class SubstitutionsEditorTab {
             }
         };
 
-        root.getChildren().addAll(header, actionToolbar, scroll);
+        root.getChildren().addAll(header, actionToolbar, contentList);
         refreshSubstitutions.run();
-        return root;
+
+        ScrollPane mainScroll = new ScrollPane(root);
+        mainScroll.setFitToWidth(true);
+        mainScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        mainScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        return mainScroll;
     }
 }

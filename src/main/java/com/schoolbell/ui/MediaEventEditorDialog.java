@@ -29,7 +29,9 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
     private DatePicker dateP;
     private ComboBox<String> breakAnchorC;
     private TextField offsetF;
+    private TextField durationF;
     private java.util.List<CheckBox> dayCheckboxes = new java.util.ArrayList<>();
+    private boolean isFirstUpdate = true;
 
     public MediaEventEditorDialog(MainApp mainApp, MediaEvent event) {
         super(mainApp.getStage(),
@@ -75,11 +77,13 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
         grid.add(nameF, 1, 0);
 
         typeC = new ComboBox<>();
-        typeC.getItems().addAll("На перервах", "У конкретний час", "Разово");
+        typeC.getItems().addAll("На перервах", "У конкретний час", "Разово", "У проміжку часу", "Перед першим уроком");
         typeC.setValue(event != null ? switch (event.type()) {
             case "BREAKS" -> "На перервах";
             case "TIME" -> "У конкретний час";
             case "ONCE" -> "Разово";
+            case "RANGE" -> "У проміжку часу";
+            case "FIRST_LESSON" -> "Перед першим уроком";
             default -> "На перервах";
         } : "На перервах");
         typeC.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-background-radius: 12; -fx-border-radius: 12; -fx-background-color: white; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-padding: 8;");
@@ -224,6 +228,9 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
         offsetF = createStyledField(String.valueOf(event != null ? event.breakOffset() : 0));
         offsetF.setPrefWidth(80);
 
+        durationF = createStyledField(String.valueOf(event != null ? event.durationMinutes() : 3));
+        durationF.setPrefWidth(80);
+
         VBox dynamicFields = new VBox(20);
         dynamicFields.setAlignment(Pos.CENTER_LEFT);
 
@@ -244,6 +251,10 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
                 dynamicGrid.add(createLabel("ДАТА"), 0, 0);
                 dynamicGrid.add(dateP, 1, 0);
                 dynamicGrid.add(createLabel("ЧАС"), 0, 1);
+                timeF.setPromptText("ЧЧ:ММ");
+                if (!isFirstUpdate && timeF.getText() != null && timeF.getText().contains("-")) {
+                    timeF.setText("12:00");
+                }
                 dynamicGrid.add(timeF, 1, 1);
             } else {
                 dynamicGrid.add(createLabel("ДНІ ТИЖНЯ"), 0, 0);
@@ -260,10 +271,43 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
                     dynamicGrid.add(h, 1, 1);
                 } else if (typeC.getValue().equals("У конкретний час")) {
                     dynamicGrid.add(createLabel("ЧАС"), 0, 1);
+                    timeF.setPromptText("ЧЧ:ММ");
+                    if (!isFirstUpdate && timeF.getText() != null && timeF.getText().contains("-")) {
+                        timeF.setText("12:00");
+                    }
                     dynamicGrid.add(timeF, 1, 1);
+                } else if (typeC.getValue().equals("У проміжку часу")) {
+                    dynamicGrid.add(createLabel("ПРОМІЖОК ЧАСУ"), 0, 1);
+                    timeF.setPromptText("ЧЧ:ММ-ЧЧ:ММ");
+                    if (!isFirstUpdate && (timeF.getText() == null || timeF.getText().isEmpty() || !timeF.getText().contains("-"))) {
+                        timeF.setText("08:00-08:25");
+                    }
+                    dynamicGrid.add(timeF, 1, 1);
+
+                    dynamicGrid.add(createLabel("ЗАТРИМКА СТАРТУ"), 0, 2);
+                    if (!isFirstUpdate && (offsetF.getText() == null || offsetF.getText().isEmpty() || offsetF.getText().equals("0"))) {
+                        offsetF.setText("15");
+                    }
+                    HBox delayBox = new HBox(10, offsetF, createLabel("секунд"));
+                    delayBox.setAlignment(Pos.CENTER_LEFT);
+                    dynamicGrid.add(delayBox, 1, 2);
+                } else if (typeC.getValue().equals("Перед першим уроком")) {
+                    dynamicGrid.add(createLabel("ЗМІЩЕННЯ ВІД 1-ГО УРОКУ"), 0, 1);
+                    if (!isFirstUpdate && (offsetF.getText() == null || offsetF.getText().isEmpty() || offsetF.getText().equals("0") || offsetF.getText().equals("15"))) {
+                        offsetF.setText("5");
+                    }
+                    HBox offsetBox = new HBox(10, offsetF, createLabel("хвилин"));
+                    offsetBox.setAlignment(Pos.CENTER_LEFT);
+                    dynamicGrid.add(offsetBox, 1, 1);
+
+                    dynamicGrid.add(createLabel("ДОПУСТИМЕ ЗАПІЗНЕННЯ"), 0, 2);
+                    HBox delayBox = new HBox(10, durationF, createLabel("хвилин"));
+                    delayBox.setAlignment(Pos.CENTER_LEFT);
+                    dynamicGrid.add(delayBox, 1, 2);
                 }
             }
             
+            isFirstUpdate = false;
             dynamicFields.getChildren().add(dynamicGrid);
             if (isShowing()) {
                 sizeToScene();
@@ -299,6 +343,8 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
             case "На перервах" -> "BREAKS";
             case "У конкретний час" -> "TIME";
             case "Разово" -> "ONCE";
+            case "У проміжку часу" -> "RANGE";
+            case "Перед першим уроком" -> "FIRST_LESSON";
             default -> "BREAKS";
         };
         
@@ -315,6 +361,14 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
             }
         }
 
+        if (type.equals("RANGE")) {
+            String val = timeF.getText().trim();
+            if (!val.matches("\\d{2}:\\d{2}-\\d{2}:\\d{2}")) {
+                ToastService.showError("Невірний формат проміжку. Використовуйте ЧЧ:ММ-ЧЧ:ММ (наприклад, 08:00-08:25)");
+                return false;
+            }
+        }
+
         String anchor = switch (breakAnchorC.getValue()) {
             case "Початок перерви" -> "START";
             case "Зі зміщенням від кінця (хв)" -> "END";
@@ -325,6 +379,12 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
         int offset = 0;
         try {
             offset = Integer.parseInt(offsetF.getText().trim());
+        } catch (Exception ignored) {
+        }
+
+        int duration = 0;
+        try {
+            duration = Integer.parseInt(durationF.getText().trim());
         } catch (Exception ignored) {
         }
 
@@ -346,12 +406,12 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
                 name,
                 path,
                 type,
-                timeF.getText(),
+                type.equals("RANGE") ? timeF.getText().trim() : (type.equals("FIRST_LESSON") ? "" : timeF.getText()),
                 days,
                 dateP.getValue().toString(),
                 true,
                 isFolder,
-                0,
+                duration,
                 anchor,
                 offset
         );

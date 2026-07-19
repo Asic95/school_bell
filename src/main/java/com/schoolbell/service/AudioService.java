@@ -240,6 +240,7 @@ public class AudioService {
             line.write(buffer, 0, bytesRead);
         }
         
+        line.drain();
         line.stop();
     }
 
@@ -283,6 +284,22 @@ public class AudioService {
     public void stopAll() {
         if (currentPlayingTrack != null) {
             isStopping = true;
+        }
+    }
+
+    /**
+     * Initiates a graceful fade-out and waits briefly for it to finish.
+     */
+    public void stopAllAndWait() {
+        stopAll();
+        long deadline = System.currentTimeMillis() + FADE_DURATION_MS + 750L;
+        while (currentPlayingTrack != null && System.currentTimeMillis() < deadline) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
         }
     }
 

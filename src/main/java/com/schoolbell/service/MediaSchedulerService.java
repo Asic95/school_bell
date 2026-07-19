@@ -27,6 +27,9 @@ public class MediaSchedulerService {
     private LocalTime lastCheckedMinute = null;
     private boolean isScheduledMediaPlaying = false;
     private final java.util.Set<String> playedEventsInCurrentBreak = new java.util.HashSet<>();
+    private final java.util.Set<String> playedEventsToday = new java.util.HashSet<>();
+    private java.time.LocalDate lastCheckedDate = java.time.LocalDate.now();
+    private final long startupTimeMs = System.currentTimeMillis();
     
     private long lastAudioFinishedTimeMs = 0;
     private boolean wasAudioPlayingLastSecond = false;
@@ -63,6 +66,12 @@ public class MediaSchedulerService {
         LocalDate today = LocalDate.now();
         int dayOfWeek = today.getDayOfWeek().getValue(); // 1-7
 
+        // Clear played events on new day
+        if (!today.equals(lastCheckedDate)) {
+            playedEventsToday.clear();
+            lastCheckedDate = today;
+        }
+
         // Track when the scheduled media finishes playing
         String currentTrack = audioService.getCurrentPlayingTrack();
         boolean isAudioPlayingNow = (currentTrack != null);
@@ -70,6 +79,9 @@ public class MediaSchedulerService {
             lastAudioFinishedTimeMs = System.currentTimeMillis();
         }
         wasAudioPlayingLastSecond = isAudioPlayingNow;
+
+        // Process dynamic triggers (checked every second)
+        processDynamicEvents(now, dayOfWeek);
 
         // Check for specific time events (once per minute)
         if (lastCheckedMinute == null || !lastCheckedMinute.equals(now.withSecond(0).withNano(0))) {
@@ -228,18 +240,18 @@ public class MediaSchedulerService {
                 }
             }
 
-            // If another media event is currently playing, stop it and wait 5 seconds of silence
+            // If another media event is currently playing, fade it out before the silence gap.
             if (audioService.getCurrentPlayingTrack() != null) {
-                audioService.stopImmediate();
+                audioService.stopAll();
                 try {
-                    Thread.sleep(5000); // 5 seconds pause
+                    Thread.sleep(4000); // 2.5 seconds fade-out + 1.5 seconds pause
                 } catch (InterruptedException e) {
                     return;
                 }
             } else {
-                // If it finished naturally, ensure a minimum of 5 seconds of silence since last track
+                // If it finished naturally, ensure a minimum of 1.5 seconds of silence since last track
                 long elapsed = System.currentTimeMillis() - lastAudioFinishedTimeMs;
-                long requiredPauseMs = 5000;
+                long requiredPauseMs = 1500;
                 if (elapsed < requiredPauseMs) {
                     try {
                         Thread.sleep(requiredPauseMs - elapsed);
@@ -273,6 +285,60 @@ public class MediaSchedulerService {
         }, "MediaEvent-Play-Thread").start();
     }
 
+    private void processDynamicEvents(LocalTime now, int dayOfWeek) {
+        long elapsedMs = System.currentTimeMillis() - startupTimeMs;
+
+        for (MediaEvent event : events) {
+            if (!event.isActive()) continue;
+            if (playedEventsToday.contains(event.id().toString())) continue;
+
+            if ("RANGE".equals(event.type())) {
+                if (event.daysOfWeek() != null && !event.daysOfWeek().contains(String.valueOf(dayOfWeek))) continue;
+                if (elapsedMs < event.breakOffset() * 1000L) continue;
+
+                String timeRange = event.time();
+                if (timeRange == null || !timeRange.contains("-")) continue;
+
+                try {
+                    String[] parts = timeRange.split("-");
+                    LocalTime start = LocalTime.parse(parts[0].trim());
+                    LocalTime end = LocalTime.parse(parts[1].trim());
+
+                    if (!now.isBefore(start) && now.isBefore(end)) {
+                        playedEventsToday.add(event.id().toString());
+                        playEvent(event);
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to parse time range for event: " + event.name(), e);
+                }
+            } else if ("FIRST_LESSON".equals(event.type())) {
+                if (event.daysOfWeek() != null && !event.daysOfWeek().contains(String.valueOf(dayOfWeek))) continue;
+
+                List<BellEntry> schedule = mainApp.getSchedule();
+                if (schedule == null || schedule.isEmpty()) continue;
+
+                LocalTime firstLessonTime = null;
+                for (BellEntry entry : schedule) {
+                    if (entry.type().toLowerCase().contains("початок")) {
+                        firstLessonTime = entry.time();
+                        break;
+                    }
+                }
+
+                if (firstLessonTime == null) continue;
+
+                LocalTime targetTime = firstLessonTime.minusMinutes(event.breakOffset());
+                if (!now.isBefore(targetTime) && now.isBefore(firstLessonTime)) {
+                    long minutesLate = java.time.Duration.between(targetTime, now).toMinutes();
+                    if (minutesLate <= event.durationMinutes()) {
+                        playedEventsToday.add(event.id().toString());
+                        playEvent(event);
+                    }
+                }
+            }
+        }
+    }
+
     public List<MediaEvent> getEvents() { return events; }
 
     public void addEvent(MediaEvent event) {
@@ -302,9 +368,12 @@ public class MediaSchedulerService {
         for (MediaEvent e : events) {
             if (!e.isActive()) continue;
             
+            // Check if it's already played today
+            if (playedEventsToday.contains(e.id().toString())) continue;
+            
             // Day/Date check
-            if ("TIME".equals(e.type()) || "BREAKS".equals(e.type())) {
-                if (!e.daysOfWeek().contains(String.valueOf(dayOfWeek))) continue;
+            if ("TIME".equals(e.type()) || "BREAKS".equals(e.type()) || "RANGE".equals(e.type()) || "FIRST_LESSON".equals(e.type())) {
+                if (e.daysOfWeek() == null || !e.daysOfWeek().contains(String.valueOf(dayOfWeek))) continue;
             } else if ("ONCE".equals(e.type())) {
                 if (!today.toString().equals(e.date())) continue;
             }
@@ -320,8 +389,51 @@ public class MediaSchedulerService {
                                 LocalTime trigger = calculateTriggerTime(e, curr.time(), nxt.time());
                                 if (trigger.isAfter(now) && trigger.isBefore(minTime)) {
                                     minTime = trigger;
-                                    // We return a temporary clone or modified event to show the calculated time
                                     next = new MediaEvent(e.id(), e.name(), e.path(), e.type(), trigger.toString(), e.daysOfWeek(), e.date(), e.isActive(), e.isFolder(), e.durationMinutes(), e.breakAnchor(), e.breakOffset());
+                                }
+                            }
+                        }
+                    }
+                } else if ("RANGE".equals(e.type())) {
+                    String timeRange = e.time();
+                    if (timeRange != null && timeRange.contains("-")) {
+                        String[] parts = timeRange.split("-");
+                        LocalTime start = LocalTime.parse(parts[0].trim());
+                        LocalTime end = LocalTime.parse(parts[1].trim());
+                        if (now.isBefore(end)) {
+                            // Calculate effective start considering program startup delay
+                            long startupTriggerMs = startupTimeMs + e.breakOffset() * 1000L;
+                            LocalTime startupTriggerTime = LocalTime.ofInstant(java.time.Instant.ofEpochMilli(startupTriggerMs), java.time.ZoneId.systemDefault());
+                            LocalTime effectiveStart = start;
+                            if (startupTriggerTime.isAfter(effectiveStart)) {
+                                effectiveStart = startupTriggerTime;
+                            }
+
+                            LocalTime trigger = now.isBefore(effectiveStart) ? effectiveStart : now.withNano(0);
+                            if (trigger.isBefore(minTime)) {
+                                minTime = trigger;
+                                String triggerStr = trigger.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+                                next = new MediaEvent(e.id(), e.name(), e.path(), e.type(), triggerStr, e.daysOfWeek(), e.date(), e.isActive(), e.isFolder(), e.durationMinutes(), e.breakAnchor(), e.breakOffset());
+                            }
+                        }
+                    }
+                } else if ("FIRST_LESSON".equals(e.type())) {
+                    if (schedule != null && !schedule.isEmpty()) {
+                        LocalTime firstLessonTime = null;
+                        for (BellEntry entry : schedule) {
+                            if (entry.type().toLowerCase().contains("початок")) {
+                                firstLessonTime = entry.time();
+                                break;
+                            }
+                        }
+                        if (firstLessonTime != null) {
+                            LocalTime targetTime = firstLessonTime.minusMinutes(e.breakOffset());
+                            if (now.isBefore(firstLessonTime)) {
+                                LocalTime trigger = now.isBefore(targetTime) ? targetTime : now.withNano(0);
+                                if (trigger.isBefore(minTime)) {
+                                    minTime = trigger;
+                                    String triggerStr = trigger.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+                                    next = new MediaEvent(e.id(), e.name(), e.path(), e.type(), triggerStr, e.daysOfWeek(), e.date(), e.isActive(), e.isFolder(), e.durationMinutes(), e.breakAnchor(), e.breakOffset());
                                 }
                             }
                         }

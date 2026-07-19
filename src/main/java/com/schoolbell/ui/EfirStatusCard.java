@@ -28,7 +28,6 @@ import static com.schoolbell.ui.UIStyles.*;
 public class EfirStatusCard extends StackPane {
     private final MainApp mainApp;
     private final ConfigService config;
-    private final LocalDateTime startTime;
 
     private Label uptimeLabel;
     private Label connectionsLabel;
@@ -47,7 +46,6 @@ public class EfirStatusCard extends StackPane {
     public EfirStatusCard(MainApp mainApp) {
         this.mainApp = mainApp;
         this.config = mainApp.getConfigService();
-        this.startTime = LocalDateTime.now();
 
         Region bg = new Region();
         bg.setStyle(SOFT_CARD + "-fx-background-radius: 28; -fx-border-radius: 28;");
@@ -93,6 +91,7 @@ public class EfirStatusCard extends StackPane {
         getChildren().addAll(bg, bar);
         
         updateMetrics(); // Initial update
+        updateUptime();  // Initial update
         setupAutoRefresh();
     }
 
@@ -289,8 +288,13 @@ public class EfirStatusCard extends StackPane {
     }
 
     private void updateUptime() {
-        long s = java.time.Duration.between(startTime, LocalDateTime.now()).getSeconds();
-        safeSetText(uptimeLabel, String.format("%02d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60));
+        java.time.LocalDateTime start = mainApp.getBroadcastStartTime();
+        if (start == null) {
+            safeSetText(uptimeLabel, "00:00:00");
+        } else {
+            long s = java.time.Duration.between(start, java.time.LocalDateTime.now()).getSeconds();
+            safeSetText(uptimeLabel, String.format("%02d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60));
+        }
     }
 
     private void updateMetrics() {

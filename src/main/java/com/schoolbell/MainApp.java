@@ -57,6 +57,7 @@ public class MainApp extends Application {
     private AirAlertService airAlertService;
     private UpdateService updateService;
     private HttpServer httpServer;
+    private java.time.LocalDateTime broadcastStartTime = null;
 
     // Controllers
     private final SystemJournal journal = new SystemJournal();
@@ -334,6 +335,7 @@ public class MainApp extends Application {
     public SystemService getSystemService() { return systemService; }
     public MediaSchedulerService getMediaSchedulerService() { return mediaSchedulerService; }
     public BroadcastService getBroadcastService() { return broadcastService; }
+    public java.time.LocalDateTime getBroadcastStartTime() { return broadcastStartTime; }
     public RelayController getRelayController() { return relayController; }
     public AcademicService getAcademicService() { return academicService; }
     public StaffService getStaffService() { return staffService; }
@@ -389,6 +391,7 @@ public class MainApp extends Application {
                 broadcastService = new BroadcastService(configService.getBroadcastPort() + 2);
                 broadcastService.start();
                 startHttpServer(configService.getBroadcastPort());
+                broadcastStartTime = java.time.LocalDateTime.now();
                 logger.info("Broadcast servers started successfully.");
             } catch (Exception e) {
                 logger.error("Failed to start broadcast server", e);
@@ -397,6 +400,7 @@ public class MainApp extends Application {
     }
 
     public void stopBroadcastServers() {
+        broadcastStartTime = null;
         if (httpServer != null) {
             try {
                 httpServer.stop(0);

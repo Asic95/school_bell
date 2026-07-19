@@ -120,7 +120,7 @@ public class SignalAudioEditorDialog extends BasePremiumDialog {
         pickBtn.setOnAction(e -> {
             FileChooser chooser = new FileChooser();
             chooser.setTitle("Оберіть " + labelText);
-            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Аудіо (WAV)", "*.wav"));
+            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Аудіо файли (MP3, WAV)", "*.mp3", "*.wav"));
             File file = chooser.showOpenDialog(this);
             if (file != null) {
                 field.setText(file.getAbsolutePath());
