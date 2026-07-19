@@ -2,11 +2,11 @@ $ErrorActionPreference = "Stop"
 
 # Configuration
 $NAME = "SchoolBell"
-$VERSION = "1.1.1"
+$VERSION = "1.2.0"
 $VENDOR = "SchoolBell Team"
 $DESC = "School Bell Management System"
 $MAIN_CLASS = "com.schoolbell.Launcher"
-$MAIN_JAR = "untitled-1.1.1.jar"
+$MAIN_JAR = "untitled-1.2.0.jar"
 $ICON = "icon.ico"
 
 # jpackage requires a version containing only numbers and dots (e.g. 1.1.1) on Windows
