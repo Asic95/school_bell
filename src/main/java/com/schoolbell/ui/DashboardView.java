@@ -6,6 +6,7 @@ import com.schoolbell.model.DaySchedule;
 import com.schoolbell.service.AcademicService;
 import com.schoolbell.service.ConfigService;
 import com.schoolbell.service.SignalService;
+import com.schoolbell.service.NtpService;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
@@ -50,6 +51,14 @@ public class DashboardView {
         grid.setStyle(DEPTH_1);
 
         timeCard = new DashboardTimeCard();
+        if (mainApp.getNtpService() != null && mainApp.getNtpService().isSynced()) {
+            timeCard.updateSyncStatus(new NtpService.SyncResult(
+                    true,
+                    mainApp.getNtpService().getTimeOffsetMs(),
+                    mainApp.getNtpService().getCurrentServer(),
+                    mainApp.getNtpService().getStatusText()
+            ));
+        }
         relayCard = new DashboardRelayCard();
         heroCard = new DashboardHeroCard(config.getSelectedScheduleName());
         nextEventCard = new DashboardNextEventCard();
@@ -174,5 +183,11 @@ public class DashboardView {
         String name = config.getSelectedScheduleName();
         if (heroCard != null) heroCard.refreshScheduleName(name);
         if (infoRow != null) infoRow.updateSchedule(name);
+    }
+
+    public void updateNtpSync(NtpService.SyncResult result) {
+        if (timeCard != null) {
+            timeCard.updateSyncStatus(result);
+        }
     }
 }

@@ -56,6 +56,7 @@ public class MainApp extends Application {
     private BroadcastService broadcastService;
     private AirAlertService airAlertService;
     private UpdateService updateService;
+    private NtpService ntpService;
     private HttpServer httpServer;
     private java.time.LocalDateTime broadcastStartTime = null;
 
@@ -112,6 +113,14 @@ public class MainApp extends Application {
         updateService.setJournalConsumer(msg -> addLog(msg, "INFO"));
         // Clean up leftover installer files from previous auto-updates
         new Thread(updateService::cleanupLeftoverInstallers, "UpdateCleanup-Thread").start();
+
+        // NTP Time Synchronization
+        ntpService = new NtpService();
+        ntpService.startAsyncSync(result -> {
+            if (dashboardView != null) {
+                dashboardView.updateNtpSync(result);
+            }
+        });
         
         // 3. Setup Instance Guard early
         InstanceGuard.startListener(primaryStage);
@@ -277,10 +286,11 @@ public class MainApp extends Application {
     public ImportView getImportView() { return importView; }
 
     public Stage getStage() { return primaryStage; }
+    public NtpService getNtpService() { return ntpService; }
 
     private void startScheduler() {
         scheduler.scheduleAtFixedRate(() -> {
-            LocalTime now = LocalTime.now();
+            LocalTime now = ntpService != null ? ntpService.getCorrectedTime() : LocalTime.now();
             java.time.LocalDate today = java.time.LocalDate.now();
             signalService.checkAndTriggerBell(now, schedule);
             Platform.runLater(() -> {

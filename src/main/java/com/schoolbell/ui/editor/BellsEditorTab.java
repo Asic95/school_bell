@@ -170,13 +170,16 @@ public class BellsEditorTab {
         MenuItem miActivate = new MenuItem("Встановити як активний");
         miActivate.setGraphic(createSVGIcon(ICON_CHECK, Color.web(COLOR_SUCCESS), 16));
         
+        MenuItem miDuplicate = new MenuItem("Створити копію");
+        miDuplicate.setGraphic(createSVGIcon(ICON_CLONE, Color.web(COLOR_INDIGO), 16));
+
         MenuItem miRename = new MenuItem("Перейменувати");
         miRename.setGraphic(createSVGIcon(ICON_EDIT, Color.web(COLOR_PRIMARY), 16));
         
         MenuItem miDelete = new MenuItem("Видалити");
         miDelete.setGraphic(createSVGIcon(ICON_TRASH, Color.web(COLOR_DANGER), 16));
 
-        editMenuBtn.getItems().addAll(miActivate, new SeparatorMenuItem(), miRename, miDelete);
+        editMenuBtn.getItems().addAll(miActivate, new SeparatorMenuItem(), miDuplicate, miRename, miDelete);
 
         HBox actions = new HBox(12, addBtn, editMenuBtn);
         actions.setAlignment(Pos.BOTTOM_RIGHT);
@@ -292,6 +295,48 @@ public class BellsEditorTab {
                         refreshBells.run();
                         selector.setValue(name);
                         ToastService.showSuccess("Розклад '" + name + "' додано успішно");
+                    }
+            ).display();
+        });
+
+        miDuplicate.setOnAction(e -> {
+            String current = selector.getValue();
+            if (current == null) return;
+            String defaultName = "Копія " + current;
+
+            new com.schoolbell.ui.TextInputModalDialog(
+                    mainApp.getStage(),
+                    "Створити копію розкладу",
+                    "Введіть назву для нового розкладу на основі '" + current + "'",
+                    defaultName,
+                    "Назва розкладу",
+                    newName -> {
+                        if (newName == null || newName.trim().isEmpty()) {
+                            ToastService.showError("Назва розкладу не може бути порожньою!");
+                            return;
+                        }
+                        String trimmedName = newName.trim();
+                        if (mainApp.getInternalSchedules().stream().anyMatch(s -> s.getName().equals(trimmedName))) {
+                            ToastService.showError("Розклад з такою назвою вже існує!");
+                            return;
+                        }
+
+                        DaySchedule sourceSchedule = mainApp.getInternalSchedules().stream()
+                                .filter(s -> s.getName().equals(current))
+                                .findFirst().orElse(null);
+
+                        if (sourceSchedule != null) {
+                            DaySchedule copySchedule = new DaySchedule(trimmedName);
+                            copySchedule.getLessons().clear();
+                            for (DaySchedule.LessonInfo info : sourceSchedule.getLessons()) {
+                                copySchedule.getLessons().add(new DaySchedule.LessonInfo(info.start, info.end, info.breakAfterMinutes));
+                            }
+                            mainApp.getInternalSchedules().add(copySchedule);
+                            mainApp.getScheduleService().saveInternalSchedules(mainApp.getInternalSchedules());
+                            refreshBells.run();
+                            selector.setValue(trimmedName);
+                            ToastService.showSuccess("Копію розкладу '" + trimmedName + "' успішно створено!");
+                        }
                     }
             ).display();
         });
