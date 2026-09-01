@@ -1,10 +1,10 @@
 {
-    "latest_version":  "1.2.1",
+    "latest_version":  "1.2.2",
     "critical":  false,
-    "checksum":  "f10691233543d44ae7a573adfcd512acbd9aaa5eb32c815922c3195f9bb66820",
+    "checksum":  "6c9c918fd01841053e15076bd9a6c6800519adf318a3521ff2a86ad028b7d2c4",
     "changelog":  [
-                      "Додано функцію дублювання розкладів (\u0027Створити копію\u0027) та асинхронну NTP синхронізацію часу з пулом 7 серверів."
+                      "Виправлено автоматичне виявлення повітряної тривоги після зміни схеми стороннього API. Додано гнучкий парсинг районів та автоматичний щоденний моніторинг стану API тривог."
                   ],
-    "download_url":  "https://github.com/Asic95/school_bell/releases/download/v1.2.1/SchoolBell_Setup_v1.2.1.exe",
-    "release_date":  "2026-08-11"
+    "download_url":  "https://github.com/Asic95/school_bell/releases/download/v1.2.2/SchoolBell_Setup_v1.2.2.exe",
+    "release_date":  "2026-09-01"
 }
