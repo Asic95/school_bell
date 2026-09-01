@@ -1,6 +1,8 @@
 package com.schoolbell.service;
 
-import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.schoolbell.MainApp;
 import com.schoolbell.model.RegionDirectory;
 import org.slf4j.Logger;
@@ -17,7 +19,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +33,6 @@ public class AirAlertService {
     private final SignalService signalService;
     private final ScheduledExecutorService scheduler;
     private ScheduledFuture<?> pollingTask;
-    private final Gson gson = new Gson();
     private final HttpClient httpClient;
 
     private boolean lastAlertState = false;
@@ -92,29 +92,37 @@ public class AirAlertService {
                 return;
             }
 
-            AlertData data;
+            JsonObject rootObj;
             try {
-                data = gson.fromJson(body, AlertData.class);
+                JsonElement parsed = JsonParser.parseString(body);
+                if (!parsed.isJsonObject()) {
+                    handleFetchError("Помилка обробки даних (невірний формат JSON)");
+                    return;
+                }
+                rootObj = parsed.getAsJsonObject();
             } catch (Exception e) {
                 handleFetchError("Помилка обробки даних (невірний формат JSON)");
                 return;
             }
 
-            if (data == null || data.raw == null) {
+            if (!rootObj.has("raw") || !rootObj.get("raw").isJsonObject()) {
                 handleFetchError("API помилка: Відсутні дані у відповіді");
                 return;
             }
 
             // Freshness Check
-            try {
-                LocalDateTime cachedAt = LocalDateTime.parse(data.cachedat, DATE_TIME_FORMATTER);
-                if (cachedAt.isBefore(LocalDateTime.now().minusMinutes(5))) {
-                    handleFetchError("Дані застаріли (останнє оновлення: " + data.cachedat + ")");
+            if (rootObj.has("cachedat") && !rootObj.get("cachedat").isJsonNull()) {
+                String cachedAtStr = rootObj.get("cachedat").getAsString();
+                try {
+                    LocalDateTime cachedAt = LocalDateTime.parse(cachedAtStr, DATE_TIME_FORMATTER);
+                    if (cachedAt.isBefore(LocalDateTime.now().minusMinutes(5))) {
+                        handleFetchError("Дані застаріли (останнє оновлення: " + cachedAtStr + ")");
+                        return;
+                    }
+                } catch (Exception e) {
+                    handleFetchError("Неможливо перевірити актуальність даних (помилка дати)");
                     return;
                 }
-            } catch (Exception e) {
-                handleFetchError("Неможливо перевірити актуальність даних (помилка дати)");
-                return;
             }
 
             String selectedRegion = configService.getSelectedRegionId();
@@ -126,21 +134,67 @@ public class AirAlertService {
                 return;
             }
 
-            boolean currentAlert = false;
-            RegionInfo regionInfo = data.raw.values().stream()
-                    .filter(r -> r.name.equals(selectedRegion))
-                    .findFirst().orElse(null);
+            JsonObject rawObj = rootObj.getAsJsonObject("raw");
+            JsonObject regionObj = null;
 
-            if (regionInfo != null) {
-                if (selectedDistrict != null && !selectedDistrict.isEmpty()) {
-                    currentAlert = regionInfo.districts.stream()
-                            .anyMatch(d -> d.name.equals(selectedDistrict) && d.alert);
-                } else {
-                    currentAlert = regionInfo.alert;
-                }
+            if (rawObj.has(selectedRegion) && rawObj.get(selectedRegion).isJsonObject()) {
+                regionObj = rawObj.getAsJsonObject(selectedRegion);
             } else {
+                String normRegion = normalizeName(selectedRegion).toLowerCase(Locale.ROOT);
+                for (String key : rawObj.keySet()) {
+                    String normKey = normalizeName(key).toLowerCase(Locale.ROOT);
+                    if (normKey.equals(normRegion) ||
+                        (normRegion.contains("крим") && normKey.contains("крим")) ||
+                        (normRegion.startsWith("севастополь") && normKey.startsWith("севастополь"))) {
+                        if (rawObj.get(key).isJsonObject()) {
+                            regionObj = rawObj.getAsJsonObject(key);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (regionObj == null) {
                 handleFetchError("Обраний регіон '" + selectedRegion + "' не знайдено в API");
                 return;
+            }
+
+            boolean regionAlert = getBooleanField(regionObj, "enabled", "alert");
+            boolean currentAlert = false;
+
+            if (selectedDistrict != null && !selectedDistrict.isBlank()) {
+                boolean districtFound = false;
+                if (regionObj.has("districts") && regionObj.get("districts").isJsonObject()) {
+                    JsonObject districtsObj = regionObj.getAsJsonObject("districts");
+                    JsonObject districtObj = null;
+
+                    if (districtsObj.has(selectedDistrict) && districtsObj.get(selectedDistrict).isJsonObject()) {
+                        districtObj = districtsObj.getAsJsonObject(selectedDistrict);
+                    } else {
+                        String normDistrict = normalizeName(selectedDistrict).toLowerCase(Locale.ROOT);
+                        for (String dKey : districtsObj.keySet()) {
+                            String normDKey = normalizeName(dKey).toLowerCase(Locale.ROOT);
+                            if (normDKey.equals(normDistrict)) {
+                                if (districtsObj.get(dKey).isJsonObject()) {
+                                    districtObj = districtsObj.getAsJsonObject(dKey);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (districtObj != null) {
+                        districtFound = true;
+                        boolean districtAlert = getBooleanField(districtObj, "enabled", "alert");
+                        currentAlert = regionAlert || districtAlert;
+                    }
+                }
+
+                if (!districtFound) {
+                    currentAlert = regionAlert;
+                }
+            } else {
+                currentAlert = regionAlert;
             }
             
             handleSuccess();
@@ -169,6 +223,26 @@ public class AirAlertService {
             logger.error("Unexpected error in AirAlertService Live polling: ", e);
             handleFetchError("Внутрішня помилка сервісу: " + translateError(e.getMessage()));
         }
+    }
+
+    private boolean getBooleanField(JsonObject obj, String... fieldNames) {
+        if (obj == null) return false;
+        for (String field : fieldNames) {
+            if (obj.has(field) && !obj.get(field).isJsonNull()) {
+                try {
+                    return obj.get(field).getAsBoolean();
+                } catch (Exception ignored) {}
+            }
+        }
+        return false;
+    }
+
+    private String normalizeName(String name) {
+        if (name == null) return "";
+        return name.replace('’', '\'')
+                   .replace('ʼ', '\'')
+                   .replace('`', '\'')
+                   .trim();
     }
 
     private String translateError(String msg) {
@@ -227,8 +301,4 @@ public class AirAlertService {
     public List<String> getDistricts(String regionName) {
         return RegionDirectory.UKRAINE_REGIONS.getOrDefault(regionName, new ArrayList<>());
     }
-
-    private static class AlertData { Map<String, RegionInfo> raw; String cachedat; }
-    private static class RegionInfo { String name; boolean alert; List<DistrictInfo> districts; }
-    private static class DistrictInfo { String name; boolean alert; }
 }

@@ -1,0 +1,26 @@
+name: Air Alert API Monitor
+
+on:
+  schedule:
+    # 20:00 UTC = 23:00 Kyiv Time
+    - cron: '0 20 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-api-health:
+    name: Check Live Alert API Schema
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run Live API Schema Test
+        run: mvn test -Dtest=AirAlertApiLiveTest
