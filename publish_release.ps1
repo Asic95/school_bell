@@ -11,25 +11,27 @@ $ErrorActionPreference = "Stop"
 Write-Host "Starting release process for version $Version..."
 
 # 1. Update versions in files
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+$utf8Encoding = [System.Text.Encoding]::UTF8
+
 Write-Host "Updating version in MainApp.java..."
 $mainAppPath = "src/main/java/com/schoolbell/MainApp.java"
-$utf8NoBom = New-Object System.Text.UTF8Encoding $false
-$content = (Get-Content $mainAppPath) -replace 'public static final String VERSION = ".*";', "public static final String VERSION = `"$Version`";"
-[System.IO.File]::WriteAllLines($mainAppPath, $content, $utf8NoBom)
+$content = [System.IO.File]::ReadAllText($mainAppPath, $utf8Encoding) -replace 'public static final String VERSION = ".*";', "public static final String VERSION = `"$Version`";"
+[System.IO.File]::WriteAllText($mainAppPath, $content, $utf8NoBom)
 
 Write-Host "Updating version in build_dist.ps1..."
 $buildDistPath = "build_dist.ps1"
-$content = (Get-Content $buildDistPath) -replace '\$VERSION = ".*"', "`$VERSION = `"$Version`"" -replace '\$MAIN_JAR = ".*"', "`$MAIN_JAR = `"untitled-$Version.jar`""
-[System.IO.File]::WriteAllLines($buildDistPath, $content, $utf8NoBom)
+$content = [System.IO.File]::ReadAllText($buildDistPath, $utf8Encoding) -replace '\$VERSION = ".*"', "`$VERSION = `"$Version`"" -replace '\$MAIN_JAR = ".*"', "`$MAIN_JAR = `"untitled-$Version.jar`""
+[System.IO.File]::WriteAllText($buildDistPath, $content, $utf8NoBom)
 
 Write-Host "Updating version in schoolbell_installer.iss..."
 $issPath = "schoolbell_installer.iss"
-$content = (Get-Content $issPath) -replace '#define AppVersion ".*"', "#define AppVersion `"$Version`""
-[System.IO.File]::WriteAllLines($issPath, $content, $utf8NoBom)
+$content = [System.IO.File]::ReadAllText($issPath, $utf8Encoding) -replace '#define AppVersion ".*"', "#define AppVersion `"$Version`""
+[System.IO.File]::WriteAllText($issPath, $content, $utf8NoBom)
 
 Write-Host "Updating version in pom.xml..."
 $pomPath = "pom.xml"
-$pomContent = Get-Content $pomPath
+$pomContent = [System.IO.File]::ReadAllLines($pomPath, $utf8Encoding)
 $newPomContent = @()
 $foundArtifact = $false
 foreach ($line in $pomContent) {
@@ -104,7 +106,8 @@ if (-not (Test-Path $manifestPath)) {
         checksum = $hash
     }
 } else {
-    $baseJson = Get-Content $manifestPath | ConvertFrom-Json
+    $rawJson = [System.IO.File]::ReadAllText($manifestPath, $utf8Encoding)
+    $baseJson = $rawJson | ConvertFrom-Json
     $baseJson.latest_version = $Version
     $baseJson.release_date = (Get-Date -Format "yyyy-MM-dd")
     $baseJson.changelog = @($Changelog)
