@@ -1,10 +1,10 @@
 {
-    "latest_version":  "1.2.2",
+    "latest_version":  "1.2.3",
     "critical":  false,
-    "checksum":  "6c9c918fd01841053e15076bd9a6c6800519adf318a3521ff2a86ad028b7d2c4",
+    "checksum":  "ebd8f9b5b2e549d5b1088797a445de0199fab97fc4f52c8c934cd024502592b3",
     "changelog":  [
-                      "Виправлено автоматичне виявлення повітряної тривоги після зміни схеми стороннього API. Додано гнучкий парсинг районів та автоматичний щоденний моніторинг стану API тривог."
+                      "Виправлено інтеграцію з API повітряних тривог: реалізовано універсальний (поліморфний) парсинг структури даних UBilling API, що забезпечує стабільну роботу автоматизованих сигналів тривоги та відбою незалежно від змін схеми на стороні API."
                   ],
-    "download_url":  "https://github.com/Asic95/school_bell/releases/download/v1.2.2/SchoolBell_Setup_v1.2.2.exe",
-    "release_date":  "2026-09-01"
+    "download_url":  "https://github.com/Asic95/school_bell/releases/download/v1.2.3/SchoolBell_Setup_v1.2.3.exe",
+    "release_date":  "2026-09-03"
 }
