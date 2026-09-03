@@ -105,7 +105,14 @@ public class AirAlertService {
                 return;
             }
 
-            if (!rootObj.has("raw") || !rootObj.get("raw").isJsonObject()) {
+            JsonObject dataObj = null;
+            if (rootObj.has("raw") && rootObj.get("raw").isJsonObject()) {
+                dataObj = rootObj.getAsJsonObject("raw");
+            } else if (rootObj.has("states") && rootObj.get("states").isJsonObject()) {
+                dataObj = rootObj.getAsJsonObject("states");
+            }
+
+            if (dataObj == null) {
                 handleFetchError("API помилка: Відсутні дані у відповіді");
                 return;
             }
@@ -134,68 +141,14 @@ public class AirAlertService {
                 return;
             }
 
-            JsonObject rawObj = rootObj.getAsJsonObject("raw");
-            JsonObject regionObj = null;
-
-            if (rawObj.has(selectedRegion) && rawObj.get(selectedRegion).isJsonObject()) {
-                regionObj = rawObj.getAsJsonObject(selectedRegion);
-            } else {
-                String normRegion = normalizeName(selectedRegion).toLowerCase(Locale.ROOT);
-                for (String key : rawObj.keySet()) {
-                    String normKey = normalizeName(key).toLowerCase(Locale.ROOT);
-                    if (normKey.equals(normRegion) ||
-                        (normRegion.contains("крим") && normKey.contains("крим")) ||
-                        (normRegion.startsWith("севастополь") && normKey.startsWith("севастополь"))) {
-                        if (rawObj.get(key).isJsonObject()) {
-                            regionObj = rawObj.getAsJsonObject(key);
-                            break;
-                        }
-                    }
-                }
-            }
-
+            JsonObject regionObj = findRegion(dataObj, selectedRegion);
             if (regionObj == null) {
                 handleFetchError("Обраний регіон '" + selectedRegion + "' не знайдено в API");
                 return;
             }
 
-            boolean regionAlert = getBooleanField(regionObj, "enabled", "alert");
-            boolean currentAlert = false;
-
-            if (selectedDistrict != null && !selectedDistrict.isBlank()) {
-                boolean districtFound = false;
-                if (regionObj.has("districts") && regionObj.get("districts").isJsonObject()) {
-                    JsonObject districtsObj = regionObj.getAsJsonObject("districts");
-                    JsonObject districtObj = null;
-
-                    if (districtsObj.has(selectedDistrict) && districtsObj.get(selectedDistrict).isJsonObject()) {
-                        districtObj = districtsObj.getAsJsonObject(selectedDistrict);
-                    } else {
-                        String normDistrict = normalizeName(selectedDistrict).toLowerCase(Locale.ROOT);
-                        for (String dKey : districtsObj.keySet()) {
-                            String normDKey = normalizeName(dKey).toLowerCase(Locale.ROOT);
-                            if (normDKey.equals(normDistrict)) {
-                                if (districtsObj.get(dKey).isJsonObject()) {
-                                    districtObj = districtsObj.getAsJsonObject(dKey);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (districtObj != null) {
-                        districtFound = true;
-                        boolean districtAlert = getBooleanField(districtObj, "enabled", "alert");
-                        currentAlert = regionAlert || districtAlert;
-                    }
-                }
-
-                if (!districtFound) {
-                    currentAlert = regionAlert;
-                }
-            } else {
-                currentAlert = regionAlert;
-            }
+            boolean regionAlert = getBooleanField(regionObj, "alert", "alertnow", "enabled", "active");
+            boolean currentAlert = checkDistrictAlert(regionObj, selectedDistrict, regionAlert);
             
             handleSuccess();
 
@@ -225,19 +178,126 @@ public class AirAlertService {
         }
     }
 
-    private boolean getBooleanField(JsonObject obj, String... fieldNames) {
+    static JsonObject findRegion(JsonObject dataObj, String selectedRegion) {
+        if (dataObj == null || selectedRegion == null || selectedRegion.isBlank()) return null;
+
+        // 1. Direct key match
+        if (dataObj.has(selectedRegion) && dataObj.get(selectedRegion).isJsonObject()) {
+            return dataObj.getAsJsonObject(selectedRegion);
+        }
+
+        // 2. Iterate keys (both key-as-name and key-as-id with "name"/"title" inside)
+        for (String key : dataObj.keySet()) {
+            JsonElement elem = dataObj.get(key);
+            if (!elem.isJsonObject()) continue;
+            JsonObject obj = elem.getAsJsonObject();
+
+            if (isNameMatch(key, selectedRegion)) {
+                return obj;
+            }
+
+            for (String nameProp : new String[]{"name", "title", "region", "state"}) {
+                if (obj.has(nameProp) && !obj.get(nameProp).isJsonNull()) {
+                    String val = obj.get(nameProp).getAsString();
+                    if (isNameMatch(val, selectedRegion)) {
+                        return obj;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    static boolean checkDistrictAlert(JsonObject regionObj, String selectedDistrict, boolean regionAlert) {
+        if (regionObj == null || selectedDistrict == null || selectedDistrict.isBlank()) {
+            return regionAlert;
+        }
+
+        for (String containerKey : new String[]{"districts", "community", "hromadas", "cities"}) {
+            if (!regionObj.has(containerKey) || regionObj.get(containerKey).isJsonNull()) continue;
+            JsonElement container = regionObj.get(containerKey);
+
+            // Case A: JsonArray: [ {"name": "...", "alert": true}, ... ]
+            if (container.isJsonArray()) {
+                for (JsonElement item : container.getAsJsonArray()) {
+                    if (!item.isJsonObject()) continue;
+                    JsonObject dObj = item.getAsJsonObject();
+                    for (String nameProp : new String[]{"name", "title", "district"}) {
+                        if (dObj.has(nameProp) && !dObj.get(nameProp).isJsonNull()) {
+                            if (isNameMatch(dObj.get(nameProp).getAsString(), selectedDistrict)) {
+                                return getBooleanField(dObj, "alert", "alertnow", "enabled", "active");
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Case B: JsonObject: { "Білоцерківський район": {"alert": true} } or { "1": {"name": "...", "alert": true} }
+            if (container.isJsonObject()) {
+                JsonObject dMap = container.getAsJsonObject();
+                for (String dKey : dMap.keySet()) {
+                    JsonElement dElem = dMap.get(dKey);
+                    if (!dElem.isJsonObject()) continue;
+                    JsonObject dObj = dElem.getAsJsonObject();
+
+                    if (isNameMatch(dKey, selectedDistrict)) {
+                        return getBooleanField(dObj, "alert", "alertnow", "enabled", "active");
+                    }
+
+                    for (String nameProp : new String[]{"name", "title", "district"}) {
+                        if (dObj.has(nameProp) && !dObj.get(nameProp).isJsonNull()) {
+                            if (isNameMatch(dObj.get(nameProp).getAsString(), selectedDistrict)) {
+                                return getBooleanField(dObj, "alert", "alertnow", "enabled", "active");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return regionAlert;
+    }
+
+    static boolean isNameMatch(String name1, String name2) {
+        if (name1 == null || name2 == null) return false;
+        String norm1 = normalizeName(name1).toLowerCase(Locale.ROOT);
+        String norm2 = normalizeName(name2).toLowerCase(Locale.ROOT);
+        if (norm1.equals(norm2)) return true;
+
+        String clean1 = norm1.replace("м.", "").replace("область", "").trim();
+        String clean2 = norm2.replace("м.", "").replace("область", "").trim();
+        if (!clean1.isEmpty() && clean1.equals(clean2)) return true;
+
+        if (norm1.contains("крим") && norm2.contains("крим")) return true;
+        if (norm1.contains("севастополь") && norm2.contains("севастополь")) return true;
+
+        return false;
+    }
+
+    static boolean getBooleanField(JsonObject obj, String... fieldNames) {
         if (obj == null) return false;
         for (String field : fieldNames) {
             if (obj.has(field) && !obj.get(field).isJsonNull()) {
                 try {
-                    return obj.get(field).getAsBoolean();
+                    JsonElement elem = obj.get(field);
+                    if (elem.isJsonPrimitive()) {
+                        if (elem.getAsJsonPrimitive().isBoolean()) {
+                            return elem.getAsBoolean();
+                        }
+                        if (elem.getAsJsonPrimitive().isNumber()) {
+                            return elem.getAsInt() == 1;
+                        }
+                        String s = elem.getAsString().trim().toLowerCase(Locale.ROOT);
+                        if (s.equals("true") || s.equals("1") || s.equals("active")) return true;
+                        if (s.equals("false") || s.equals("0")) return false;
+                    }
                 } catch (Exception ignored) {}
             }
         }
         return false;
     }
 
-    private String normalizeName(String name) {
+    static String normalizeName(String name) {
         if (name == null) return "";
         return name.replace('’', '\'')
                    .replace('ʼ', '\'')

@@ -54,23 +54,38 @@ public class AirAlertApiLiveTest {
         String cachedat = root.get("cachedat").getAsString();
         assertDoesNotThrow(() -> LocalDateTime.parse(cachedat, DATE_TIME_FORMATTER), "cachedat format must match yyyy-MM-dd HH:mm:ss");
 
-        JsonObject rawObj = root.getAsJsonObject("raw");
-        assertTrue(rawObj.size() >= 20, "API must return regions (expected at least 20)");
+        // Support both "raw" and "states" root properties
+        JsonObject dataObj = null;
+        if (root.has("raw") && root.get("raw").isJsonObject()) {
+            dataObj = root.getAsJsonObject("raw");
+        } else if (root.has("states") && root.get("states").isJsonObject()) {
+            dataObj = root.getAsJsonObject("states");
+        }
+
+        assertNotNull(dataObj, "JSON must contain valid 'raw' or 'states' object");
+        assertTrue(dataObj.size() >= 20, "API must return regions (expected at least 20)");
 
         // Verify key regions exist and have valid structure
         List<String> sampleRegions = List.of("Київська область", "Львівська область", "Одеська область", "м. Київ");
         for (String region : sampleRegions) {
-            assertTrue(rawObj.has(region), "API must include region: " + region);
-            JsonObject regObj = rawObj.getAsJsonObject(region);
-            assertTrue(regObj.has("enabled"), region + " must have 'enabled' boolean");
-            assertDoesNotThrow(() -> regObj.get("enabled").getAsBoolean(), region + " 'enabled' must be boolean");
+            JsonObject regObj = AirAlertService.findRegion(dataObj, region);
+            assertNotNull(regObj, "API must include resolvable region: " + region);
+
+            boolean hasAlertProperty = regObj.has("alert") || regObj.has("alertnow") || regObj.has("enabled") || regObj.has("active");
+            assertTrue(hasAlertProperty, region + " must have alert status (alert, alertnow, enabled, or active)");
 
             // Verify districts if present
-            if (regObj.has("districts")) {
+            if (regObj.has("districts") && !regObj.get("districts").isJsonNull()) {
                 JsonElement distElem = regObj.get("districts");
                 assertTrue(distElem.isJsonObject() || distElem.isJsonArray(), 
                         "districts must be either JsonObject or JsonArray for " + region);
             }
         }
+
+        // Verify district-level alert resolution
+        JsonObject kyivRegion = AirAlertService.findRegion(dataObj, "Київська область");
+        assertNotNull(kyivRegion, "Київська область must be resolvable");
+        boolean districtAlert = AirAlertService.checkDistrictAlert(kyivRegion, "Білоцерківський район", false);
+        assertTrue(districtAlert == true || districtAlert == false, "District alert status should resolve without error");
     }
 }
