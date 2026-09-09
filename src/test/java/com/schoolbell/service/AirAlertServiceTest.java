@@ -125,4 +125,75 @@ public class AirAlertServiceTest {
         assertNotNull(lvivRegion);
         assertFalse(AirAlertService.getBooleanField(lvivRegion, "alert", "alertnow", "enabled", "active"));
     }
+
+    @Test
+    @DisplayName("Should parse UkraineAlarm Cloudflare Worker JSON Array format with reason and alertLevel")
+    public void testUkraineAlarmWorkerSchema() {
+        String json = """
+        [
+          {
+            "regionId": "73",
+            "regionType": "District",
+            "regionName": "Білоцерківський район",
+            "regionEngName": "Bilotserkivskyi district",
+            "activeAlerts": [
+              {
+                "type": "AIR",
+                "activeAlertLevels": [
+                  {
+                    "alertLevel": "Yellow",
+                    "reason": "Дронова загроза (жовтий рівень)"
+                  },
+                  {
+                    "alertLevel": "Red",
+                    "reason": "Ракетна загроза (червоний рівень)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "regionId": "16",
+            "regionType": "State",
+            "regionName": "Луганська область",
+            "activeAlerts": [
+              {
+                "type": "AIR",
+                "activeAlertLevels": [
+                  {
+                    "alertLevel": "Red",
+                    "reason": "Повітряна тривога"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+        """;
+
+        com.google.gson.JsonElement parsed = JsonParser.parseString(json);
+
+        // 1. Specific district alert with combined reasons
+        AirAlertService.AlertCheckResult btsResult = AirAlertService.checkAlerts(parsed, "Київська область", "Білоцерківський район");
+        assertTrue(btsResult.isAlert);
+        assertNotNull(btsResult.reason);
+        assertTrue(btsResult.reason.contains("Дронова загроза"));
+        assertTrue(btsResult.reason.contains("Ракетна загроза"));
+
+        // 2. Specific district without alert
+        AirAlertService.AlertCheckResult boryspilResult = AirAlertService.checkAlerts(parsed, "Київська область", "Бориспільський район");
+        assertFalse(boryspilResult.isAlert);
+
+        // 3. Whole oblast selected without district (Київська область has an active district)
+        AirAlertService.AlertCheckResult kyivOblastResult = AirAlertService.checkAlerts(parsed, "Київська область", null);
+        assertTrue(kyivOblastResult.isAlert);
+
+        // 4. Whole oblast with state-level alert (Луганська область)
+        AirAlertService.AlertCheckResult luhanskResult = AirAlertService.checkAlerts(parsed, "Луганська область", "Щастинський район");
+        assertTrue(luhanskResult.isAlert); // Whole oblast alert covers all districts
+
+        // 5. Region not in alarm (Львівська область)
+        AirAlertService.AlertCheckResult lvivResult = AirAlertService.checkAlerts(parsed, "Львівська область", "Стрийський район");
+        assertFalse(lvivResult.isAlert);
+    }
 }

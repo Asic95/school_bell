@@ -88,4 +88,33 @@ public class AirAlertApiLiveTest {
         boolean districtAlert = AirAlertService.checkDistrictAlert(kyivRegion, "Білоцерківський район", false);
         assertTrue(districtAlert == true || districtAlert == false, "District alert status should resolve without error");
     }
+
+    @Test
+    @DisplayName("Verify Cloudflare Worker UkraineAlarm Live Proxy endpoint")
+    public void testLiveCloudflareWorkerEndpoint() throws Exception {
+        HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://schoolbell-alert.12asic12.workers.dev/"))
+                .timeout(Duration.ofSeconds(15))
+                .header("User-Agent", "SchoolBell-Test/1.2.3")
+                .GET()
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, response.statusCode(), "Cloudflare Worker must return HTTP 200");
+
+        String body = response.body();
+        assertNotNull(body, "Response body must not be null");
+        assertFalse(body.isBlank(), "Response body must not be blank");
+
+        JsonElement parsed = JsonParser.parseString(body);
+        assertTrue(parsed.isJsonArray(), "Cloudflare Worker response must be a JSON array");
+
+        // Verify checkAlerts execution against real live data
+        AirAlertService.AlertCheckResult result = AirAlertService.checkAlerts(parsed, "Київська область", "Білоцерківський район");
+        assertNotNull(result, "AlertCheckResult must not be null");
+    }
 }

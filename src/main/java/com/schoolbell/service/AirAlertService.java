@@ -1,5 +1,6 @@
 package com.schoolbell.service;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -17,6 +18,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 public class AirAlertService {
     private static final Logger logger = LoggerFactory.getLogger(AirAlertService.class);
-    private static final String API_URL = "https://ubilling.net.ua/aerialalerts/?source=default&raw";
+    private static final String API_URL = "https://schoolbell-alert.12asic12.workers.dev/";
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final MainApp mainApp;
@@ -36,9 +38,12 @@ public class AirAlertService {
     private final HttpClient httpClient;
 
     private boolean lastAlertState = false;
+    private String lastAlertReason = "";
+    private int clearConfirmationCount = 0;
+    private static final int CLEAR_CONFIRMATION_THRESHOLD = 3; // 3 cycles x 6s = 18s debounce
     private LocalDateTime lastErrorAnnouncement = LocalDateTime.MIN;
     private int consecutiveFailures = 0;
-    private static final int FAILURE_THRESHOLD = 3;
+    private static final int FAILURE_THRESHOLD = 5;
     private boolean isCurrentlyHealthy = true;
 
     public AirAlertService(MainApp mainApp, ConfigService configService, SignalService signalService, ScheduledExecutorService scheduler) {
@@ -71,11 +76,25 @@ public class AirAlertService {
         }
     }
 
+    public static class AlertCheckResult {
+        public final boolean isAlert;
+        public final String reason;
+        public final String level;
+
+        public AlertCheckResult(boolean isAlert, String reason, String level) {
+            this.isAlert = isAlert;
+            this.reason = reason;
+            this.level = level;
+        }
+    }
+
     private void pollAndAct() {
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(API_URL))
                     .timeout(Duration.ofSeconds(10))
+                    .header("User-Agent", "SchoolBell-App (Civil Protection Automation)")
+                    .header("Accept", "application/json")
                     .GET()
                     .build();
 
@@ -92,44 +111,12 @@ public class AirAlertService {
                 return;
             }
 
-            JsonObject rootObj;
+            JsonElement parsed;
             try {
-                JsonElement parsed = JsonParser.parseString(body);
-                if (!parsed.isJsonObject()) {
-                    handleFetchError("Помилка обробки даних (невірний формат JSON)");
-                    return;
-                }
-                rootObj = parsed.getAsJsonObject();
+                parsed = JsonParser.parseString(body);
             } catch (Exception e) {
                 handleFetchError("Помилка обробки даних (невірний формат JSON)");
                 return;
-            }
-
-            JsonObject dataObj = null;
-            if (rootObj.has("raw") && rootObj.get("raw").isJsonObject()) {
-                dataObj = rootObj.getAsJsonObject("raw");
-            } else if (rootObj.has("states") && rootObj.get("states").isJsonObject()) {
-                dataObj = rootObj.getAsJsonObject("states");
-            }
-
-            if (dataObj == null) {
-                handleFetchError("API помилка: Відсутні дані у відповіді");
-                return;
-            }
-
-            // Freshness Check
-            if (rootObj.has("cachedat") && !rootObj.get("cachedat").isJsonNull()) {
-                String cachedAtStr = rootObj.get("cachedat").getAsString();
-                try {
-                    LocalDateTime cachedAt = LocalDateTime.parse(cachedAtStr, DATE_TIME_FORMATTER);
-                    if (cachedAt.isBefore(LocalDateTime.now().minusMinutes(5))) {
-                        handleFetchError("Дані застаріли (останнє оновлення: " + cachedAtStr + ")");
-                        return;
-                    }
-                } catch (Exception e) {
-                    handleFetchError("Неможливо перевірити актуальність даних (помилка дати)");
-                    return;
-                }
             }
 
             String selectedRegion = configService.getSelectedRegionId();
@@ -141,34 +128,60 @@ public class AirAlertService {
                 return;
             }
 
-            JsonObject regionObj = findRegion(dataObj, selectedRegion);
-            if (regionObj == null) {
-                handleFetchError("Обраний регіон '" + selectedRegion + "' не знайдено в API");
-                return;
-            }
-
-            boolean regionAlert = getBooleanField(regionObj, "alert", "alertnow", "enabled", "active");
-            boolean currentAlert = checkDistrictAlert(regionObj, selectedDistrict, regionAlert);
+            AlertCheckResult alertResult = checkAlerts(parsed, selectedRegion, selectedDistrict);
+            boolean currentAlert = alertResult.isAlert;
             
             handleSuccess();
 
-            logger.info("API Check: [{} / {}] -> Status: {}", 
-                    selectedRegion, 
-                    (selectedDistrict != null && !selectedDistrict.isEmpty() ? selectedDistrict : "ALL"), 
-                    (currentAlert ? "⚠️ ALERT ACTIVE" : "✅ CLEAR"));
+            String locationLabel = selectedRegion + (selectedDistrict != null && !selectedDistrict.isEmpty() ? "/" + selectedDistrict : "");
+            logger.info("API Check: [{}] -> Status: {}{}", 
+                    locationLabel, 
+                    (currentAlert ? "⚠️ ALERT ACTIVE" : "✅ CLEAR"),
+                    (alertResult.reason != null && !alertResult.reason.isBlank() ? " (" + alertResult.reason + ")" : ""));
 
-            if (currentAlert && !lastAlertState) {
-                String msg = "LIVE: ВИЯВЛЕНО ТРИВОГУ: " + selectedRegion + (selectedDistrict != null && !selectedDistrict.isEmpty() ? "/" + selectedDistrict : "");
-                logger.warn(msg);
-                mainApp.addLog(msg, "WARNING");
-                signalService.runAirRaidSignal();
-                lastAlertState = true;
-            } else if (!currentAlert && lastAlertState) {
-                String msg = "LIVE: ВІДБІЙ ТРИВОГИ: " + selectedRegion + (selectedDistrict != null && !selectedDistrict.isEmpty() ? "/" + selectedDistrict : "");
-                logger.info(msg);
-                mainApp.addLog(msg, "SUCCESS");
-                signalService.runAirRaidClearSignal();
-                lastAlertState = false;
+            if (currentAlert) {
+                // Reset clear confirmation counter immediately on active alert
+                clearConfirmationCount = 0;
+
+                if (!lastAlertState) {
+                    lastAlertState = true;
+                    lastAlertReason = alertResult.reason != null ? alertResult.reason : "";
+                    
+                    String reasonSuffix = !lastAlertReason.isBlank() ? " [" + lastAlertReason + "]" : "";
+                    String msg = "LIVE: ВИЯВЛЕНО ТРИВОГУ: " + locationLabel + reasonSuffix;
+                    logger.warn(msg);
+                    mainApp.addLog(msg, "WARNING");
+                    signalService.runAirRaidSignal();
+                } else {
+                    // Alert is already active - check for threat level change / escalation
+                    String newReason = alertResult.reason != null ? alertResult.reason : "";
+                    if (!newReason.isBlank() && !newReason.equalsIgnoreCase(lastAlertReason)) {
+                        lastAlertReason = newReason;
+                        String msg = "LIVE: ЗМІНА РІВНЯ ЗАГРОЗИ: " + locationLabel + " [" + newReason + "]";
+                        logger.warn(msg);
+                        mainApp.addLog(msg, "WARNING");
+                        // Informational log only - do NOT re-trigger bell
+                    }
+                }
+            } else {
+                // currentAlert == false
+                if (lastAlertState) {
+                    clearConfirmationCount++;
+                    logger.info("Alert clear check: confirmed {}/{} cycles", clearConfirmationCount, CLEAR_CONFIRMATION_THRESHOLD);
+                    
+                    if (clearConfirmationCount >= CLEAR_CONFIRMATION_THRESHOLD) {
+                        lastAlertState = false;
+                        lastAlertReason = "";
+                        clearConfirmationCount = 0;
+
+                        String msg = "LIVE: ВІДБІЙ ТРИВОГИ: " + locationLabel;
+                        logger.info(msg);
+                        mainApp.addLog(msg, "SUCCESS");
+                        signalService.runAirRaidClearSignal();
+                    }
+                } else {
+                    clearConfirmationCount = 0;
+                }
             }
         } catch (IOException | InterruptedException e) {
             handleFetchError("Проблема з мережею: " + translateError(e.getMessage()));
@@ -176,6 +189,111 @@ public class AirAlertService {
             logger.error("Unexpected error in AirAlertService Live polling: ", e);
             handleFetchError("Внутрішня помилка сервісу: " + translateError(e.getMessage()));
         }
+    }
+
+    public static AlertCheckResult checkAlerts(JsonElement parsed, String selectedRegion, String selectedDistrict) {
+        if (parsed == null || selectedRegion == null || selectedRegion.isBlank()) {
+            return new AlertCheckResult(false, null, null);
+        }
+
+        // Format 1: UkraineAlarm / Cloudflare Worker (JsonArray of active locations)
+        if (parsed.isJsonArray()) {
+            return checkUkraineAlarmArray(parsed.getAsJsonArray(), selectedRegion, selectedDistrict);
+        }
+
+        // Format 2: Ubilling / Legacy (JsonObject with raw/states or direct regions)
+        if (parsed.isJsonObject()) {
+            JsonObject rootObj = parsed.getAsJsonObject();
+            JsonObject dataObj = null;
+            if (rootObj.has("raw") && rootObj.get("raw").isJsonObject()) {
+                dataObj = rootObj.getAsJsonObject("raw");
+            } else if (rootObj.has("states") && rootObj.get("states").isJsonObject()) {
+                dataObj = rootObj.getAsJsonObject("states");
+            } else {
+                dataObj = rootObj;
+            }
+
+            JsonObject regionObj = findRegion(dataObj, selectedRegion);
+            if (regionObj == null) {
+                return new AlertCheckResult(false, null, null);
+            }
+
+            boolean regionAlert = isAlertActive(regionObj);
+            boolean currentAlert = checkDistrictAlert(regionObj, selectedDistrict, regionAlert);
+            String level = getAlertLevel(regionObj);
+            return new AlertCheckResult(currentAlert, level != null ? "Рівень: " + level : null, level);
+        }
+
+        return new AlertCheckResult(false, null, null);
+    }
+
+    static AlertCheckResult checkUkraineAlarmArray(JsonArray array, String selectedRegion, String selectedDistrict) {
+        boolean hasSpecificDistrict = selectedDistrict != null && !selectedDistrict.isBlank();
+        List<String> regionDistricts = RegionDirectory.UKRAINE_REGIONS.getOrDefault(selectedRegion, Collections.emptyList());
+
+        for (JsonElement elem : array) {
+            if (!elem.isJsonObject()) continue;
+            JsonObject item = elem.getAsJsonObject();
+
+            String rName = item.has("regionName") && !item.get("regionName").isJsonNull() 
+                    ? item.get("regionName").getAsString() : "";
+            
+            boolean hasActiveAlerts = false;
+            String reason = null;
+            String level = null;
+
+            if (item.has("activeAlerts") && item.get("activeAlerts").isJsonArray()) {
+                JsonArray alerts = item.getAsJsonArray("activeAlerts");
+                if (!alerts.isEmpty()) {
+                    hasActiveAlerts = true;
+                    List<String> reasons = new ArrayList<>();
+                    for (JsonElement aElem : alerts) {
+                        if (!aElem.isJsonObject()) continue;
+                        JsonObject aObj = aElem.getAsJsonObject();
+                        if (aObj.has("activeAlertLevels") && aObj.get("activeAlertLevels").isJsonArray()) {
+                            for (JsonElement lElem : aObj.getAsJsonArray("activeAlertLevels")) {
+                                if (!lElem.isJsonObject()) continue;
+                                JsonObject lObj = lElem.getAsJsonObject();
+                                if (lObj.has("reason") && !lObj.get("reason").isJsonNull()) {
+                                    String r = lObj.get("reason").getAsString().trim();
+                                    if (!r.isEmpty() && !reasons.contains(r)) {
+                                        reasons.add(r);
+                                    }
+                                }
+                                if (level == null && lObj.has("alertLevel") && !lObj.get("alertLevel").isJsonNull()) {
+                                    level = lObj.get("alertLevel").getAsString().trim();
+                                }
+                            }
+                        }
+                    }
+                    if (!reasons.isEmpty()) {
+                        Collections.sort(reasons);
+                        reason = String.join(", ", reasons);
+                    }
+                }
+            }
+
+            if (!hasActiveAlerts) continue;
+
+            if (hasSpecificDistrict) {
+                // Match specific district OR whole region alert
+                if (isNameMatch(rName, selectedDistrict) || isNameMatch(rName, selectedRegion)) {
+                    return new AlertCheckResult(true, reason, level);
+                }
+            } else {
+                // Match whole region OR any district in this region
+                if (isNameMatch(rName, selectedRegion)) {
+                    return new AlertCheckResult(true, reason, level);
+                }
+                for (String d : regionDistricts) {
+                    if (isNameMatch(rName, d)) {
+                        return new AlertCheckResult(true, reason, level);
+                    }
+                }
+            }
+        }
+
+        return new AlertCheckResult(false, null, null);
     }
 
     static JsonObject findRegion(JsonObject dataObj, String selectedRegion) {
@@ -209,53 +327,102 @@ public class AirAlertService {
     }
 
     static boolean checkDistrictAlert(JsonObject regionObj, String selectedDistrict, boolean regionAlert) {
-        if (regionObj == null || selectedDistrict == null || selectedDistrict.isBlank()) {
+        if (regionObj == null) return false;
+
+        // Case A: Specific district is selected
+        if (selectedDistrict != null && !selectedDistrict.isBlank()) {
+            for (String containerKey : new String[]{"districts", "community", "hromadas", "cities"}) {
+                if (!regionObj.has(containerKey) || regionObj.get(containerKey).isJsonNull()) continue;
+                JsonElement container = regionObj.get(containerKey);
+
+                if (container.isJsonArray()) {
+                    for (JsonElement item : container.getAsJsonArray()) {
+                        if (!item.isJsonObject()) continue;
+                        JsonObject dObj = item.getAsJsonObject();
+                        for (String nameProp : new String[]{"name", "title", "district"}) {
+                            if (dObj.has(nameProp) && !dObj.get(nameProp).isJsonNull()) {
+                                if (isNameMatch(dObj.get(nameProp).getAsString(), selectedDistrict)) {
+                                    return isAlertActive(dObj);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (container.isJsonObject()) {
+                    JsonObject dMap = container.getAsJsonObject();
+                    for (String dKey : dMap.keySet()) {
+                        JsonElement dElem = dMap.get(dKey);
+                        if (!dElem.isJsonObject()) continue;
+                        JsonObject dObj = dElem.getAsJsonObject();
+
+                        if (isNameMatch(dKey, selectedDistrict)) {
+                            return isAlertActive(dObj);
+                        }
+
+                        for (String nameProp : new String[]{"name", "title", "district"}) {
+                            if (dObj.has(nameProp) && !dObj.get(nameProp).isJsonNull()) {
+                                if (isNameMatch(dObj.get(nameProp).getAsString(), selectedDistrict)) {
+                                    return isAlertActive(dObj);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             return regionAlert;
         }
 
+        // Case B: No specific district selected (whole oblast selected)
+        if (regionAlert) return true;
+
+        // If region-level enabled is false, check if any child district is in alarm
         for (String containerKey : new String[]{"districts", "community", "hromadas", "cities"}) {
             if (!regionObj.has(containerKey) || regionObj.get(containerKey).isJsonNull()) continue;
             JsonElement container = regionObj.get(containerKey);
 
-            // Case A: JsonArray: [ {"name": "...", "alert": true}, ... ]
             if (container.isJsonArray()) {
                 for (JsonElement item : container.getAsJsonArray()) {
-                    if (!item.isJsonObject()) continue;
-                    JsonObject dObj = item.getAsJsonObject();
-                    for (String nameProp : new String[]{"name", "title", "district"}) {
-                        if (dObj.has(nameProp) && !dObj.get(nameProp).isJsonNull()) {
-                            if (isNameMatch(dObj.get(nameProp).getAsString(), selectedDistrict)) {
-                                return getBooleanField(dObj, "alert", "alertnow", "enabled", "active");
-                            }
-                        }
+                    if (item.isJsonObject() && isAlertActive(item.getAsJsonObject())) {
+                        return true;
                     }
                 }
             }
 
-            // Case B: JsonObject: { "Білоцерківський район": {"alert": true} } or { "1": {"name": "...", "alert": true} }
             if (container.isJsonObject()) {
                 JsonObject dMap = container.getAsJsonObject();
                 for (String dKey : dMap.keySet()) {
                     JsonElement dElem = dMap.get(dKey);
-                    if (!dElem.isJsonObject()) continue;
-                    JsonObject dObj = dElem.getAsJsonObject();
-
-                    if (isNameMatch(dKey, selectedDistrict)) {
-                        return getBooleanField(dObj, "alert", "alertnow", "enabled", "active");
-                    }
-
-                    for (String nameProp : new String[]{"name", "title", "district"}) {
-                        if (dObj.has(nameProp) && !dObj.get(nameProp).isJsonNull()) {
-                            if (isNameMatch(dObj.get(nameProp).getAsString(), selectedDistrict)) {
-                                return getBooleanField(dObj, "alert", "alertnow", "enabled", "active");
-                            }
-                        }
+                    if (dElem.isJsonObject() && isAlertActive(dElem.getAsJsonObject())) {
+                        return true;
                     }
                 }
             }
         }
 
-        return regionAlert;
+        return false;
+    }
+
+    static boolean isAlertActive(JsonObject obj) {
+        if (obj == null) return false;
+        if (getBooleanField(obj, "alert", "alertnow", "enabled", "active")) {
+            return true;
+        }
+        if (obj.has("alert_level") && !obj.get("alert_level").isJsonNull()) {
+            String level = obj.get("alert_level").getAsString().trim().toLowerCase(Locale.ROOT);
+            if (level.equals("red") || level.equals("yellow") || level.equals("orange")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static String getAlertLevel(JsonObject obj) {
+        if (obj == null) return null;
+        if (obj.has("alert_level") && !obj.get("alert_level").isJsonNull()) {
+            return obj.get("alert_level").getAsString().trim();
+        }
+        return null;
     }
 
     static boolean isNameMatch(String name1, String name2) {
@@ -317,6 +484,7 @@ public class AirAlertService {
     }
 
     private void handleFetchError(String error) {
+        clearConfirmationCount = 0; // Fail-Safe: Freeze alert state, do not allow clear counter to advance on error
         consecutiveFailures++;
         logger.error("AirAlertService error: {} (Consecutive failures: {})", error, consecutiveFailures);
 
