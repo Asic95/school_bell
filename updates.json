@@ -1,10 +1,10 @@
 {
-    "latest_version":  "1.2.4",
+    "latest_version":  "1.2.5",
     "critical":  false,
-    "checksum":  "997d3b25f2a9990cca6edcb6136c463c053566ce2ed54543a3bd4e088d5fc8c1",
+    "checksum":  "4f4c2bc606361976c1597905b478af69b4e76cf7316ad271a37054780ec4b214",
     "changelog":  [
-                      "Виправлено автоматизацію повітряної тривоги: усунуто повторні сигнали через збої API та перехід між рівнями Yellow/Red, додано debounce відбою приблизно на 18 секунд і fail-safe обробку мережевих помилок, оновлено джерело даних на UkraineAlarm API v3 через захищений Cloudflare Worker, покращено визначення районних та обласних тривог, логування причин і зміни рівня загрози, а також додано відповідні тести."
+                      "- Хвилина мовчання о 09:00 тепер відтворюється навіть під час активної повітряної тривоги\n- Прибрано зайві повідомлення із системного журналу\n- До кожного запису системного журналу додано дату й час у форматі dd.MM.yyyy HH:mm:ss\n- Виправлено відображення українських текстів у деяких частинах програми"
                   ],
-    "download_url":  "https://github.com/Asic95/school_bell/releases/download/v1.2.4/SchoolBell_Setup_v1.2.4.exe",
-    "release_date":  "2026-09-09"
+    "download_url":  "https://github.com/Asic95/school_bell/releases/download/v1.2.5/SchoolBell_Setup_v1.2.5.exe",
+    "release_date":  "2026-09-16"
 }
