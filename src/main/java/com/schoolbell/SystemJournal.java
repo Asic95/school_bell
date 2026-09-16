@@ -6,16 +6,16 @@ import javafx.collections.ObservableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class SystemJournal {
     private static final Logger logger = LoggerFactory.getLogger(SystemJournal.class);
     private final ObservableList<String> systemLogs = FXCollections.observableArrayList();
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
 
     public void addLog(String message, String level) {
-        String timestamp = LocalTime.now().format(TIME_FORMATTER);
+        String timestamp = LocalDateTime.now().format(DATE_TIME_FORMATTER);
         String fullMsg = "[" + timestamp + "] [" + level + "] " + message;
         logger.info(fullMsg);
         

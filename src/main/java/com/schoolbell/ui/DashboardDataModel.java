@@ -32,7 +32,11 @@ public class DashboardDataModel {
         String alert = signalService.getCurrentAlertType();
         if ("AIR_RAID".equals(alert) && !config.isVisualAirRaidEnabled()) alert = "NONE";
         if ("EMERGENCY".equals(alert) && !config.isVisualEmergencyEnabled()) alert = "NONE";
-        if ("SILENCE".equals(alert) && !config.isVisualSilenceEnabled()) alert = "NONE";
+        if ("SILENCE".equals(alert)) {
+            if (!config.isVisualSilenceEnabled()) {
+                alert = signalService.isAirRaidActive() ? "AIR_RAID" : "NONE";
+            }
+        }
         data.put("alertType", alert);
 
         data.put("countdown", calculateCountdown(now));

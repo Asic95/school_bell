@@ -24,6 +24,12 @@ public class RelayController {
         initializeDevice();
     }
 
+    public RelayController(RelayDevice activeDevice) {
+        this.mainApp = null;
+        this.discoveryService = null;
+        this.activeDevice = activeDevice;
+    }
+
     private void initializeDevice() {
         if (activeDevice != null) activeDevice.close();
 

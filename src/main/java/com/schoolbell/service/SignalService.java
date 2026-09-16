@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class SignalService {
@@ -18,8 +19,10 @@ public class SignalService {
     private final ConfigService configService;
 
     private boolean isActionInProgress = false;
+    private volatile boolean isAirRaidActive = false;
+    private volatile boolean isEmergencyActive = false;
     private String currentAlertType = "NONE"; // NONE, AIR_RAID, EMERGENCY
-    private Consumer<String> logConsumer;
+    private BiConsumer<String, String> logConsumer;
     private LocalTime lastEarlyBellMinute = null;
 
     // Playlist state for folder-based audio
@@ -76,15 +79,14 @@ public class SignalService {
         return configPath;
     }
 
-    public void setLogConsumer(Consumer<String> logConsumer) {
+    public void setLogConsumer(BiConsumer<String, String> logConsumer) {
         this.logConsumer = logConsumer;
     }
 
     private void addLog(String message, String level) {
-        String fullMsg = "[" + level + "] " + message;
-        logger.info(fullMsg);
+        logger.info("[{}] {}", level, message);
         if (logConsumer != null) {
-            logConsumer.accept(fullMsg);
+            logConsumer.accept(message, level);
         }
     }
 
@@ -96,13 +98,22 @@ public class SignalService {
         return currentAlertType;
     }
 
+    public boolean isAirRaidActive() {
+        return isAirRaidActive || "AIR_RAID".equals(currentAlertType);
+    }
+
+    public boolean isEmergencyActive() {
+        return isEmergencyActive || "EMERGENCY".equals(currentAlertType);
+    }
+
     public void runAirRaidSignal() {
         if (isActionInProgress) return;
+        isActionInProgress = true;
+        isAirRaidActive = true;
+        currentAlertType = "AIR_RAID";
+        audioService.stopImmediate();
+        addLog("ЗАПУСК СИГНАЛУ: ПОВІТРЯНА ТРИВОГА", "WARNING");
         new Thread(() -> {
-            isActionInProgress = true;
-            currentAlertType = "AIR_RAID";
-            audioService.stopImmediate();
-            addLog("ЗАПУСК СИГНАЛУ: ПОВІТРЯНА ТРИВОГА", "WARNING");
             try {
                 for (int i = 1; i <= 3; i++) {
                     relayController.turnOn();
@@ -118,6 +129,7 @@ public class SignalService {
             } catch (InterruptedException e) {
                 relayController.turnOff();
                 currentAlertType = "NONE";
+                isAirRaidActive = false;
             } finally {
                 isActionInProgress = false;
             }
@@ -126,9 +138,9 @@ public class SignalService {
 
     public void runAirRaidClearSignal() {
         if (isActionInProgress) return;
+        isActionInProgress = true;
+        addLog("ЗАПУСК СИГНАЛУ: ВІДБІЙ ПОВІТРЯНОЇ ТРИВОГИ", "SUCCESS");
         new Thread(() -> {
-            isActionInProgress = true;
-            addLog("ЗАПУСК СИГНАЛУ: ВІДБІЙ ПОВІТРЯНОЇ ТРИВОГИ", "SUCCESS");
             try {
                 for (int i = 1; i <= 3; i++) {
                     relayController.turnOn();
@@ -145,10 +157,12 @@ public class SignalService {
                     }
                 }
                 
+                isAirRaidActive = false;
                 currentAlertType = "NONE";
                 addLog("Відбій тривоги завершено.", "SUCCESS");
             } catch (InterruptedException e) {
                 relayController.turnOff();
+                isAirRaidActive = false;
                 currentAlertType = "NONE";
             } finally {
                 isActionInProgress = false;
@@ -158,11 +172,12 @@ public class SignalService {
 
     public void runEmergencySignal() {
         if (isActionInProgress) return;
+        isActionInProgress = true;
+        isEmergencyActive = true;
+        currentAlertType = "EMERGENCY";
+        audioService.stopImmediate();
+        addLog("ЗАПУСК СИГНАЛУ: НАДЗВИЧАЙНА СИТУАЦІЯ", "ERROR");
         new Thread(() -> {
-            isActionInProgress = true;
-            currentAlertType = "EMERGENCY";
-            audioService.stopImmediate();
-            addLog("ЗАПУСК СИГНАЛУ: НАДЗВИЧАЙНА СИТУАЦІЯ", "ERROR");
             try {
                 relayController.turnOn();
                 Thread.sleep(configService.getEmergencyDuration() * 1000L);
@@ -175,6 +190,7 @@ public class SignalService {
             } catch (InterruptedException e) {
                 relayController.turnOff();
                 currentAlertType = "NONE";
+                isEmergencyActive = false;
             } finally {
                 isActionInProgress = false;
             }
@@ -183,18 +199,20 @@ public class SignalService {
 
     public void runEmergencyClearSignal() {
         if (isActionInProgress) return;
+        isActionInProgress = true;
+        addLog("ЗАПУСК СИГНАЛУ: СКАСУВАННЯ ЕКСТРЕНОЇ СИТУАЦІЇ", "SUCCESS");
         new Thread(() -> {
-            isActionInProgress = true;
-            addLog("ЗАПУСК СИГНАЛУ: СКАСУВАННЯ ЕКСТРЕНОЇ СИТУАЦІЇ", "SUCCESS");
             try {
                 // Дзеркально до сигналу НС: використовуємо налаштовану тривалість
                 relayController.turnOn();
                 Thread.sleep(configService.getEmergencyDuration() * 1000L);
                 relayController.turnOff();
+                isEmergencyActive = false;
                 currentAlertType = "NONE";
                 addLog("Екстрену ситуацію скасовано.", "SUCCESS");
             } catch (InterruptedException e) {
                 relayController.turnOff();
+                isEmergencyActive = false;
                 currentAlertType = "NONE";
             } finally {
                 isActionInProgress = false;
@@ -243,33 +261,66 @@ public class SignalService {
             } catch (InterruptedException ignored) {
             } finally {
                 if (type.equals(currentAlertType)) {
-                    currentAlertType = "NONE";
+                    currentAlertType = isAirRaidActive ? "AIR_RAID" : (isEmergencyActive ? "EMERGENCY" : "NONE");
                 }
             }
         }).start();
     }
 
+    public void triggerSilenceMinute() {
+        if (!configService.isAudioSilenceEnabled()) return;
+
+        new Thread(() -> {
+            try {
+                // If physical bell relay action is currently executing, wait briefly for it to complete
+                int waitCount = 0;
+                while (isActionInProgress && waitCount < 30) {
+                    Thread.sleep(1000);
+                    waitCount++;
+                }
+            } catch (InterruptedException ignored) {
+            }
+
+            boolean airRaid = isAirRaidActive();
+            String logMsg = airRaid
+                    ? "ВШАНУВАННЯ ПАМ'ЯТІ: Хвилина мовчання (під час повітряної тривоги)"
+                    : "ВШАНУВАННЯ ПАМ'ЯТІ: Хвилина мовчання";
+            addLog(logMsg, "INFO");
+
+            String audioPath = resolveAudioPath(configService.getAudioSilencePath());
+            if (audioPath != null && !audioPath.isBlank()) {
+                audioService.playAudioFile(audioPath);
+            }
+
+            // In peacetime, activate the SILENCE visual banner for 65 seconds
+            // During air raid, keep AIR_RAID banner active for safety
+            if (!airRaid) {
+                currentAlertType = "SILENCE";
+                try {
+                    Thread.sleep(65000); // 65 seconds
+                } catch (InterruptedException ignored) {
+                } finally {
+                    if ("SILENCE".equals(currentAlertType)) {
+                        currentAlertType = isAirRaidActive ? "AIR_RAID" : (isEmergencyActive ? "EMERGENCY" : "NONE");
+                    }
+                }
+            }
+        }, "Silence-Minute-Thread").start();
+    }
+
     public void checkAndTriggerBell(LocalTime now, List<BellEntry> schedule) {
-        // Block all scheduled bells if an emergency alert is active
-        if ("AIR_RAID".equals(currentAlertType) || "EMERGENCY".equals(currentAlertType)) {
-            return;
+        // 1. Хвилина мовчання (09:00:00)
+        // Працює о 09:00:00 навіть під час активної повітряної тривоги
+        if (now.getHour() == 9 && now.getMinute() == 0 && now.getSecond() == 0) {
+            if (configService.isAudioSilenceEnabled() && !isEmergencyActive() && !"EMERGENCY".equals(currentAlertType)) {
+                triggerSilenceMinute();
+            }
         }
 
-        if (now.getHour() == 9 && now.getMinute() == 0 && now.getSecond() == 0) {
-            if (configService.isAudioSilenceEnabled()) {
-                new Thread(() -> {
-                    currentAlertType = "SILENCE";
-                    audioService.playAudioFile(resolveAudioPath(configService.getAudioSilencePath()));
-                    try {
-                        Thread.sleep(65000); // 65 seconds
-                    } catch (InterruptedException ignored) {
-                    } finally {
-                        if ("SILENCE".equals(currentAlertType)) {
-                            currentAlertType = "NONE";
-                        }
-                    }
-                }).start();
-            }
+        // 2. Блокуємо всі планові дзвінки за розкладом (ранні сповіщення та звичайні уроки),
+        // якщо активовано режим повітряної тривоги або екстреної ситуації
+        if (isAirRaidActive() || "AIR_RAID".equals(currentAlertType) || isEmergencyActive() || "EMERGENCY".equals(currentAlertType)) {
+            return;
         }
 
         // --- Early Notification Bell Logic ---

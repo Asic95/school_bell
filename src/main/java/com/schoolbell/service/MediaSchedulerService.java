@@ -52,9 +52,11 @@ public class MediaSchedulerService {
     }
 
     private void checkEvents() {
-        // Block all scheduled media events if an emergency alert is active
-        String alertType = mainApp.getSignalService().getCurrentAlertType();
-        if ("AIR_RAID".equals(alertType) || "EMERGENCY".equals(alertType)) {
+        // Block all scheduled media events if an emergency, air raid, or silence alert is active
+        SignalService signalService = mainApp.getSignalService();
+        String alertType = signalService.getCurrentAlertType();
+        if ("AIR_RAID".equals(alertType) || "EMERGENCY".equals(alertType) || "SILENCE".equals(alertType)
+                || signalService.isAirRaidActive() || signalService.isEmergencyActive()) {
             // ONLY stop if it's break music. Don't touch the emergency alert sound!
             if (isScheduledMediaPlaying) {
                 stopScheduledMedia();

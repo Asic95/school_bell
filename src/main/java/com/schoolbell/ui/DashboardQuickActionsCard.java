@@ -26,7 +26,7 @@ public class DashboardQuickActionsCard extends VBox {
         airRaidBtn = createActionButton("ПОВІТРЯНА ТРИВОГА", "Активація режиму загальної небезпеки", ICON_AIR_RAID, GRADIENT_WARNING);
         airRaidBtn.setOnAction(e -> {
             airRaidBtn.setDisable(true);
-            if ("AIR_RAID".equals(signalService.getCurrentAlertType())) {
+            if (signalService.isAirRaidActive() || "AIR_RAID".equals(signalService.getCurrentAlertType())) {
                 signalService.runAirRaidClearSignal();
             } else {
                 signalService.runAirRaidSignal();
@@ -37,7 +37,7 @@ public class DashboardQuickActionsCard extends VBox {
         emergencyBtn = createActionButton("ЕКСТРЕНА СИТУАЦІЯ", "Сигнал термінової евакуації закладу", ICON_LIFEBUOY, GRADIENT_DANGER);
         emergencyBtn.setOnAction(e -> {
             emergencyBtn.setDisable(true);
-            if ("EMERGENCY".equals(signalService.getCurrentAlertType())) {
+            if (signalService.isEmergencyActive() || "EMERGENCY".equals(signalService.getCurrentAlertType())) {
                 signalService.runEmergencyClearSignal();
             } else {
                 signalService.runEmergencySignal();
@@ -58,11 +58,11 @@ public class DashboardQuickActionsCard extends VBox {
         String alert = signalService.getCurrentAlertType();
         boolean inProgress = signalService.isActionInProgress();
 
-        if ("AIR_RAID".equals(alert)) {
+        if (signalService.isAirRaidActive() || "AIR_RAID".equals(alert)) {
             updateActionButton(airRaidBtn, "ВІДБІЙ ТРИВОГИ", "Сигнал про завершення небезпеки", ICON_ALL_CLEAR, GRADIENT_SUCCESS);
             emergencyBtn.setDisable(true);
             airRaidBtn.setDisable(inProgress);
-        } else if ("EMERGENCY".equals(alert)) {
+        } else if (signalService.isEmergencyActive() || "EMERGENCY".equals(alert)) {
             updateActionButton(emergencyBtn, "СКАСУВАТИ НС", "Повернення до штатного режиму", ICON_ALL_CLEAR, GRADIENT_SUCCESS);
             airRaidBtn.setDisable(true);
             emergencyBtn.setDisable(inProgress);
