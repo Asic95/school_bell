@@ -36,6 +36,7 @@ public class SystemView {
     private final BellSettingsPane bellSettingsPane;
     private final SystemJournalPane journalPane;
     private VBox mainCol;
+    private boolean revertingAutostart;
     private final javafx.animation.PauseTransition saveDebounce = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(3));
 
     public SystemView(MainApp mainApp) {
@@ -86,7 +87,9 @@ public class SystemView {
         journalPane = new SystemJournalPane(mainApp);
 
         simulationTg.selectedProperty().addListener((obs, old, nv) -> save());
-        autostartTg.selectedProperty().addListener((obs, old, nv) -> save());
+        autostartTg.selectedProperty().addListener((obs, old, nv) -> {
+            if (!revertingAutostart) save();
+        });
         trayTg.selectedProperty().addListener((obs, old, nv) -> save());
         airRaidTg.selectedProperty().addListener((obs, old, nv) -> save());
     }
@@ -447,6 +450,22 @@ public class SystemView {
     private void save() {
         try {
             boolean autostartChanged = config.isAutostartEnabled() != autostartTg.isSelected();
+
+            if (autostartChanged) {
+                SystemService.AutostartResult autostartResult =
+                        systemService.updateAutostart(autostartTg.isSelected());
+                if (autostartResult.success()) {
+                    // Continue saving the rest of the system settings below.
+                } else {
+                    revertingAutostart = true;
+                    autostartTg.setSelected(config.isAutostartEnabled());
+                    revertingAutostart = false;
+                    mainApp.addLog("Не вдалося змінити автозапуск: " + autostartResult.message(), "ERROR");
+                    ToastService.showError(autostartResult.message());
+                    return;
+                }
+            }
+
             config.setAutostartEnabled(autostartTg.isSelected());
             config.setMinimizeToTray(trayTg.isSelected());
             config.setSimulationMode(simulationTg.isSelected());
@@ -463,10 +482,6 @@ public class SystemView {
             config.setEmergencyDuration(bellSettingsPane.getEmergencyDuration());
 
             mainApp.saveConfig();
-
-            if (autostartChanged) {
-                systemService.updateAutostart(config.isAutostartEnabled());
-            }
 
             if (config.isAirRaidAutomationEnabled()) {
                 mainApp.getAirAlertService().start();

@@ -16,12 +16,16 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.schoolbell.ui.RestoreConfirmationDialog;
 
 public class SystemService {
     private static final Logger logger = LoggerFactory.getLogger(SystemService.class);
     private final ConfigService config;
+
+    public record AutostartResult(boolean success, String message) {}
 
     public SystemService(ConfigService config) {
         this.config = config;
@@ -61,39 +65,81 @@ public class SystemService {
     /**
      * Updates Windows Registry to enable or disable autostart.
      */
-    public void updateAutostart(boolean enable) {
-        if (!System.getProperty("os.name").toLowerCase().contains("win")) return;
+    public AutostartResult updateAutostart(boolean enable) {
+        if (!System.getProperty("os.name").toLowerCase().contains("win")) {
+            return new AutostartResult(false, "Автозапуск доступний лише у Windows.");
+        }
 
         try {
             String runningPath = getRunningExecutablePath();
             if (runningPath == null) {
                 logger.warn("Could not determine running path, skipping autostart update.");
-                return;
+                return new AutostartResult(false, "Не вдалося визначити шлях до програми.");
             }
 
-            String command;
+            List<String> command = new ArrayList<>();
+            command.add("reg.exe");
             if (enable) {
                 String appCommand;
-                if (runningPath.endsWith(".exe")) {
+                if (runningPath.toLowerCase().endsWith(".exe")) {
                     // Running as a packaged EXE
                     appCommand = "\"" + runningPath + "\"";
-                } else if (runningPath.endsWith(".jar")) {
+                } else if (runningPath.toLowerCase().endsWith(".jar")) {
                     // Running as a standalone JAR
-                    appCommand = "javaw -jar \"" + runningPath + "\"";
+                    File javaw = new File(System.getProperty("java.home"), "bin\\javaw.exe");
+                    String javawPath = javaw.exists() ? javaw.getAbsolutePath() : "javaw.exe";
+                    appCommand = "\"" + javawPath + "\" -jar \"" + runningPath + "\"";
                 } else {
                     logger.warn("Not running from a JAR or EXE, skipping autostart update: " + runningPath);
-                    return;
+                    return new AutostartResult(false,
+                            "Програму запущено не з готового EXE або JAR-файлу. " +
+                                    "Автозапуск недоступний у режимі розробки (шлях: " + runningPath + ").");
                 }
-                
-                command = "reg add \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v \"SchoolBell\" /t REG_SZ /d \"" + appCommand + "\" /f";
+
+                command.addAll(List.of(
+                        "add",
+                        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+                        "/v", "SchoolBell",
+                        "/t", "REG_SZ",
+                        "/d", appCommand,
+                        "/f"
+                ));
             } else {
-                command = "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v \"SchoolBell\" /f";
+                command.addAll(List.of(
+                        "delete",
+                        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+                        "/v", "SchoolBell",
+                        "/f"
+                ));
             }
 
-            executeCommand(command);
+            Process process = new ProcessBuilder(command)
+                    .redirectErrorStream(true)
+                    .start();
+            String output;
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                StringBuilder result = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    result.append(line).append(System.lineSeparator());
+                }
+                output = result.toString().trim();
+            }
+
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                logger.warn("Autostart update failed with exit code {}: {}", exitCode, output);
+                return new AutostartResult(false,
+                        "Windows не прийняв зміни автозапуску (код помилки: " + exitCode + ").");
+            }
+
             logger.info("Autostart " + (enable ? "enabled" : "disabled") + " for path: " + runningPath);
+            return new AutostartResult(true,
+                    enable ? "Автозапуск разом із Windows увімкнено." : "Автозапуск разом із Windows вимкнено.");
         } catch (Exception e) {
             logger.error("Failed to update autostart", e);
+            return new AutostartResult(false, "Не вдалося виконати команду Windows: " + e.getMessage());
         }
     }
 
@@ -168,9 +214,9 @@ public class SystemService {
             File file = new File(decodedPath);
             
             // 3. If we are running a JAR, check if there's an EXE with the same name in the parent folder (jpackage style)
-            if (file.getName().endsWith(".jar")) {
+            if (file.getName().toLowerCase().endsWith(".jar")) {
                 File parent = file.getParentFile();
-                if (parent != null && parent.getName().equals("app")) {
+                if (parent != null && parent.getName().equalsIgnoreCase("app")) {
                     File grandParent = parent.getParentFile();
                     if (grandParent != null) {
                         File exe = new File(grandParent, "SchoolBell.exe");

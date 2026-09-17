@@ -64,7 +64,8 @@ public class SystemJournalPane extends VBox {
                     setPadding(new Insets(6, 12, 6, 12));
                     
                     String newStyle;
-                    String baseStyle = "-fx-background-radius: 8; -fx-margin: 2 0; ";
+                    String baseStyle = "-fx-background-radius: 8; -fx-margin: 2 0; " +
+                            "-fx-font-family: 'Inter'; -fx-font-size: 13px; ";
                     if (item.contains("[ERROR]")) {
                         newStyle = baseStyle + "-fx-background-color: " + COLOR_DANGER_LIGHT + "; -fx-text-fill: " + COLOR_RED_SOFT + "; -fx-font-weight: bold;";
                     } else if (item.contains("[SUCCESS]")) {

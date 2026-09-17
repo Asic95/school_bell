@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public class NtpService {
@@ -98,7 +99,15 @@ public class NtpService {
     }
 
     public LocalTime getCorrectedTime() {
-        LocalTime now = LocalTime.now();
+        return getCorrectedDateTime().toLocalTime();
+    }
+
+    /**
+     * Returns the current application date and time, corrected by the single
+     * NTP synchronization performed at startup.
+     */
+    public LocalDateTime getCorrectedDateTime() {
+        LocalDateTime now = LocalDateTime.now();
         if (isSynced && timeOffsetMs != 0) {
             return now.plusNanos(timeOffsetMs * 1_000_000L);
         }

@@ -64,8 +64,9 @@ public class MediaSchedulerService {
             return;
         }
 
-        LocalTime now = LocalTime.now();
-        LocalDate today = LocalDate.now();
+        java.time.LocalDateTime currentDateTime = mainApp.getNtpService().getCorrectedDateTime();
+        LocalTime now = currentDateTime.toLocalTime();
+        LocalDate today = currentDateTime.toLocalDate();
         int dayOfWeek = today.getDayOfWeek().getValue(); // 1-7
 
         // Clear played events on new day
@@ -276,6 +277,7 @@ public class MediaSchedulerService {
                         // Shuffle for variety
                         java.util.Collections.shuffle(playlist);
                         logger.info("Starting media event (Folder): {} -> {} tracks", event.name(), playlist.size());
+                        logAutomaticEventStart(event, "папка з музикою (" + playlist.size() + " треків)");
                         audioService.playPlaylist(playlist, true); // Loop playlist for folders
                         return;
                     }
@@ -283,8 +285,37 @@ public class MediaSchedulerService {
             }
             
             logger.info("Starting media event (Source): {} -> {}", event.name(), path);
+            String sourceDescription = isRadioSource(path) ? "радіотрансляція" : "аудіофайл";
+            logAutomaticEventStart(event, sourceDescription);
             audioService.playAudioFile(path, event.name());
         }, "MediaEvent-Play-Thread").start();
+    }
+
+    /**
+     * Adds a human-readable entry to the system journal when an automatic
+     * media event reaches the actual playback call.
+     */
+    private void logAutomaticEventStart(MediaEvent event, String sourceDescription) {
+        String eventType = switch (event.type()) {
+            case "BREAKS" -> "музика на перерві";
+            case "TIME" -> "запуск у вказаний час";
+            case "ONCE" -> "одноразова подія";
+            case "RANGE" -> "запуск у часовому проміжку";
+            case "FIRST_LESSON" -> "музика перед першим уроком";
+            default -> "автоматична подія";
+        };
+
+        mainApp.addLog(
+                "Автоматично запущено аудіоподію «" + event.name() + "» — "
+                        + eventType + ", джерело: " + sourceDescription + ".",
+                "INFO"
+        );
+    }
+
+    private boolean isRadioSource(String path) {
+        if (path == null) return false;
+        String lowerPath = path.toLowerCase();
+        return lowerPath.startsWith("http://") || lowerPath.startsWith("https://");
     }
 
     private void processDynamicEvents(LocalTime now, int dayOfWeek) {
@@ -359,8 +390,9 @@ public class MediaSchedulerService {
     }
 
     public MediaEvent getNextEvent() {
-        LocalTime now = LocalTime.now();
-        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalDateTime currentDateTime = mainApp.getNtpService().getCorrectedDateTime();
+        LocalTime now = currentDateTime.toLocalTime();
+        java.time.LocalDate today = currentDateTime.toLocalDate();
         int dayOfWeek = today.getDayOfWeek().getValue();
         MediaEvent next = null;
         LocalTime minTime = LocalTime.MAX;

@@ -38,7 +38,7 @@ import static com.schoolbell.ui.UIStyles.*;
 
 public class MainApp extends Application {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
-    public static final String VERSION = "1.2.5";
+    public static final String VERSION = "1.2.6";
     private static final String APP_TITLE = "SchoolBell v" + VERSION;
 
     // Services
@@ -291,8 +291,11 @@ public class MainApp extends Application {
 
     private void startScheduler() {
         scheduler.scheduleAtFixedRate(() -> {
-            LocalTime now = ntpService != null ? ntpService.getCorrectedTime() : LocalTime.now();
-            java.time.LocalDate today = java.time.LocalDate.now();
+            java.time.LocalDateTime currentDateTime = ntpService != null
+                    ? ntpService.getCorrectedDateTime()
+                    : java.time.LocalDateTime.now();
+            LocalTime now = currentDateTime.toLocalTime();
+            java.time.LocalDate today = currentDateTime.toLocalDate();
             signalService.checkAndTriggerBell(now, schedule);
             Platform.runLater(() -> {
                 if (dashboardView != null) dashboardView.update(now);
