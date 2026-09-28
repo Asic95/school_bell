@@ -96,12 +96,20 @@ $downloadUrl = "https://github.com/$repo/releases/download/v$Version/$exeName"
 Write-Host "Updating updates.json..."
 $manifestPath = "updates.json"
 
+$changelogLines = @($Changelog -split "\r?\n" | ForEach-Object {
+    $_.Trim().TrimStart('-*•–— ').Trim()
+} | Where-Object { $_ -ne "" })
+
+if ($changelogLines.Count -eq 0) {
+    $changelogLines = @($Changelog.Trim())
+}
+
 if (-not (Test-Path $manifestPath)) {
     $baseJson = @{
         latest_version = $Version
         release_date = (Get-Date -Format "yyyy-MM-dd")
         critical = $false
-        changelog = @($Changelog)
+        changelog = $changelogLines
         download_url = $downloadUrl
         checksum = $hash
     }
@@ -110,7 +118,7 @@ if (-not (Test-Path $manifestPath)) {
     $baseJson = $rawJson | ConvertFrom-Json
     $baseJson.latest_version = $Version
     $baseJson.release_date = (Get-Date -Format "yyyy-MM-dd")
-    $baseJson.changelog = @($Changelog)
+    $baseJson.changelog = $changelogLines
     $baseJson.download_url = $downloadUrl
     $baseJson.checksum = $hash
 }

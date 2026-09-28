@@ -19,6 +19,8 @@ import static com.schoolbell.ui.UIStyles.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UpdateAvailableDialog extends BasePremiumDialog {
     private final UpdateService updateService;
@@ -45,20 +47,60 @@ public class UpdateAvailableDialog extends BasePremiumDialog {
 
         VBox list = new VBox(10);
         list.setPadding(new Insets(5, 0, 5, 0));
-        for (String item : manifest.changelog()) {
-            HBox row = new HBox(12);
-            row.setAlignment(Pos.TOP_LEFT);
-            
-            VBox bullet = new VBox(createSVGIcon(ICON_CHECK, Color.web(COLOR_PRIMARY), 12));
-            bullet.setPadding(new Insets(4, 0, 0, 0));
-            
-            Label text = new Label(item);
-            text.setWrapText(true);
-            text.setStyle("-fx-text-fill: " + COLOR_NAVY + "; -fx-font-size: 14px; -fx-font-weight: 500;");
-            HBox.setHgrow(text, Priority.ALWAYS);
-            
-            row.getChildren().addAll(bullet, text);
-            list.getChildren().add(row);
+
+        List<String> items = new ArrayList<>();
+        if (manifest.changelog() != null) {
+            for (String raw : manifest.changelog()) {
+                if (raw == null || raw.isBlank()) continue;
+                String[] lines = raw.split("\\r?\\n");
+                for (String line : lines) {
+                    String clean = line.replaceFirst("^[\\s-*•–—]+", "").trim();
+                    if (!clean.isEmpty()) {
+                        items.add(clean);
+                    }
+                }
+            }
+        }
+
+        // If changelog came as a single unformatted sentence block, intelligently split by sentences
+        if (items.size() == 1) {
+            String single = items.get(0);
+            String[] sentences = single.split("(?<=\\.)\\s+(?=[А-ЯA-ZІЇЄ])");
+            if (sentences.length > 1) {
+                items.clear();
+                for (String s : sentences) {
+                    String clean = s.replaceFirst("^[\\s-*•–—]+", "").trim();
+                    if (!clean.isEmpty()) {
+                        items.add(clean);
+                    }
+                }
+            }
+        }
+
+        if (items.isEmpty()) {
+            HBox emptyRow = new HBox(10);
+            emptyRow.setAlignment(Pos.CENTER_LEFT);
+            emptyRow.getChildren().addAll(
+                    createSVGIcon(ICON_INFO, Color.web(COLOR_SLATE_MUTED), 14),
+                    new Label("Список змін відсутній.")
+            );
+            list.getChildren().add(emptyRow);
+        } else {
+            for (String item : items) {
+                HBox row = new HBox(12);
+                row.setAlignment(Pos.TOP_LEFT);
+
+                VBox bullet = new VBox(createSVGIcon(ICON_CHECK, Color.web(COLOR_PRIMARY), 12));
+                bullet.setPadding(new Insets(4, 0, 0, 0));
+
+                Label text = new Label(item);
+                text.setWrapText(true);
+                text.setStyle("-fx-text-fill: " + COLOR_NAVY + "; -fx-font-size: 14px; -fx-font-weight: 500;");
+                HBox.setHgrow(text, Priority.ALWAYS);
+
+                row.getChildren().addAll(bullet, text);
+                list.getChildren().add(row);
+            }
         }
 
         ScrollPane scrollPane = new ScrollPane(list);
@@ -131,22 +173,18 @@ public class UpdateAvailableDialog extends BasePremiumDialog {
         statusLabel.setManaged(true);
         statusLabel.setText("Підготовка до завантаження...");
 
-        updateService.downloadUpdate(manifest, progress -> {
-            Platform.runLater(() -> {
-                if (progress >= 0) {
-                    progressBar.setProgress(progress);
-                    statusLabel.setText(String.format("Завантаження: %.0f%%", progress * 100));
-                } else {
-                    progressBar.setProgress(-1); // Indeterminate
-                    statusLabel.setText(String.format("Завантажено: %.1f MB", -progress));
-                }
-            });
-        }).thenAccept(file -> {
-            Platform.runLater(() -> {
-                statusLabel.setText("Завантаження завершено. Запуск інсталятора...");
-                updateService.installUpdate(file);
-            });
-        }).exceptionally(ex -> {
+        updateService.downloadUpdate(manifest, progress -> Platform.runLater(() -> {
+            if (progress >= 0) {
+                progressBar.setProgress(progress);
+                statusLabel.setText(String.format("Завантаження: %.0f%%", progress * 100));
+            } else {
+                progressBar.setProgress(-1); // Indeterminate
+                statusLabel.setText(String.format("Завантажено: %.1f MB", -progress));
+            }
+        })).thenAccept(file -> Platform.runLater(() -> {
+            statusLabel.setText("Завантаження завершено. Запуск інсталятора...");
+            updateService.installUpdate(file);
+        })).exceptionally(ex -> {
             Platform.runLater(() -> {
                 saveBtn.setDisable(false);
                 cancelBtn.setDisable(false);

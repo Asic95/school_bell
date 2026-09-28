@@ -188,13 +188,11 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
                 updateSourceDisplay.run();
             }
         });
-        browseRadio.setOnAction(e -> {
-            new RadioSelectionDialog(mainApp, station -> {
-                pathF.setText(station.url());
-                nameF.setText(station.name());
-                updateSourceDisplay.run();
-            }).show();
-        });
+        browseRadio.setOnAction(e -> new RadioSelectionDialog(mainApp, station -> {
+            pathF.setText(station.url());
+            nameF.setText(station.name());
+            updateSourceDisplay.run();
+        }).show());
 
         javafx.scene.layout.FlowPane btnRow = new javafx.scene.layout.FlowPane(12, 12);
         btnRow.getChildren().addAll(browseFile, browseFolder, browseRadio);

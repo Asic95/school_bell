@@ -246,7 +246,7 @@ public class SystemService {
         if (!System.getProperty("os.name").toLowerCase().contains("win")) return;
         
         try {
-            int clampedLevel = Math.max(0, Math.min(100, level));
+            int clampedLevel = Math.clamp(level, 0, 100);
             double volumeScalar = clampedLevel / 100.0;
             
             String script = 
@@ -354,25 +354,25 @@ public class SystemService {
      * Gathers and logs system diagnostic information.
      */
     public void logSystemDiagnostics(com.schoolbell.SystemJournal journal) {
-        journal.addLog("--- SYSTEM DIAGNOSTICS ---", "INFO");
-        journal.addLog("OS: " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ") v" + System.getProperty("os.version"), "INFO");
-        journal.addLog("Java: " + System.getProperty("java.version") + " (" + System.getProperty("java.vendor") + ")", "INFO");
-        
+        String os = System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ") v" + System.getProperty("os.version");
+        String javaVer = System.getProperty("java.version");
         Runtime runtime = Runtime.getRuntime();
         long maxMem = runtime.maxMemory() / 1024 / 1024;
         long totalMem = runtime.totalMemory() / 1024 / 1024;
-        journal.addLog("Memory: Max " + maxMem + "MB, Allocated " + totalMem + "MB", "INFO");
-        
+        String hostInfo;
         try {
             java.net.InetAddress localHost = java.net.InetAddress.getLocalHost();
-            journal.addLog("Host: " + localHost.getHostName() + " (" + localHost.getHostAddress() + ")", "INFO");
+            hostInfo = localHost.getHostName() + " (" + localHost.getHostAddress() + ")";
         } catch (Exception e) {
-            journal.addLog("Host lookup failed", "WARNING");
+            hostInfo = "невизначено";
         }
-        
-        journal.addLog("Config Port: " + config.getBroadcastPort(), "INFO");
-        journal.addLog("Relay: " + config.getRelayType() + (config.getShellyIp().isEmpty() ? "" : " (" + config.getShellyIp() + ")"), "INFO");
-        journal.addLog("--------------------------", "INFO");
+        String relayInfo = config.getRelayType() + (config.getShellyIp().isEmpty() ? "" : " [" + config.getShellyIp() + "]");
+
+        logger.info("SYSTEM DIAGNOSTICS: OS={}, Java={}, Memory={}/{}MB, Host={}, Relay={}, Port={}",
+                os, javaVer, totalMem, maxMem, hostInfo, relayInfo, config.getBroadcastPort());
+
+        journal.addLog("Ініціалізація системи: " + os + ", Java " + javaVer + ", Пам'ять " + totalMem + "/" + maxMem + " MB", "INFO");
+        journal.addLog("Апаратна конфігурація: Реле " + relayInfo + ", Порт " + config.getBroadcastPort(), "INFO");
     }
 
     /**

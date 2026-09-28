@@ -100,7 +100,7 @@ public class ScheduleDataNormalizer {
         for (int i = 0; i < rows.size(); i++) {
             List<String> row = rows.get(i);
             if (row.isEmpty()) continue;
-            String firstCell = row.get(0).trim();
+            String firstCell = row.getFirst().trim();
             if (firstCell.matches("(?i)^1\\.?.*") || firstCell.equalsIgnoreCase("Урок")) {
                 startRow = i;
                 if (firstCell.equalsIgnoreCase("Урок")) startRow++;
@@ -115,7 +115,7 @@ public class ScheduleDataNormalizer {
             List<String> row = rows.get(rowIndex);
             if (row.size() < 2) continue;
 
-            String firstCell = row.get(0).trim();
+            String firstCell = row.getFirst().trim();
             Pattern lessonPattern = Pattern.compile("^(\\d+)\\.?");
             Matcher lessonMatcher = lessonPattern.matcher(firstCell);
             

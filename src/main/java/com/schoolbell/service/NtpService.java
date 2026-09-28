@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -54,34 +55,41 @@ public class NtpService {
     public void startAsyncSync(SyncCallback callback) {
         new Thread(() -> {
             logger.info("Запуск фонової NTP синхронізації часу через пули серверів...");
-            for (String server : NTP_SERVERS) {
-                NTPUDPClient client = new NTPUDPClient();
-                try {
-                    client.setDefaultTimeout(3000); // 3s timeout per server
-                    client.open();
-                    InetAddress hostAddr = InetAddress.getByName(server);
-                    TimeInfo info = client.getTime(hostAddr);
-                    info.computeDetails();
-                    Long offset = info.getOffset();
 
-                    if (offset != null) {
-                        this.isSynced = true;
-                        this.timeOffsetMs = offset;
-                        this.currentServer = server;
-                        this.statusText = "NTP СИНХРОНІЗОВАНО";
-                        logger.info("NTP час успішно синхронізовано з сервером {} (зсув: {} мс)", server, offset);
+            NTPUDPClient client = new NTPUDPClient();
+            client.setDefaultTimeout(Duration.ofSeconds(3)); // Використовуємо Duration замість int
 
-                        SyncResult result = new SyncResult(true, offset, server, "NTP СИНХРОНІЗОВАНО");
-                        if (callback != null) {
-                            Platform.runLater(() -> callback.onSyncResult(result));
+            try {
+                client.open();
+
+                for (String server : NTP_SERVERS) {
+                    try {
+                        InetAddress hostAddr = InetAddress.getByName(server);
+                        TimeInfo info = client.getTime(hostAddr);
+                        info.computeDetails();
+                        Long offset = info.getOffset();
+
+                        if (offset != null) {
+                            this.isSynced = true;
+                            this.timeOffsetMs = offset;
+                            this.currentServer = server;
+                            this.statusText = "NTP СИНХРОНІЗОВАНО";
+                            logger.info("NTP час успішно синхронізовано з сервером {} (зсув: {} мс)", server, offset);
+
+                            SyncResult result = new SyncResult(true, offset, server, "NTP СИНХРОНІЗОВАНО");
+                            if (callback != null) {
+                                Platform.runLater(() -> callback.onSyncResult(result));
+                            }
+                            return;
                         }
-                        return;
+                    } catch (Exception e) {
+                        logger.debug("NTP сервер {} не відповів: {}", server, e.getMessage());
                     }
-                } catch (Exception e) {
-                    logger.debug("NTP сервер {} не відповів: {}", server, e.getMessage());
-                } finally {
-                    client.close();
                 }
+            } catch (Exception e) {
+                logger.error("Помилка відкриття NTP клієнта: {}", e.getMessage());
+            } finally {
+                client.close();
             }
 
             // Якщо всі сервери не відповіли

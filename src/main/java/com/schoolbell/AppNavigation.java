@@ -78,7 +78,7 @@ public class AppNavigation {
             return;
         }
 
-        Node oldNode = contentArea.getChildren().get(0);
+        Node oldNode = contentArea.getChildren().getFirst();
         
         // Skip transition if it's the same node type/instance
         if (oldNode == newNode) return;

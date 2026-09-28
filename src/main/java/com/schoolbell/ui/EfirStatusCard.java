@@ -18,8 +18,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
-import java.time.LocalDateTime;
-
 import static com.schoolbell.ui.ControlFactory.createSmallPrimaryActionButton;
 import static com.schoolbell.ui.ControlFactory.createToggleSwitch;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;

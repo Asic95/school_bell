@@ -196,10 +196,18 @@ public class MediaSchedulerPanel {
 
     private String formatDays(String days) {
         if (days == null || days.isEmpty()) return "Ніколи";
-        if (days.equals("1,2,3,4,5,6,7")) return "Щодня";
-        if (days.equals("1,2,3,4,5")) return "Будні";
-        if (days.equals("6,7")) return "Вихідні";
-        
+        switch (days) {
+            case "1,2,3,4,5,6,7" -> {
+                return "Щодня";
+            }
+            case "1,2,3,4,5" -> {
+                return "Будні";
+            }
+            case "6,7" -> {
+                return "Вихідні";
+            }
+        }
+
         String[] dayNames = {"Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"};
         java.util.List<String> selected = new java.util.ArrayList<>();
         for (int i = 1; i <= 7; i++) {

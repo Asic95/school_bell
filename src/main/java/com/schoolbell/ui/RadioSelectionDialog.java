@@ -12,7 +12,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -134,7 +133,7 @@ public class RadioSelectionDialog extends BasePremiumDialog {
             if (node instanceof VBox card && card.getUserData() instanceof String url) {
                 // Dig into the card structure to find the play button
                 // Structure: Card (VBox) -> StackPane -> Play Button
-                if (card.getChildren().get(0) instanceof StackPane iconStack) {
+                if (card.getChildren().getFirst() instanceof StackPane iconStack) {
                     if (iconStack.getChildren().size() > 1 && iconStack.getChildren().get(1) instanceof Button playBtn) {
                         boolean isPlaying = url.equals(currentlyPlayingUrl);
                         String playIcon = isPlaying ? ICON_STOP : "M8,5.14V19.14L19,12.14L8,5.14Z";

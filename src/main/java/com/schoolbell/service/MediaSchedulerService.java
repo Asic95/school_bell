@@ -413,57 +413,39 @@ public class MediaSchedulerService {
             }
 
             try {
-                if ("BREAKS".equals(e.type())) {
-                    // Calculate next break trigger
-                    if (schedule != null && !schedule.isEmpty()) {
-                        for (int i = 0; i < schedule.size() - 1; i++) {
-                            BellEntry curr = schedule.get(i);
-                            BellEntry nxt = schedule.get(i + 1);
-                            if (curr.type().contains("кінець") && nxt.type().contains("початок")) {
-                                LocalTime trigger = calculateTriggerTime(e, curr.time(), nxt.time());
-                                if (trigger.isAfter(now) && trigger.isBefore(minTime)) {
-                                    minTime = trigger;
-                                    next = new MediaEvent(e.id(), e.name(), e.path(), e.type(), trigger.toString(), e.daysOfWeek(), e.date(), e.isActive(), e.isFolder(), e.durationMinutes(), e.breakAnchor(), e.breakOffset());
+                switch (e.type()) {
+                    case "BREAKS" -> {
+                        // Calculate next break trigger
+                        if (schedule != null && !schedule.isEmpty()) {
+                            for (int i = 0; i < schedule.size() - 1; i++) {
+                                BellEntry curr = schedule.get(i);
+                                BellEntry nxt = schedule.get(i + 1);
+                                if (curr.type().contains("кінець") && nxt.type().contains("початок")) {
+                                    LocalTime trigger = calculateTriggerTime(e, curr.time(), nxt.time());
+                                    if (trigger.isAfter(now) && trigger.isBefore(minTime)) {
+                                        minTime = trigger;
+                                        next = new MediaEvent(e.id(), e.name(), e.path(), e.type(), trigger.toString(), e.daysOfWeek(), e.date(), e.isActive(), e.isFolder(), e.durationMinutes(), e.breakAnchor(), e.breakOffset());
+                                    }
                                 }
                             }
                         }
                     }
-                } else if ("RANGE".equals(e.type())) {
-                    String timeRange = e.time();
-                    if (timeRange != null && timeRange.contains("-")) {
-                        String[] parts = timeRange.split("-");
-                        LocalTime start = LocalTime.parse(parts[0].trim());
-                        LocalTime end = LocalTime.parse(parts[1].trim());
-                        if (now.isBefore(end)) {
-                            // Calculate effective start considering program startup delay
-                            long startupTriggerMs = startupTimeMs + e.breakOffset() * 1000L;
-                            LocalTime startupTriggerTime = LocalTime.ofInstant(java.time.Instant.ofEpochMilli(startupTriggerMs), java.time.ZoneId.systemDefault());
-                            LocalTime effectiveStart = start;
-                            if (startupTriggerTime.isAfter(effectiveStart)) {
-                                effectiveStart = startupTriggerTime;
-                            }
+                    case "RANGE" -> {
+                        String timeRange = e.time();
+                        if (timeRange != null && timeRange.contains("-")) {
+                            String[] parts = timeRange.split("-");
+                            LocalTime start = LocalTime.parse(parts[0].trim());
+                            LocalTime end = LocalTime.parse(parts[1].trim());
+                            if (now.isBefore(end)) {
+                                // Calculate effective start considering program startup delay
+                                long startupTriggerMs = startupTimeMs + e.breakOffset() * 1000L;
+                                LocalTime startupTriggerTime = LocalTime.ofInstant(java.time.Instant.ofEpochMilli(startupTriggerMs), java.time.ZoneId.systemDefault());
+                                LocalTime effectiveStart = start;
+                                if (startupTriggerTime.isAfter(effectiveStart)) {
+                                    effectiveStart = startupTriggerTime;
+                                }
 
-                            LocalTime trigger = now.isBefore(effectiveStart) ? effectiveStart : now.withNano(0);
-                            if (trigger.isBefore(minTime)) {
-                                minTime = trigger;
-                                String triggerStr = trigger.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
-                                next = new MediaEvent(e.id(), e.name(), e.path(), e.type(), triggerStr, e.daysOfWeek(), e.date(), e.isActive(), e.isFolder(), e.durationMinutes(), e.breakAnchor(), e.breakOffset());
-                            }
-                        }
-                    }
-                } else if ("FIRST_LESSON".equals(e.type())) {
-                    if (schedule != null && !schedule.isEmpty()) {
-                        LocalTime firstLessonTime = null;
-                        for (BellEntry entry : schedule) {
-                            if (entry.type().toLowerCase().contains("початок")) {
-                                firstLessonTime = entry.time();
-                                break;
-                            }
-                        }
-                        if (firstLessonTime != null) {
-                            LocalTime targetTime = firstLessonTime.minusMinutes(e.breakOffset());
-                            if (now.isBefore(firstLessonTime)) {
-                                LocalTime trigger = now.isBefore(targetTime) ? targetTime : now.withNano(0);
+                                LocalTime trigger = now.isBefore(effectiveStart) ? effectiveStart : now.withNano(0);
                                 if (trigger.isBefore(minTime)) {
                                     minTime = trigger;
                                     String triggerStr = trigger.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
@@ -472,11 +454,34 @@ public class MediaSchedulerService {
                             }
                         }
                     }
-                } else {
-                    LocalTime eventTime = LocalTime.parse(e.time());
-                    if (eventTime.isAfter(now) && eventTime.isBefore(minTime)) {
-                        minTime = eventTime;
-                        next = e;
+                    case "FIRST_LESSON" -> {
+                        if (schedule != null && !schedule.isEmpty()) {
+                            LocalTime firstLessonTime = null;
+                            for (BellEntry entry : schedule) {
+                                if (entry.type().toLowerCase().contains("початок")) {
+                                    firstLessonTime = entry.time();
+                                    break;
+                                }
+                            }
+                            if (firstLessonTime != null) {
+                                LocalTime targetTime = firstLessonTime.minusMinutes(e.breakOffset());
+                                if (now.isBefore(firstLessonTime)) {
+                                    LocalTime trigger = now.isBefore(targetTime) ? targetTime : now.withNano(0);
+                                    if (trigger.isBefore(minTime)) {
+                                        minTime = trigger;
+                                        String triggerStr = trigger.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+                                        next = new MediaEvent(e.id(), e.name(), e.path(), e.type(), triggerStr, e.daysOfWeek(), e.date(), e.isActive(), e.isFolder(), e.durationMinutes(), e.breakAnchor(), e.breakOffset());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    case null, default -> {
+                        LocalTime eventTime = LocalTime.parse(e.time());
+                        if (eventTime.isAfter(now) && eventTime.isBefore(minTime)) {
+                            minTime = eventTime;
+                            next = e;
+                        }
                     }
                 }
             } catch (Exception ex) {}

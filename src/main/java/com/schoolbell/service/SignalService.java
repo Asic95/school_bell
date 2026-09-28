@@ -9,7 +9,6 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public class SignalService {
     private static final Logger logger = LoggerFactory.getLogger(SignalService.class);
@@ -112,7 +111,7 @@ public class SignalService {
         isAirRaidActive = true;
         currentAlertType = "AIR_RAID";
         audioService.stopImmediate();
-        addLog("ЗАПУСК СИГНАЛУ: ПОВІТРЯНА ТРИВОГА", "WARNING");
+        addLog("Запуск сигналу: Повітряна тривога", "WARNING");
         new Thread(() -> {
             try {
                 for (int i = 1; i <= 3; i++) {
@@ -125,7 +124,7 @@ public class SignalService {
                     Thread.sleep(1500);
                     audioService.playAudioFile(resolveAudioPath(configService.getAudioAirRaidPath()));
                 }
-                addLog("Сигнал тривоги завершено. Режим ТРИВОГИ активовано.", "SUCCESS");
+                addLog("Сигнал тривоги завершено. Режим тривоги активовано.", "SUCCESS");
             } catch (InterruptedException e) {
                 relayController.turnOff();
                 currentAlertType = "NONE";
@@ -139,7 +138,7 @@ public class SignalService {
     public void runAirRaidClearSignal() {
         if (isActionInProgress) return;
         isActionInProgress = true;
-        addLog("ЗАПУСК СИГНАЛУ: ВІДБІЙ ПОВІТРЯНОЇ ТРИВОГИ", "SUCCESS");
+        addLog("Запуск сигналу: Відбій повітряної тривоги", "SUCCESS");
         new Thread(() -> {
             try {
                 for (int i = 1; i <= 3; i++) {
@@ -176,7 +175,7 @@ public class SignalService {
         isEmergencyActive = true;
         currentAlertType = "EMERGENCY";
         audioService.stopImmediate();
-        addLog("ЗАПУСК СИГНАЛУ: НАДЗВИЧАЙНА СИТУАЦІЯ", "ERROR");
+        addLog("Запуск сигналу: Надзвичайна ситуація", "ERROR");
         new Thread(() -> {
             try {
                 relayController.turnOn();
@@ -186,7 +185,7 @@ public class SignalService {
                     Thread.sleep(1500);
                     audioService.playAudioFile(resolveAudioPath(configService.getAudioEmergencyPath()));
                 }
-                addLog("Сигнал НС завершено. Режим НАДЗВИЧАЙНОЇ СИТУАЦІЇ активовано.", "SUCCESS");
+                addLog("Сигнал надзвичайної ситуації завершено. Режим надзвичайної ситуації активовано.", "SUCCESS");
             } catch (InterruptedException e) {
                 relayController.turnOff();
                 currentAlertType = "NONE";
@@ -200,7 +199,7 @@ public class SignalService {
     public void runEmergencyClearSignal() {
         if (isActionInProgress) return;
         isActionInProgress = true;
-        addLog("ЗАПУСК СИГНАЛУ: СКАСУВАННЯ ЕКСТРЕНОЇ СИТУАЦІЇ", "SUCCESS");
+        addLog("Запуск сигналу: Скасування надзвичайної ситуації", "SUCCESS");
         new Thread(() -> {
             try {
                 // Дзеркально до сигналу НС: використовуємо налаштовану тривалість
@@ -283,8 +282,8 @@ public class SignalService {
 
             boolean airRaid = isAirRaidActive();
             String logMsg = airRaid
-                    ? "ВШАНУВАННЯ ПАМ'ЯТІ: Хвилина мовчання (під час повітряної тривоги)"
-                    : "ВШАНУВАННЯ ПАМ'ЯТІ: Хвилина мовчання";
+                    ? "Вшанування пам'яті: Хвилина мовчання (під час повітряної тривоги)"
+                    : "Вшанування пам'яті: Хвилина мовчання";
             addLog(logMsg, "INFO");
 
             String audioPath = resolveAudioPath(configService.getAudioSilencePath());
@@ -344,7 +343,7 @@ public class SignalService {
                             new Thread(() -> {
                                 isActionInProgress = true;
                                 try {
-                                    addLog("🔔 ЗАВЧАСНЕ СПОВІЩЕННЯ: " + entry.type(), "INFO");
+                                    addLog("Завчасне сповіщення: " + entry.type(), "INFO");
                                     relayController.turnOn();
                                     Thread.sleep(configService.getRegularBellDuration() * 1000L);
                                     relayController.turnOff();
@@ -366,21 +365,19 @@ public class SignalService {
             schedule.stream()
                     .filter(entry -> entry.time().equals(minuteOnly))
                     .findFirst()
-                    .ifPresent(entry -> {
-                        new Thread(() -> {
-                            isActionInProgress = true;
-                            try {
-                                addLog("🔔 Автодзвінок: " + entry.type(), "SUCCESS");
-                                relayController.turnOn();
-                                Thread.sleep(configService.getRegularBellDuration() * 1000L);
-                                relayController.turnOff();
-                            } catch (InterruptedException e) {
-                                relayController.turnOff();
-                            } finally {
-                                isActionInProgress = false;
-                            }
-                        }).start();
-                    });
+                    .ifPresent(entry -> new Thread(() -> {
+                        isActionInProgress = true;
+                        try {
+                            addLog("Автодзвінок: " + entry.type(), "SUCCESS");
+                            relayController.turnOn();
+                            Thread.sleep(configService.getRegularBellDuration() * 1000L);
+                            relayController.turnOff();
+                        } catch (InterruptedException e) {
+                            relayController.turnOff();
+                        } finally {
+                            isActionInProgress = false;
+                        }
+                    }).start());
         }
     }
 }

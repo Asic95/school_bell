@@ -187,7 +187,7 @@ public class MediaQuickControlDialog extends BasePremiumDialog {
         List<MediaEvent> futureEvents = todayPlan.stream()
                 .filter(e -> LocalTime.parse(e.time()).isAfter(now))
                 .sorted((e1, e2) -> e1.time().compareTo(e2.time()))
-                .collect(Collectors.toList());
+                .toList();
 
         if (futureEvents.isEmpty()) {
             VBox empty = ControlFactory.createEmptyState(ICON_INFO, "Черга порожня", "На сьогодні більше немає запланованих подій.");
@@ -195,7 +195,7 @@ public class MediaQuickControlDialog extends BasePremiumDialog {
             eventsContainer.getChildren().add(empty);
         } else {
             int displayLimit = 4;
-            List<MediaEvent> toShow = futureEvents.stream().limit(displayLimit).collect(Collectors.toList());
+            List<MediaEvent> toShow = futureEvents.stream().limit(displayLimit).toList();
             
             for (MediaEvent e : toShow) {
                 HBox row = new HBox(15);
