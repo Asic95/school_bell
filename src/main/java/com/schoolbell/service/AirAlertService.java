@@ -148,7 +148,7 @@ public class AirAlertService {
                     lastAlertReason = alertResult.reason != null ? alertResult.reason : "";
                     
                     String reasonSuffix = !lastAlertReason.isBlank() ? " [" + lastAlertReason + "]" : "";
-                    String msg = "LIVE: ВИЯВЛЕНО ТРИВОГУ: " + locationLabel + reasonSuffix;
+                    String msg = "Live: Виявлено тривогу: " + locationLabel + reasonSuffix;
                     logger.warn(msg);
                     mainApp.addLog(msg, "WARNING");
                     signalService.runAirRaidSignal();
@@ -157,7 +157,7 @@ public class AirAlertService {
                     String newReason = alertResult.reason != null ? alertResult.reason : "";
                     if (!newReason.isBlank() && !newReason.equalsIgnoreCase(lastAlertReason)) {
                         lastAlertReason = newReason;
-                        String msg = "LIVE: ЗМІНА РІВНЯ ЗАГРОЗИ: " + locationLabel + " [" + newReason + "]";
+                        String msg = "Live: Зміна рівня загрози: " + locationLabel + " [" + newReason + "]";
                         logger.warn(msg);
                         mainApp.addLog(msg, "WARNING");
                         // Informational log only - do NOT re-trigger bell
@@ -174,7 +174,7 @@ public class AirAlertService {
                         lastAlertReason = "";
                         clearConfirmationCount = 0;
 
-                        String msg = "LIVE: ВІДБІЙ ТРИВОГИ: " + locationLabel;
+                        String msg = "Live: Відбій тривоги: " + locationLabel;
                         logger.info(msg);
                         mainApp.addLog(msg, "SUCCESS");
                         signalService.runAirRaidClearSignal();
@@ -490,7 +490,7 @@ public class AirAlertService {
 
         if (consecutiveFailures >= FAILURE_THRESHOLD) {
             if (isCurrentlyHealthy) {
-                mainApp.addLog("УВАГА: " + error, "ERROR");
+                mainApp.addLog("Увага: " + error, "ERROR");
                 isCurrentlyHealthy = false;
             }
 

@@ -17,7 +17,6 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -187,7 +186,7 @@ public class MainApp extends Application {
 
         radioStationService = new RadioStationService();
         signalService = new SignalService(relayController, audioService, configService);
-        signalService.setLogConsumer((msg, level) -> journal.addLog(msg, level));
+        signalService.setLogConsumer(journal::addLog);
 
         systemService = new SystemService(configService);
         mediaSchedulerService = new MediaSchedulerService(this);

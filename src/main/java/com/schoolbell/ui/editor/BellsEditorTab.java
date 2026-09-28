@@ -227,7 +227,7 @@ public class BellsEditorTab {
             
             LocalTime lastEnd = LocalTime.of(8, 0);
             if (!lessonRows.isEmpty()) {
-                DaySchedule.LessonInfo lastInfo = lessonRows.get(lessonRows.size() - 1).getLessonInfo();
+                DaySchedule.LessonInfo lastInfo = lessonRows.getLast().getLessonInfo();
                 if (lastInfo != null) {
                     lastEnd = lastInfo.end.plusMinutes(lastInfo.breakAfterMinutes);
                 }
@@ -430,7 +430,7 @@ public class BellsEditorTab {
                 if (currentActive != null && selector.getItems().contains(currentActive)) {
                     selector.setValue(currentActive);
                 } else {
-                    selector.setValue(selector.getItems().get(0));
+                    selector.setValue(selector.getItems().getFirst());
                 }
             }
         };

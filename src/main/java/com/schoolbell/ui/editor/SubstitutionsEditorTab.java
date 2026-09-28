@@ -14,7 +14,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 import static com.schoolbell.ui.ControlFactory.createEmptyState;
 import static com.schoolbell.ui.ControlFactory.createPageHeader;
@@ -130,7 +129,7 @@ public class SubstitutionsEditorTab {
                            otName.contains(searchText);
                 })
                 .sorted((a, b) -> showArchived ? b.date().compareTo(a.date()) : a.date().compareTo(b.date()))
-                .collect(Collectors.toList());
+                .toList();
 
             if (filtered.isEmpty()) {
                 contentList.setAlignment(Pos.CENTER);

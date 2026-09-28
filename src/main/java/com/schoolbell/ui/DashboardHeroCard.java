@@ -120,7 +120,7 @@ public class DashboardHeroCard extends VBox {
         boolean isBreak = false;
         boolean isBeforeDay = false;
 
-        if (now.isBefore(lessons.get(0).start)) {
+        if (now.isBefore(lessons.getFirst().start)) {
             isBeforeDay = true;
         } else {
             for (int i = 0; i < lessons.size(); i++) {
@@ -138,7 +138,7 @@ public class DashboardHeroCard extends VBox {
 
         boolean found = false;
         if (isBeforeDay) {
-            DaySchedule.LessonInfo firstLi = lessons.get(0);
+            DaySchedule.LessonInfo firstLi = lessons.getFirst();
             safeSetText(curLessonNumLabel, "ПЕРЕД ЗАЙНЯТТЯМИ");
             safeSetText(curLessonStatusBadge, "ОЧІКУВАННЯ");
             curLessonStatusBadge.setStyle("-fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: white; -fx-background-color: " + COLOR_NEUTRAL + "; -fx-padding: 3 10; -fx-background-radius: 6;");
@@ -158,7 +158,7 @@ public class DashboardHeroCard extends VBox {
 
                 long total = java.time.Duration.between(li.start, li.end).toSeconds();
                 long elapsed = java.time.Duration.between(li.start, now).toSeconds();
-                double p = Math.max(0, Math.min(1.0, (double) elapsed / total));
+                double p = Math.clamp((double) elapsed / total, 0, 1.0);
                 safeSetProgress(curLessonProgress, p);
                 safeSetText(curLessonProgressText, (int)(p * 100) + "% ЗАВЕРШЕНО");
                 found = true;
@@ -172,7 +172,7 @@ public class DashboardHeroCard extends VBox {
 
                 long total = java.time.Duration.between(li.end, nextLi.start).toSeconds();
                 long elapsed = java.time.Duration.between(li.end, now).toSeconds();
-                double p = Math.max(0, Math.min(1.0, (double) elapsed / total));
+                double p = Math.clamp((double) elapsed / total, 0, 1.0);
                 safeSetProgress(curLessonProgress, p);
                 safeSetText(curLessonProgressText, (int)(p * 100) + "% МИНУЛО");
                 found = true;

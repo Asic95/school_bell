@@ -5,8 +5,6 @@ import com.schoolbell.service.NetworkDiscoveryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-
 /**
  * Hybrid Manager for Relay Devices.
  * Switches between physical USB HID and Wireless Wi-Fi (Shelly) devices.

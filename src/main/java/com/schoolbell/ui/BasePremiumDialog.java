@@ -89,7 +89,7 @@ public abstract class BasePremiumDialog extends Stage {
      * Adds a custom button to the left of the standard buttons.
      */
     protected void addLeftFooterButton(javafx.scene.control.Button btn) {
-        actions.getChildren().add(0, btn);
+        actions.getChildren().addFirst(btn);
     }
 
     /**

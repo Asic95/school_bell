@@ -105,8 +105,8 @@ public class DashboardDataModel {
         if (currentStageIndex != -1) {
             data.put("schoolStatus", stages.get(currentStageIndex));
         } else if (!activeDs.getLessons().isEmpty()) {
-            LocalTime firstStart = activeDs.getLessons().get(0).start;
-            LocalTime lastEnd = activeDs.getLessons().get(activeDs.getLessons().size() - 1).end;
+            LocalTime firstStart = activeDs.getLessons().getFirst().start;
+            LocalTime lastEnd = activeDs.getLessons().getLast().end;
             
             Map<String, Object> extraStage = new HashMap<>();
             if (firstStart != null && now.isBefore(firstStart)) {
@@ -221,7 +221,7 @@ public class DashboardDataModel {
         data.put("rows", classStatuses);
 
         if (currentLessonNum != -1 && !classStatuses.isEmpty()) {
-            Map<String, Object> firstClass = classStatuses.get(0);
+            Map<String, Object> firstClass = classStatuses.getFirst();
             DaySchedule.LessonInfo li = activeDs.getLessons().get(currentLessonNum - 1);
             Map<String, Object> cl = new HashMap<>();
             cl.put("number", currentLessonNum);

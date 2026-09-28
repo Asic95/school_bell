@@ -15,11 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class SubstitutionReportService {
     private final MainApp mainApp;
@@ -33,8 +29,8 @@ public class SubstitutionReportService {
         List<SubstitutionEntry> allSubs = mainApp.getAcademicService().getAllSubstitutions();
         List<SubstitutionEntry> filtered = allSubs.stream()
                 .filter(s -> s.date().getMonth() == month && s.date().getYear() == year)
-                .sorted((a, b) -> a.date().compareTo(b.date()))
-                .collect(Collectors.toList());
+                .sorted(Comparator.comparing(SubstitutionEntry::date))
+                .toList();
 
         if (filtered.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);

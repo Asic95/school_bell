@@ -56,7 +56,7 @@ public class SignalSettingsPane extends StackPane {
         duration.valueProperty().bindBidirectional(regularDuration);
 
         WaveformCanvas waveform = new WaveformCanvas(WaveType.REGULAR, Color.web(COLOR_BLUE_SIGNAL), duration.valueProperty(), null);
-        HBox card = createCard(
+        return createCard(
                 "Звичайний дзвінок",
                 "Один безперервний сигнал",
                 "M12,2A2,2 0 0,0 10,4A2,2 0 0,0 10,4.29C7.12,5.14 5,7.82 5,11V17L3,19V20H21V19L19,17V11C19,7.82 16.88,5.14 14,4.29C14,4.19 14,4.1 14,4A2,2 0 0,0 12,2M10,21A2,2 0 0,0 12,23A2,2 0 0,0 14,21H10Z",
@@ -66,7 +66,6 @@ public class SignalSettingsPane extends StackPane {
                 "ВІЗУАЛІЗАЦІЯ СИГНАЛУ",
                 "tone-text-regular"
         );
-        return card;
     }
 
     private HBox buildAirRaidCard() {
@@ -84,7 +83,7 @@ public class SignalSettingsPane extends StackPane {
         controlsRow.getStyleClass().add("multi-control-row");
 
         WaveformCanvas waveform = new WaveformCanvas(WaveType.AIR_RAID, Color.web(COLOR_ORANGE_SIGNAL), ring.valueProperty(), pause.valueProperty());
-        HBox card = createCard(
+        return createCard(
                 "Повітряна тривога",
                 "Три коротких сигнали з паузами",
                 "M12,2C9.79,2 8,3.79 8,6V10H16V6C16,3.79 14.21,2 12,2M4,12V14H20V12H4M6,14L4,22H20L18,14H6M2,8V10H6V8H2M18,8V10H22V8H18",
@@ -94,7 +93,6 @@ public class SignalSettingsPane extends StackPane {
                 "ВІЗУАЛІЗАЦІЯ СИГНАЛУ",
                 "tone-text-air"
         );
-        return card;
     }
 
     private HBox buildEmergencyCard() {
@@ -103,7 +101,7 @@ public class SignalSettingsPane extends StackPane {
         duration.valueProperty().bindBidirectional(emergencyDuration);
 
         WaveformCanvas waveform = new WaveformCanvas(WaveType.EMERGENCY, Color.web(COLOR_RED_SIGNAL), duration.valueProperty(), null);
-        HBox card = createCard(
+        return createCard(
                 "Екстрена ситуація",
                 "Один тривалий безперервний сигнал",
                 "M3,9V15H7L12,20V4L7,9H3M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16.03C15.5,15.29 16.5,13.77 16.5,12M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23Z",
@@ -113,7 +111,6 @@ public class SignalSettingsPane extends StackPane {
                 "ВІЗУАЛІЗАЦІЯ СИГНАЛУ",
                 "tone-text-emergency"
         );
-        return card;
     }
 
     private HBox createCard(

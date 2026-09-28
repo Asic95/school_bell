@@ -63,7 +63,7 @@ public class DashboardNextEventCard extends VBox {
         boolean isBreak = false;
         boolean isBeforeDay = false;
 
-        if (now.isBefore(lessons.get(0).start)) {
+        if (now.isBefore(lessons.getFirst().start)) {
             isBeforeDay = true;
         } else {
             for (int i = 0; i < lessons.size(); i++) {
@@ -81,7 +81,7 @@ public class DashboardNextEventCard extends VBox {
 
         boolean found = false;
         if (isBeforeDay) {
-            DaySchedule.LessonInfo firstLi = lessons.get(0);
+            DaySchedule.LessonInfo firstLi = lessons.getFirst();
             safeSetText(nextLessonNumLabel, "1 УРОК");
             safeSetText(nextLessonStatusBadge, "ПОЧАТОК ДНЯ");
             safeSetText(nextLessonTimeLabel, firstLi.start + " — " + firstLi.end);

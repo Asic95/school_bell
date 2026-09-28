@@ -23,7 +23,7 @@ public class SystemJournal {
         com.schoolbell.service.DatabaseManager.saveSystemLog(level, message);
         
         Platform.runLater(() -> {
-            systemLogs.add(0, fullMsg);
+            systemLogs.addFirst(fullMsg);
             if (systemLogs.size() > 100) systemLogs.remove(100, systemLogs.size());
         });
     }

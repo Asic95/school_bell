@@ -237,11 +237,11 @@ public class WeeklyScheduleEditorTab {
     private StackPane createParityCard(SchoolClass cls, int day, int lesson, ScheduleEntry entry, List<Teacher> teachers, List<Subject> subjects, List<Classroom> classrooms, int parity, Runnable refreshGrid) {
         StackPane card = createSingleCard(cls, day, lesson, entry, teachers, subjects, classrooms, parity, refreshGrid);
         card.setPrefWidth(120);
-        VBox content = (VBox) card.getChildren().get(0);
+        VBox content = (VBox) card.getChildren().getFirst();
         content.setPadding(new Insets(14, 12, 14, 12));
         Label pLabel = new Label(parity == 1 ? "ЧИСЕЛЬНИК" : "ЗНАМЕННИК");
         pLabel.setStyle("-fx-font-size: 9px; -fx-font-weight: 900; -fx-text-fill: " + (parity == 1 ? COLOR_INDIGO : COLOR_INDIGO_SOFT) + "; -fx-letter-spacing: 0.5px;");
-        content.getChildren().add(0, pLabel);
+        content.getChildren().addFirst(pLabel);
         return card;
     }
 

@@ -34,7 +34,7 @@ public class ScheduleQuickSelectorDialog extends BasePremiumDialog {
         scheduleCombo = new ComboBox<>();
         List<String> names = mainApp.getInternalSchedules().stream()
                 .map(DaySchedule::getName)
-                .collect(Collectors.toList());
+                .toList();
         scheduleCombo.getItems().addAll(names);
         scheduleCombo.setValue(mainApp.getConfigService().getSelectedScheduleName());
         scheduleCombo.setMaxWidth(Double.MAX_VALUE);
@@ -108,7 +108,7 @@ public class ScheduleQuickSelectorDialog extends BasePremiumDialog {
         int row = 0;
         List<DaySchedule.LessonInfo> validLessons = ds.getLessons().stream()
                 .filter(l -> l.start != null && l.end != null)
-                .collect(Collectors.toList());
+                .toList();
 
         for (int i = 0; i < validLessons.size(); i++) {
             DaySchedule.LessonInfo li = validLessons.get(i);

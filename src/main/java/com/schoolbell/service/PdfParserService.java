@@ -82,7 +82,7 @@ public class PdfParserService {
             }
             logger.info("Total rows extracted from PDF: {}", bestRows.size());
             if (!bestRows.isEmpty()) {
-                logger.info("First row sample: {}", bestRows.get(0));
+                logger.info("First row sample: {}", bestRows.getFirst());
             }
         } catch (IOException e) {
             logger.error("Error parsing PDF file: " + pdfFile.getName(), e);
@@ -97,7 +97,7 @@ public class PdfParserService {
         for (Table t : tables) {
             List<List<RectangularTextContainer>> rows = t.getRows();
             if (rows != null && !rows.isEmpty()) {
-                sum += rows.get(0).size();
+                sum += rows.getFirst().size();
                 count++;
             }
         }

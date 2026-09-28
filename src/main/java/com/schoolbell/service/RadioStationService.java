@@ -7,8 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -63,28 +65,28 @@ public class RadioStationService {
         new Thread(() -> {
             try {
                 logger.info("Refreshing radio catalog from API...");
-                URL url = new URL(API_URL);
+
+                URL url = URI.create(API_URL).toURL();
                 URLConnection conn = url.openConnection();
                 conn.setConnectTimeout(15000);
                 conn.setReadTimeout(15000);
-                
+
                 try (InputStream is = conn.getInputStream();
-                     Reader reader = new InputStreamReader(is)) {
-                    
+                     Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+
                     List<RadioBrowserStation> newCatalog = gson.fromJson(reader, new TypeToken<List<RadioBrowserStation>>(){}.getType());
-                    
-                    // Filter: Only MP3/AAC and currently working stations
+
                     catalogCache = newCatalog.stream()
                             .filter(s -> s.lastcheckok() == 1)
                             .filter(s -> s.codec() != null && (s.codec().equalsIgnoreCase("MP3") || s.codec().equalsIgnoreCase("AAC")))
-                            .collect(Collectors.toList());
+                            .toList();
 
-                    // Save to file
+                    // Збереження у файл
                     Path cachePath = Paths.get(PathService.getAppHomePath(), CACHE_FILE);
-                    try (Writer writer = Files.newBufferedWriter(cachePath)) {
+                    try (Writer writer = Files.newBufferedWriter(cachePath, StandardCharsets.UTF_8)) {
                         gson.toJson(catalogCache, writer);
                     }
-                    
+
                     logger.info("Catalog refreshed. {} stations saved to cache.", catalogCache.size());
                     if (onComplete != null) {
                         javafx.application.Platform.runLater(onComplete);
