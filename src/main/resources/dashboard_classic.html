@@ -558,9 +558,21 @@
         updateClock();
 
         function connectWS() {
-            const currentPort = parseInt(window.location.port) || 80;
-            const wsPort = currentPort + 2;
-            const wsUrl = `ws://${window.location.hostname}:${wsPort}`;
+            const isSecure = window.location.protocol === 'https:';
+            const wsProtocol = isSecure ? 'wss://' : 'ws://';
+
+            let wsUrl;
+            if (isSecure) {
+                // Behind HTTPS reverse proxy / Cloudflare, use the proxied WebSocket path.
+                const portSuffix = window.location.port ? `:${window.location.port}` : '';
+                wsUrl = `${wsProtocol}${window.location.hostname}${portSuffix}/ws`;
+            } else {
+                // Preserve the existing local-network HTTP setup: WebSocket is PORT + 2.
+                const currentPort = parseInt(window.location.port) || 80;
+                const wsPort = currentPort + 2;
+                wsUrl = `${wsProtocol}${window.location.hostname}:${wsPort}`;
+            }
+
             socket = new WebSocket(wsUrl);
 
             socket.onopen = () => {

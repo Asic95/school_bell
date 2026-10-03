@@ -50,13 +50,14 @@ public class EmergencyAlertsPanel {
     private TextField siAudioPath;
     private ToggleButton siVisualTg;
     private Runnable onChanged;
+    private boolean suppressChangeNotifications;
 
     public void setOnChanged(Runnable onChanged) {
         this.onChanged = onChanged;
     }
 
     private void trigger() {
-        if (onChanged != null) onChanged.run();
+        if (!suppressChangeNotifications && onChanged != null) onChanged.run();
     }
 
     public EmergencyAlertsPanel(MainApp mainApp) {
@@ -192,9 +193,21 @@ public class EmergencyAlertsPanel {
                 "-fx-cursor: hand;"
         );
 
-        MenuItem testAudio = new MenuItem("Тест Аудіо (Початок)");
+        MenuItem testAudio = new MenuItem("Тест Аудіо");
         testAudio.setGraphic(createSVGIcon(ICON_VOLUME, Color.web(COLOR_PRIMARY), 16));
-        testAudio.setOnAction(e -> mainApp.getAudioService().playAudioFile(pathField.getText()));
+        testAudio.setOnAction(e -> {
+            String audioPath = pathField.getText();
+            if ("AIR_RAID".equals(alertType)) {
+                audioPath = mainApp.getSignalService().resolveAirRaidStartAudioPath("yellow");
+            }
+
+            if (audioPath == null || audioPath.isBlank()) {
+                ToastService.showError("Не задано аудіофайл для цього сигналу");
+                return;
+            }
+
+            mainApp.getAudioService().playAudioFile(audioPath);
+        });
 
         MenuItem testVisual = new MenuItem("Тест Екрану");
         testVisual.setGraphic(createSVGIcon(ICON_MONITOR, Color.web(COLOR_INDIGO), 16));
@@ -204,10 +217,7 @@ public class EmergencyAlertsPanel {
 
         MenuItem pick = new MenuItem("Налаштувати звуки");
         pick.setGraphic(createSVGIcon(ICON_SETTINGS, Color.web(COLOR_SLATE_DARK), 16));
-        pick.setOnAction(e -> {
-            new SignalAudioEditorDialog(mainApp, alertType).showAndWait();
-            refreshPathsFromConfig();
-        });
+        pick.setOnAction(e -> openAudioConfig(alertType));
 
         more.getItems().addAll(testAudio, testVisual, sep, pick);
 
@@ -219,9 +229,23 @@ public class EmergencyAlertsPanel {
     }
 
     private void refreshPathsFromConfig() {
-        arAudioPath.setText(config.getAudioAirRaidPath());
-        emAudioPath.setText(config.getAudioEmergencyPath());
-        siAudioPath.setText(config.getAudioSilencePath());
+        suppressChangeNotifications = true;
+        try {
+            arAudioPath.setText(config.getAudioAirRaidPath());
+            emAudioPath.setText(config.getAudioEmergencyPath());
+            siAudioPath.setText(config.getAudioSilencePath());
+        } finally {
+            suppressChangeNotifications = false;
+        }
+    }
+
+    private void openAudioConfig(String alertType) {
+        SignalAudioEditorDialog dialog = new SignalAudioEditorDialog(mainApp, alertType);
+        dialog.showAndWait();
+        refreshPathsFromConfig();
+        if (dialog.wasSaved()) {
+            ToastService.showSuccess("Налаштування сповіщень збережено");
+        }
     }
 
     private VBox createAudioConfigButton(String alertType, TextField pathField) {
@@ -256,8 +280,7 @@ public class EmergencyAlertsPanel {
         card.getChildren().addAll(label, row);
 
         card.setOnMouseClicked(e -> {
-            new SignalAudioEditorDialog(mainApp, alertType).showAndWait();
-            refreshPathsFromConfig();
+            openAudioConfig(alertType);
         });
         card.setOnMouseEntered(e -> card.setStyle(card.getStyle() + "-fx-background-color: " + COLOR_SURFACE_SOFT + ";"));
         card.setOnMouseExited(e -> card.setStyle(card.getStyle().replace("-fx-background-color: " + COLOR_SURFACE_SOFT + ";", "")));

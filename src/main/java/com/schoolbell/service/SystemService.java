@@ -18,17 +18,24 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 import com.schoolbell.ui.RestoreConfirmationDialog;
 
 public class SystemService {
     private static final Logger logger = LoggerFactory.getLogger(SystemService.class);
     private final ConfigService config;
+    private final BiConsumer<String, String> journalConsumer;
 
     public record AutostartResult(boolean success, String message) {}
 
     public SystemService(ConfigService config) {
+        this(config, (message, level) -> {});
+    }
+
+    public SystemService(ConfigService config, BiConsumer<String, String> journalConsumer) {
         this.config = config;
+        this.journalConsumer = journalConsumer != null ? journalConsumer : (message, level) -> {};
     }
 
     /**
@@ -151,28 +158,46 @@ public class SystemService {
         if (!System.getProperty("os.name").toLowerCase().contains("win")) return;
 
         try {
+            int websocketPort = port + 2;
             // We use PowerShell to run netsh commands with elevation (-Verb RunAs)
             // This will show the standard Windows "Do you want to allow this app..." prompt
             
             String deleteCommand = "netsh advfirewall firewall delete rule name=\\\"SchoolBell Web Dashboard\\\"";
             String addCommand = String.format(
-                "netsh advfirewall firewall add rule name=\\\"SchoolBell Web Dashboard\\\" dir=in action=allow protocol=TCP localport=%d",
-                port
+                "netsh advfirewall firewall add rule name=\\\"SchoolBell Web Dashboard\\\" dir=in action=allow protocol=TCP localport=%d,%d profile=any",
+                port, websocketPort
             );
 
             // The script combines both commands
             String script = String.format(
-                "Start-Process cmd.exe -ArgumentList '/c %s & %s' -Verb RunAs -WindowStyle Hidden",
+                "$p = Start-Process cmd.exe -ArgumentList '/c %s & %s' -Verb RunAs -Wait -PassThru -WindowStyle Hidden; exit $p.ExitCode",
                 deleteCommand, addCommand
             );
             
             String[] command = {"powershell.exe", "-NoProfile", "-Command", script};
             Process process = Runtime.getRuntime().exec(command);
-            process.waitFor();
-            
-            logger.info("Firewall optimization requested via UAC for port " + port);
+            int exitCode = process.waitFor();
+
+            if (exitCode == 0) {
+                logger.info("Firewall optimization completed via UAC for ports {} and {}", port, websocketPort);
+                journalConsumer.accept(
+                        "Брандмауер успішно налаштовано для портів " + port + " і " + websocketPort + ".",
+                        "INFO"
+                );
+            } else {
+                logger.error("Firewall optimization failed via UAC with exit code {}", exitCode);
+                journalConsumer.accept(
+                        "Не вдалося налаштувати брандмауер для портів " + port + " і " + websocketPort
+                                + " (код помилки: " + exitCode + ").",
+                        "ERROR"
+                );
+            }
         } catch (Exception e) {
             logger.error("Failed to trigger firewall optimization", e);
+            journalConsumer.accept(
+                    "Не вдалося запустити налаштування брандмауера: " + e.getMessage(),
+                    "ERROR"
+            );
         }
     }
 
@@ -183,14 +208,16 @@ public class SystemService {
         if (!System.getProperty("os.name").toLowerCase().contains("win")) return true;
 
         try {
+            int websocketPort = port + 2;
             // netsh might return localized output, so we check for common success markers
-            // and verify that the port is mentioned in the rule.
+            // and verify that both dashboard ports are mentioned in the rule.
             String output = executeCommandWithOutput("netsh advfirewall firewall show rule name=\"SchoolBell Web Dashboard\"");
             
             if (output == null || output.isEmpty()) return false;
 
             boolean isEnabled = output.contains("Yes") || output.contains("Так") || output.contains("Да");
-            boolean isPortMatch = output.contains(String.valueOf(port));
+            boolean isPortMatch = output.contains(String.valueOf(port))
+                    && output.contains(String.valueOf(websocketPort));
             
             return isEnabled && isPortMatch;
         } catch (Exception e) {

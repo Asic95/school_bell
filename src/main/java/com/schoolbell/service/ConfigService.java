@@ -15,7 +15,12 @@ public class ConfigService {
     private int earlyBellSeconds = 0;
 
     // Audio
+    public static final String AIR_RAID_AUDIO_MODE_GENERAL = "GENERAL";
+    public static final String AIR_RAID_AUDIO_MODE_THREAT_LEVEL = "THREAT_LEVEL";
+    private String audioAirRaidMode = AIR_RAID_AUDIO_MODE_GENERAL;
     private String audioAirRaidPath = "";
+    private String audioAirRaidYellowPath = "";
+    private String audioAirRaidRedPath = "";
     private String audioAirRaidClearPath = "";
     private String audioAirRaidErrorPath = "";
     private boolean isAudioAirRaidEnabled = false;
@@ -58,7 +63,13 @@ public class ConfigService {
         emergencyDuration = Integer.parseInt(DatabaseManager.getSetting("dur.emergency", "12"));
         earlyBellMinutes = Integer.parseInt(DatabaseManager.getSetting("dur.earlyMin", "0"));
         earlyBellSeconds = Integer.parseInt(DatabaseManager.getSetting("dur.earlySec", "0"));
+        audioAirRaidMode = DatabaseManager.getSetting("audio.arMode", AIR_RAID_AUDIO_MODE_GENERAL);
+        if (!AIR_RAID_AUDIO_MODE_THREAT_LEVEL.equals(audioAirRaidMode)) {
+            audioAirRaidMode = AIR_RAID_AUDIO_MODE_GENERAL;
+        }
         audioAirRaidPath = DatabaseManager.getSetting("audio.arPath", "");
+        audioAirRaidYellowPath = DatabaseManager.getSetting("audio.arYellowPath", "");
+        audioAirRaidRedPath = DatabaseManager.getSetting("audio.arRedPath", "");
         audioAirRaidClearPath = DatabaseManager.getSetting("audio.arClearPath", "");
         audioAirRaidErrorPath = DatabaseManager.getSetting("audio.arErrorPath", "");
         isAudioAirRaidEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("audio.arEnabled", "false"));
@@ -100,7 +111,10 @@ public class ConfigService {
         DatabaseManager.saveSetting("dur.emergency", String.valueOf(emergencyDuration));
         DatabaseManager.saveSetting("dur.earlyMin", String.valueOf(earlyBellMinutes));
         DatabaseManager.saveSetting("dur.earlySec", String.valueOf(earlyBellSeconds));
+        DatabaseManager.saveSetting("audio.arMode", audioAirRaidMode);
         DatabaseManager.saveSetting("audio.arPath", audioAirRaidPath);
+        DatabaseManager.saveSetting("audio.arYellowPath", audioAirRaidYellowPath);
+        DatabaseManager.saveSetting("audio.arRedPath", audioAirRaidRedPath);
         DatabaseManager.saveSetting("audio.arClearPath", audioAirRaidClearPath);
         DatabaseManager.saveSetting("audio.arErrorPath", audioAirRaidErrorPath);
         DatabaseManager.saveSetting("audio.arEnabled", String.valueOf(isAudioAirRaidEnabled));
@@ -146,8 +160,18 @@ public class ConfigService {
     public void setEarlyBellMinutes(int earlyBellMinutes) { this.earlyBellMinutes = earlyBellMinutes; }
     public int getEarlyBellSeconds() { return earlyBellSeconds; }
     public void setEarlyBellSeconds(int earlyBellSeconds) { this.earlyBellSeconds = earlyBellSeconds; }
+    public String getAudioAirRaidMode() { return audioAirRaidMode; }
+    public void setAudioAirRaidMode(String audioAirRaidMode) {
+        this.audioAirRaidMode = AIR_RAID_AUDIO_MODE_THREAT_LEVEL.equals(audioAirRaidMode)
+                ? AIR_RAID_AUDIO_MODE_THREAT_LEVEL
+                : AIR_RAID_AUDIO_MODE_GENERAL;
+    }
     public String getAudioAirRaidPath() { return audioAirRaidPath; }
     public void setAudioAirRaidPath(String audioAirRaidPath) { this.audioAirRaidPath = audioAirRaidPath; }
+    public String getAudioAirRaidYellowPath() { return audioAirRaidYellowPath; }
+    public void setAudioAirRaidYellowPath(String audioAirRaidYellowPath) { this.audioAirRaidYellowPath = audioAirRaidYellowPath; }
+    public String getAudioAirRaidRedPath() { return audioAirRaidRedPath; }
+    public void setAudioAirRaidRedPath(String audioAirRaidRedPath) { this.audioAirRaidRedPath = audioAirRaidRedPath; }
     public String getAudioAirRaidClearPath() { return audioAirRaidClearPath; }
     public void setAudioAirRaidClearPath(String audioAirRaidClearPath) { this.audioAirRaidClearPath = audioAirRaidClearPath; }
     public String getAudioAirRaidErrorPath() { return audioAirRaidErrorPath; }

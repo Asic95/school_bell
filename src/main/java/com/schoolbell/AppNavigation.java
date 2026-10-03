@@ -20,6 +20,16 @@ public class AppNavigation {
     private final StackPane contentArea;
     private final Map<String, Button> navButtons = new HashMap<>();
 
+    // Keep the main pages alive and reuse their node trees instead of rebuilding
+    // the whole JavaFX hierarchy on every navigation click.
+    private Node dashboardNode;
+    private Node scheduleNode;
+    private Node notificationsNode;
+    private Node efirNode;
+    private Node schoolNode;
+    private Node importNode;
+    private Node systemNode;
+
     public AppNavigation(MainApp mainApp, VBox sidebar, StackPane contentArea) {
         this.mainApp = mainApp;
         this.sidebar = sidebar;
@@ -40,7 +50,7 @@ public class AppNavigation {
     }
 
     private void openHelp() {
-        mainApp.getHostServices().showDocument("https://github.com/Asic95/school_bell");
+        mainApp.getHostServices().showDocument("https://github.com/Asic95/school_bell#school-bell--%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B0-%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B0-%D1%88%D0%BA%D1%96%D0%BB%D1%8C%D0%BD%D0%B8%D1%85-%D0%B4%D0%B7%D0%B2%D1%96%D0%BD%D0%BA%D1%96%D0%B2");
     }
 
     public void createNavButton(String id, String text, String iconPath, Runnable action) {
@@ -100,17 +110,20 @@ public class AppNavigation {
 
     public void showDashboard() {
         setActiveNav("DASHBOARD");
-        switchView(mainApp.getDashboardView().build());
+        if (dashboardNode == null) dashboardNode = mainApp.getDashboardView().build();
+        switchView(dashboardNode);
     }
 
     public void showSchool() {
         setActiveNav("SCHOOL");
-        switchView(mainApp.getSchoolView().build());
+        if (schoolNode == null) schoolNode = mainApp.getSchoolView().build();
+        switchView(schoolNode);
     }
 
     public void showSchedule() {
         setActiveNav("SCHEDULE");
-        switchView(mainApp.getScheduleView().build());
+        if (scheduleNode == null) scheduleNode = mainApp.getScheduleView().build();
+        switchView(scheduleNode);
     }
 
     public void showEditorTab(int tabIndex) {
@@ -121,21 +134,26 @@ public class AppNavigation {
 
     public void showEfir() { 
         setActiveNav("EFIR"); 
-        switchView(mainApp.getEfirView().build()); 
+        if (efirNode == null) efirNode = mainApp.getEfirView().build();
+        else mainApp.getEfirView().refreshAll();
+        switchView(efirNode); 
     }
 
     public void showNotifications() {
         setActiveNav("NOTIFICATIONS");
-        switchView(mainApp.getNotificationsView().build());
+        if (notificationsNode == null) notificationsNode = mainApp.getNotificationsView().build();
+        switchView(notificationsNode);
     }
 
     public void showSystem() {
         setActiveNav("SYSTEM");
-        switchView(mainApp.getSystemView().build());
+        if (systemNode == null) systemNode = mainApp.getSystemView().build();
+        switchView(systemNode);
     }
 
     public void showImport() {
         setActiveNav("IMPORT");
-        switchView(mainApp.getImportView().build());
+        if (importNode == null) importNode = mainApp.getImportView().build();
+        switchView(importNode);
     }
 }

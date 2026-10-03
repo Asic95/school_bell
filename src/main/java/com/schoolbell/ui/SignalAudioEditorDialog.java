@@ -3,6 +3,8 @@ package com.schoolbell.ui;
 import com.schoolbell.MainApp;
 import com.schoolbell.service.ConfigService;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
+import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -12,6 +14,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
+import javafx.stage.Screen;
 
 import java.io.File;
 
@@ -22,12 +25,17 @@ import static com.schoolbell.ui.UIStyles.*;
 import static com.schoolbell.ui.UIStyles.PREMIUM_FIELD_STYLE;
 
 public class SignalAudioEditorDialog extends BasePremiumDialog {
+    private final MainApp mainApp;
     private final ConfigService config;
     private final String alertType;
+    private boolean saved;
 
     private TextField pathStart;
+    private TextField pathYellow;
+    private TextField pathRed;
     private TextField pathClear;
     private TextField pathError;
+    private boolean threatLevelMode;
 
     public SignalAudioEditorDialog(MainApp mainApp, String alertType) {
         super(mainApp.getStage(),
@@ -37,15 +45,56 @@ public class SignalAudioEditorDialog extends BasePremiumDialog {
                 "ЗБЕРЕГТИ",
                 600);
 
+        this.mainApp = mainApp;
         this.config = mainApp.getConfigService();
         this.alertType = alertType;
 
         VBox fields = new VBox(22);
 
         if (alertType.equals("AIR_RAID")) {
+            Label modeLabel = new Label("РЕЖИМ ЗВУКОВОГО СПОВІЩЕННЯ");
+            modeLabel.setStyle(HEADER_STYLE + "-fx-font-size: 11px;");
+
+            threatLevelMode = ConfigService.AIR_RAID_AUDIO_MODE_THREAT_LEVEL.equals(config.getAudioAirRaidMode());
+            VBox levelFields = new VBox(18);
+            pathYellow = createFileRow(levelFields, "Дронова загроза (жовтий рівень)", config.getAudioAirRaidYellowPath());
+            pathRed = createFileRow(levelFields, "Ракетна загроза (червоний рівень)", config.getAudioAirRaidRedPath());
+
+            Runnable updateModeFields = () -> {
+                boolean useLevels = threatLevelMode;
+                levelFields.setManaged(useLevels);
+                levelFields.setVisible(useLevels);
+                if (pathStart != null && pathStart.getParent() != null) {
+                    javafx.scene.Node startFieldBlock = pathStart.getParent().getParent();
+                    if (startFieldBlock != null) {
+                        startFieldBlock.setManaged(!useLevels);
+                        startFieldBlock.setVisible(!useLevels);
+                    }
+                }
+            };
+            HBox modeRow = ControlFactory.createWideModeToggle(
+                    "Стандартний режим",
+                    "За рівнем загрози",
+                    threatLevelMode,
+                    useLevels -> {
+                        threatLevelMode = useLevels;
+                        updateModeFields.run();
+                        resizeDialogToContent();
+                    });
+            fields.getChildren().addAll(modeLabel, modeRow, levelFields);
+
             pathStart = createFileRow(fields, "Звук початку тривоги", config.getAudioAirRaidPath());
             pathClear = createFileRow(fields, "Звук відбою тривоги", config.getAudioAirRaidClearPath());
             pathError = createFileRow(fields, "Звук помилки автоматизації", config.getAudioAirRaidErrorPath());
+            boolean useLevels = threatLevelMode;
+            if (pathStart != null && pathStart.getParent() != null) {
+                javafx.scene.Node startFieldBlock = pathStart.getParent().getParent();
+                if (startFieldBlock != null) {
+                    startFieldBlock.setManaged(!useLevels);
+                    startFieldBlock.setVisible(!useLevels);
+                }
+            }
+            updateModeFields.run();
         } else if (alertType.equals("EMERGENCY")) {
             pathStart = createFileRow(fields, "Основний звук сигналу", config.getAudioEmergencyPath());
         } else {
@@ -53,11 +102,43 @@ public class SignalAudioEditorDialog extends BasePremiumDialog {
         }
 
         content.getChildren().add(fields);
+        setOnShown(e -> resizeDialogToContent());
+    }
+
+    public boolean wasSaved() {
+        return saved;
+    }
+
+    private void resizeDialogToContent() {
+        Platform.runLater(() -> {
+            if (getScene() == null) return;
+
+            getScene().getRoot().applyCss();
+            getScene().getRoot().layout();
+            sizeToScene();
+
+            Rectangle2D visualBounds = Screen.getScreensForRectangle(getX(), getY(), getWidth(), getHeight())
+                    .stream()
+                    .findFirst()
+                    .orElse(Screen.getPrimary())
+                    .getVisualBounds();
+            double maxHeight = Math.max(400, visualBounds.getHeight() - 40);
+            double maxWidth = Math.max(500, visualBounds.getWidth() - 40);
+
+            if (getHeight() > maxHeight) setHeight(maxHeight);
+            if (getWidth() > maxWidth) setWidth(maxWidth);
+            centerOnScreen();
+        });
     }
 
     @Override
     protected boolean onSave() {
         if (alertType.equals("AIR_RAID")) {
+            config.setAudioAirRaidMode(threatLevelMode
+                    ? ConfigService.AIR_RAID_AUDIO_MODE_THREAT_LEVEL
+                    : ConfigService.AIR_RAID_AUDIO_MODE_GENERAL);
+            config.setAudioAirRaidYellowPath(pathYellow.getText());
+            config.setAudioAirRaidRedPath(pathRed.getText());
             config.setAudioAirRaidPath(pathStart.getText());
             config.setAudioAirRaidClearPath(pathClear.getText());
             config.setAudioAirRaidErrorPath(pathError.getText());
@@ -66,6 +147,8 @@ public class SignalAudioEditorDialog extends BasePremiumDialog {
         } else {
             config.setAudioSilencePath(pathStart.getText());
         }
+        mainApp.saveConfig();
+        saved = true;
         return true;
     }
 

@@ -106,6 +106,15 @@ public class SignalService {
     }
 
     public void runAirRaidSignal() {
+        runAirRaidSignal(null);
+    }
+
+    /**
+     * Starts an air-raid signal. The optional level is used only when the
+     * threat-level audio mode is enabled; manual activation passes null and
+     * therefore uses the legacy general-purpose sound.
+     */
+    public void runAirRaidSignal(String alertLevel) {
         if (isActionInProgress) return;
         isActionInProgress = true;
         isAirRaidActive = true;
@@ -122,7 +131,7 @@ public class SignalService {
                 }
                 if (configService.isAudioAirRaidEnabled()) {
                     Thread.sleep(1500);
-                    audioService.playAudioFile(resolveAudioPath(configService.getAudioAirRaidPath()));
+                    audioService.playAudioFile(resolveAirRaidStartAudioPath(alertLevel));
                 }
                 addLog("Сигнал тривоги завершено. Режим тривоги активовано.", "SUCCESS");
             } catch (InterruptedException e) {
@@ -133,6 +142,31 @@ public class SignalService {
                 isActionInProgress = false;
             }
         }).start();
+    }
+
+    public String resolveAirRaidStartAudioPath(String alertLevel) {
+        if (!ConfigService.AIR_RAID_AUDIO_MODE_THREAT_LEVEL.equals(configService.getAudioAirRaidMode())) {
+            String generalPath = configService.getAudioAirRaidPath();
+            String fallbackPath = configService.getAudioAirRaidYellowPath();
+            String selectedPath = generalPath != null && !generalPath.isBlank()
+                    ? generalPath
+                    : fallbackPath;
+            return resolveAudioPath(selectedPath);
+        }
+
+        String levelPath = null;
+        if ("red".equalsIgnoreCase(alertLevel)) {
+            levelPath = configService.getAudioAirRaidRedPath();
+        } else if ("yellow".equalsIgnoreCase(alertLevel)) {
+            levelPath = configService.getAudioAirRaidYellowPath();
+        }
+
+        // Preserve the old configured sound when the API has no usable level
+        // or the selected level does not have an audio file yet.
+        String selectedPath = levelPath != null && !levelPath.isBlank()
+                ? levelPath
+                : configService.getAudioAirRaidPath();
+        return resolveAudioPath(selectedPath);
     }
 
     public void runAirRaidClearSignal() {

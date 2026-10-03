@@ -188,7 +188,7 @@ public class MainApp extends Application {
         signalService = new SignalService(relayController, audioService, configService);
         signalService.setLogConsumer(journal::addLog);
 
-        systemService = new SystemService(configService);
+        systemService = new SystemService(configService, journal::addLog);
         mediaSchedulerService = new MediaSchedulerService(this);
         airAlertService = new AirAlertService(this, configService, signalService, scheduler);
         
@@ -299,7 +299,7 @@ public class MainApp extends Application {
             Platform.runLater(() -> {
                 if (dashboardView != null) dashboardView.update(now);
                 
-                if (broadcastService != null && broadcastService.isBroadcasting() && dashboardView != null) {
+                if (broadcastService != null && broadcastService.hasConnectedClients() && dashboardView != null) {
                     Map<String, Object> data = dashboardView.getExtendedDashboardData(now);
                     String activeAnnouncement = announcementService.getActiveAnnouncementText(today, now);
                     data.put("announcement", activeAnnouncement != null ? activeAnnouncement : "");
@@ -438,6 +438,8 @@ public class MainApp extends Application {
 
     @Override public void stop() { 
         if (relayController != null) relayController.close(); 
+        if (mediaSchedulerService != null) mediaSchedulerService.stop();
+        if (efirView != null) efirView.dispose();
         scheduler.shutdown(); 
         stopBroadcastServers();
         if (audioService != null) audioService.stopAll();

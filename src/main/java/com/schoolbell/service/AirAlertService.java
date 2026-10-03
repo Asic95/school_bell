@@ -39,6 +39,7 @@ public class AirAlertService {
 
     private boolean lastAlertState = false;
     private String lastAlertReason = "";
+    private String lastAlertLevel = null;
     private int clearConfirmationCount = 0;
     private static final int CLEAR_CONFIRMATION_THRESHOLD = 3; // 3 cycles x 6s = 18s debounce
     private LocalDateTime lastErrorAnnouncement = LocalDateTime.MIN;
@@ -65,7 +66,7 @@ public class AirAlertService {
         
         pollingTask = scheduler.scheduleAtFixedRate(this::pollAndAct, 0, 6, TimeUnit.SECONDS);
         logger.info("AirAlertService started polling Live API (6s interval)");
-        mainApp.addLog("Автоматизацію тривоги (Live API) активовано", "INFO");
+        mainApp.addLog("Автоматизацію повітряної тривоги активовано", "INFO");
     }
 
     public void stop() {
@@ -146,21 +147,27 @@ public class AirAlertService {
                 if (!lastAlertState) {
                     lastAlertState = true;
                     lastAlertReason = alertResult.reason != null ? alertResult.reason : "";
+                    lastAlertLevel = alertResult.level;
                     
                     String reasonSuffix = !lastAlertReason.isBlank() ? " [" + lastAlertReason + "]" : "";
-                    String msg = "Live: Виявлено тривогу: " + locationLabel + reasonSuffix;
+                    String msg = "Наживо: Виявлено тривогу: " + locationLabel + reasonSuffix;
                     logger.warn(msg);
                     mainApp.addLog(msg, "WARNING");
-                    signalService.runAirRaidSignal();
+                    signalService.runAirRaidSignal(alertResult.level);
                 } else {
                     // Alert is already active - check for threat level change / escalation
                     String newReason = alertResult.reason != null ? alertResult.reason : "";
                     if (!newReason.isBlank() && !newReason.equalsIgnoreCase(lastAlertReason)) {
                         lastAlertReason = newReason;
-                        String msg = "Live: Зміна рівня загрози: " + locationLabel + " [" + newReason + "]";
+                        String msg = "Наживо: Зміна рівня загрози: " + locationLabel + " [" + newReason + "]";
                         logger.warn(msg);
                         mainApp.addLog(msg, "WARNING");
                         // Informational log only - do NOT re-trigger bell
+                    }
+
+                    if (alertResult.level != null && !alertResult.level.equalsIgnoreCase(lastAlertLevel)) {
+                        lastAlertLevel = alertResult.level;
+                        logger.warn("Air raid threat level changed to {}. Audio will not be restarted during the active alert.", lastAlertLevel);
                     }
                 }
             } else {
@@ -172,9 +179,10 @@ public class AirAlertService {
                     if (clearConfirmationCount >= CLEAR_CONFIRMATION_THRESHOLD) {
                         lastAlertState = false;
                         lastAlertReason = "";
+                        lastAlertLevel = null;
                         clearConfirmationCount = 0;
 
-                        String msg = "Live: Відбій тривоги: " + locationLabel;
+                        String msg = "Наживо: Відбій тривоги: " + locationLabel;
                         logger.info(msg);
                         mainApp.addLog(msg, "SUCCESS");
                         signalService.runAirRaidClearSignal();

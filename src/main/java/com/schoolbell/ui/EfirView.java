@@ -15,6 +15,7 @@ import static com.schoolbell.ui.UIStyles.*;
 public class EfirView {
     private final MainApp mainApp;
     private final ConfigService config;
+    private Node builtView;
 
     private EfirStatusCard statusCard;
     private EfirAnnouncementsSection announcementsSection;
@@ -27,6 +28,11 @@ public class EfirView {
     }
 
     public Node build() {
+        if (builtView != null) {
+            refreshAll();
+            return builtView;
+        }
+
         VBox root = new VBox(28);
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: " + COLOR_BG + ";");
@@ -65,6 +71,7 @@ public class EfirView {
         ScrollPane scrollPane = new ScrollPane(root);
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        builtView = scrollPane;
 
         // Responsive Logic
         root.widthProperty().addListener((obs, oldVal, newVal) -> {
@@ -82,5 +89,9 @@ public class EfirView {
         if (announcementsSection != null) announcementsSection.refreshAnnouncements();
         if (sideSection != null) sideSection.refreshDevices();
         if (networkSection != null) networkSection.updateFirewallStatusLabel();
+    }
+
+    public void dispose() {
+        if (statusCard != null) statusCard.dispose();
     }
 }

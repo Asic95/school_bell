@@ -8,7 +8,9 @@ import org.java_websocket.server.WebSocketServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,7 +36,23 @@ public class BroadcastService extends WebSocketServer {
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
-        String ip = conn.getRemoteSocketAddress().getAddress().getHostAddress();
+        // Prefer the original client IP supplied by a reverse proxy or Cloudflare.
+        String ip = handshake.getFieldValue("CF-Connecting-IP");
+        if (ip == null || ip.isBlank()) {
+            ip = handshake.getFieldValue("X-Forwarded-For");
+        }
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",", 2)[0].trim();
+        }
+        if (ip == null || ip.isBlank()) {
+            InetSocketAddress remoteAddress = conn.getRemoteSocketAddress();
+            if (remoteAddress != null && remoteAddress.getAddress() != null) {
+                ip = remoteAddress.getAddress().getHostAddress();
+            }
+        }
+        if (ip == null || ip.isBlank()) {
+            ip = "unknown";
+        }
 
         if (bannedIps.contains(ip)) {
             logger.warn("Banned IP attempted to connect: {}", ip);
@@ -86,14 +104,14 @@ public class BroadcastService extends WebSocketServer {
 
         String hostname = ip;
         try {
-            java.net.InetAddress addr = java.net.InetAddress.getByName(ip);
+            InetAddress addr = InetAddress.getByName(ip);
             String canonical = addr.getCanonicalHostName();
             if (!canonical.equals(ip)) {
                 hostname = canonical;
             }
         } catch (Exception ignored) {}
 
-        String timestamp = java.time.LocalDateTime.now()
+        String timestamp = LocalDateTime.now()
                 .format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"));
 
         BroadcastDevice existing = DatabaseManager.getDeviceByIp(ip);
@@ -136,8 +154,16 @@ public class BroadcastService extends WebSocketServer {
         return isEnabled;
     }
 
+    /**
+     * Returns whether the WebSocket server is active and has at least one
+     * connected dashboard client.
+     */
+    public boolean hasConnectedClients() {
+        return isEnabled && !getConnections().isEmpty();
+    }
+
     public void broadcastUpdate(Object data) {
-        if (!isEnabled || getConnections().isEmpty()) return;
+        if (!hasConnectedClients()) return;
         String json = gson.toJson(data);
         broadcast(json);
     }

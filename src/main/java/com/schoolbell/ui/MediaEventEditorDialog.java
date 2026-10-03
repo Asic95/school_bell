@@ -249,7 +249,7 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
                 dynamicGrid.add(createLabel("ДАТА"), 0, 0);
                 dynamicGrid.add(dateP, 1, 0);
                 dynamicGrid.add(createLabel("ЧАС"), 0, 1);
-                timeF.setPromptText("ЧЧ:ММ");
+                timeF.setPromptText("ГГ:ХХ");
                 if (!isFirstUpdate && timeF.getText() != null && timeF.getText().contains("-")) {
                     timeF.setText("12:00");
                 }
@@ -269,14 +269,14 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
                     dynamicGrid.add(h, 1, 1);
                 } else if (typeC.getValue().equals("У конкретний час")) {
                     dynamicGrid.add(createLabel("ЧАС"), 0, 1);
-                    timeF.setPromptText("ЧЧ:ММ");
+                    timeF.setPromptText("ГГ:ХХ");
                     if (!isFirstUpdate && timeF.getText() != null && timeF.getText().contains("-")) {
                         timeF.setText("12:00");
                     }
                     dynamicGrid.add(timeF, 1, 1);
                 } else if (typeC.getValue().equals("У проміжку часу")) {
                     dynamicGrid.add(createLabel("ПРОМІЖОК ЧАСУ"), 0, 1);
-                    timeF.setPromptText("ЧЧ:ММ-ЧЧ:ММ");
+                    timeF.setPromptText("ГГ:ХХ-ГГ:ХХ");
                     if (!isFirstUpdate && (timeF.getText() == null || timeF.getText().isEmpty() || !timeF.getText().contains("-"))) {
                         timeF.setText("08:00-08:25");
                     }
@@ -362,7 +362,7 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
         if (type.equals("RANGE")) {
             String val = timeF.getText().trim();
             if (!val.matches("\\d{2}:\\d{2}-\\d{2}:\\d{2}")) {
-                ToastService.showError("Невірний формат проміжку. Використовуйте ЧЧ:ММ-ЧЧ:ММ (наприклад, 08:00-08:25)");
+                ToastService.showError("Невірний формат проміжку. Використовуйте ГГ:ХХ-ГГ:ХХ (наприклад, 08:00-08:25)");
                 return false;
             }
         }

@@ -40,6 +40,7 @@ public class EfirStatusCard extends StackPane {
     private HBox connStatus;
     private Region divider1;
     private Region divider2;
+    private Timeline refreshTimeline;
 
     public EfirStatusCard(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -277,12 +278,19 @@ public class EfirStatusCard extends StackPane {
     }
 
     private void setupAutoRefresh() {
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             updateUptime();
             updateMetrics();
         }));
-        timeline.setCycleCount(Animation.INDEFINITE);
-        timeline.play();
+        refreshTimeline.setCycleCount(Animation.INDEFINITE);
+        refreshTimeline.play();
+    }
+
+    public void dispose() {
+        if (refreshTimeline != null) {
+            refreshTimeline.stop();
+            refreshTimeline = null;
+        }
     }
 
     private void updateUptime() {

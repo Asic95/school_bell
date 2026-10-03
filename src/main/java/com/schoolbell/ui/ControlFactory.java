@@ -474,6 +474,69 @@ public class ControlFactory {
         return container;
     }
 
+    public static HBox createWideModeToggle(String leftText, String rightText, boolean initialRightState,
+                                             java.util.function.Consumer<Boolean> onToggle) {
+        ToggleButton leftButton = new ToggleButton(leftText);
+        ToggleButton rightButton = new ToggleButton(rightText);
+        ToggleGroup group = new ToggleGroup();
+
+        leftButton.setToggleGroup(group);
+        rightButton.setToggleGroup(group);
+        leftButton.setSelected(!initialRightState);
+        rightButton.setSelected(initialRightState);
+
+        leftButton.setMaxWidth(Double.MAX_VALUE);
+        rightButton.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(leftButton, Priority.ALWAYS);
+        HBox.setHgrow(rightButton, Priority.ALWAYS);
+
+        HBox container = new HBox(0, leftButton, rightButton);
+        container.setAlignment(Pos.CENTER_LEFT);
+        container.setFillHeight(true);
+        container.setPrefWidth(530);
+        container.setMaxWidth(Double.MAX_VALUE);
+        container.setStyle(
+                "-fx-background-color: " + COLOR_SURFACE_SOFT + ";" +
+                "-fx-background-radius: 14;" +
+                "-fx-border-color: " + BORDER_SLATE_90 + ";" +
+                "-fx-border-width: 1;" +
+                "-fx-border-radius: 14;" +
+                "-fx-padding: 4;"
+        );
+
+        Runnable updateStyles = () -> {
+            String activeStyle =
+                    "-fx-background-color: " + COLOR_PRIMARY + ";" +
+                    "-fx-text-fill: white;" +
+                    "-fx-font-family: 'Inter';" +
+                    "-fx-font-size: 13px;" +
+                    "-fx-font-weight: 700;" +
+                    "-fx-background-radius: 10;" +
+                    "-fx-padding: 11 16;" +
+                    "-fx-cursor: hand;";
+            String inactiveStyle =
+                    "-fx-background-color: transparent;" +
+                    "-fx-text-fill: " + COLOR_SLATE_STRONG + ";" +
+                    "-fx-font-family: 'Inter';" +
+                    "-fx-font-size: 13px;" +
+                    "-fx-font-weight: 600;" +
+                    "-fx-background-radius: 10;" +
+                    "-fx-padding: 11 16;" +
+                    "-fx-cursor: hand;";
+
+            leftButton.setStyle(leftButton.isSelected() ? activeStyle : inactiveStyle);
+            rightButton.setStyle(rightButton.isSelected() ? activeStyle : inactiveStyle);
+        };
+
+        leftButton.selectedProperty().addListener((obs, oldValue, newValue) -> updateStyles.run());
+        rightButton.selectedProperty().addListener((obs, oldValue, newValue) -> updateStyles.run());
+        leftButton.setOnAction(e -> onToggle.accept(false));
+        rightButton.setOnAction(e -> onToggle.accept(true));
+        updateStyles.run();
+
+        return container;
+    }
+
     public static VBox createEmptyState(String iconPath, String title, String subtitle) {
         VBox empty = new VBox(20);
         empty.setAlignment(Pos.CENTER);

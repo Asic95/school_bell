@@ -466,6 +466,11 @@ public class MediaSchedulerService {
                             if (firstLessonTime != null) {
                                 LocalTime targetTime = firstLessonTime.minusMinutes(e.breakOffset());
                                 if (now.isBefore(firstLessonTime)) {
+                                    long minutesLate = java.time.Duration.between(targetTime, now).toMinutes();
+                                    if (!now.isBefore(targetTime) && minutesLate > e.durationMinutes()) {
+                                        continue;
+                                    }
+
                                     LocalTime trigger = now.isBefore(targetTime) ? targetTime : now.withNano(0);
                                     if (trigger.isBefore(minTime)) {
                                         minTime = trigger;

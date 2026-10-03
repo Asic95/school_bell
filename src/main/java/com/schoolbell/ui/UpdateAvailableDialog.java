@@ -64,7 +64,7 @@ public class UpdateAvailableDialog extends BasePremiumDialog {
 
         // If changelog came as a single unformatted sentence block, intelligently split by sentences
         if (items.size() == 1) {
-            String single = items.get(0);
+            String single = items.getFirst();
             String[] sentences = single.split("(?<=\\.)\\s+(?=[А-ЯA-ZІЇЄ])");
             if (sentences.length > 1) {
                 items.clear();

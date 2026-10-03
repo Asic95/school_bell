@@ -432,8 +432,18 @@
         requestWakeLock();
 
         function connectWS() {
-            const port = (parseInt(window.location.port) || 80) + 2;
-            socket = new WebSocket(`ws://${window.location.hostname}:${port}`);
+            const isSecure = window.location.protocol === 'https:';
+            const wsProtocol = isSecure ? 'wss://' : 'ws://';
+            let wsUrl;
+            if (isSecure) {
+                const portSuffix = window.location.port ? `:${window.location.port}` : '';
+                wsUrl = `${wsProtocol}${window.location.hostname}${portSuffix}/ws`;
+            } else {
+                const currentPort = parseInt(window.location.port) || 80;
+                const wsPort = currentPort + 2;
+                wsUrl = `${wsProtocol}${window.location.hostname}:${wsPort}`;
+            }
+            socket = new WebSocket(wsUrl);
             socket.onopen = () => {
                 document.getElementById('conn-status').style.background = 'var(--color-success)';
                 document.getElementById('conn-text').textContent = 'Система активна';

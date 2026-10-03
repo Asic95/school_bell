@@ -955,8 +955,16 @@
         requestWakeLock();
 
         function connectWS() {
-            const currentPort = parseInt(window.location.port) || 80;
-            const wsUrl = `ws://${window.location.hostname}:${currentPort + 2}`;
+            const isSecure = window.location.protocol === 'https:';
+            const wsProtocol = isSecure ? 'wss://' : 'ws://';
+            let wsUrl;
+            if (isSecure) {
+                const portSuffix = window.location.port ? `:${window.location.port}` : '';
+                wsUrl = `${wsProtocol}${window.location.hostname}${portSuffix}/ws`;
+            } else {
+                const currentPort = parseInt(window.location.port) || 80;
+                wsUrl = `${wsProtocol}${window.location.hostname}:${currentPort + 2}`;
+            }
             socket = new WebSocket(wsUrl);
 
             socket.onopen = () => {
