@@ -1,6 +1,6 @@
 ; Inno Setup Script for SchoolBell
 #define AppName "SchoolBell"
-#define AppVersion "1.2.7"
+#define AppVersion "1.2.8"
 #define AppPublisher "SchoolBell Team"
 #define AppExeName "SchoolBell.exe"
 #define DistDir "dist\SchoolBell"
@@ -23,6 +23,7 @@ AppMutex=SchoolBell_App_Instance
 UninstallDisplayIcon={app}\{#AppExeName}
 LanguageDetectionMethod=none
 CloseApplications=yes
+PrivilegesRequired=admin
 
 [Languages]
 Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
@@ -39,8 +40,14 @@ Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Run]
+Filename: "{sys}\schtasks.exe"; Parameters: "/Create /TN ""SchoolBell\UpdaterAtLogon"" /TR """"""{app}\SchoolBellUpdater.exe"" --scheduled"" /SC ONLOGON /RL HIGHEST /F"; Flags: runhidden waituntilterminated
+Filename: "{sys}\schtasks.exe"; Parameters: "/Create /TN ""SchoolBell\UpdaterEvery6Hours"" /TR """"""{app}\SchoolBellUpdater.exe"" --scheduled"" /SC HOURLY /MO 6 /RL HIGHEST /F"; Flags: runhidden waituntilterminated
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 Filename: "{app}\{#AppExeName}"; Flags: nowait; Check: IsSilent
+
+[UninstallRun]
+Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN ""SchoolBell\UpdaterAtLogon"" /F"; Flags: runhidden waituntilterminated
+Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN ""SchoolBell\UpdaterEvery6Hours"" /F"; Flags: runhidden waituntilterminated
 
 [Code]
 function IsSilent: Boolean;

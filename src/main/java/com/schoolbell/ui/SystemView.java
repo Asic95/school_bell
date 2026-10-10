@@ -191,11 +191,25 @@ public class SystemView {
                 javafx.application.Platform.runLater(() -> {
                     checkUpdateBtn.setDisable(false);
                     if (manifest != null) {
-                        new UpdateAvailableDialog((javafx.stage.Stage) mainCol.getScene().getWindow(), mainApp.getUpdateService(), manifest).display();
+                        mainApp.getUpdateService().startBackgroundDownload(manifest);
+                        if (mainApp.getUpdateBanner() != null) {
+                            mainApp.getUpdateBanner().show(manifest);
+                        }
+                        UpdateAvailableDialog dialog = new UpdateAvailableDialog((javafx.stage.Stage) mainCol.getScene().getWindow(), mainApp.getUpdateService(), manifest);
+                        if (mainApp.getUpdateBanner() != null) {
+                            dialog.setOnSnoozeCallback(mainApp.getUpdateBanner()::dismissWithAnimation);
+                        }
+                        dialog.display();
                     } else {
                         ToastService.showInfo("У вас встановлена остання версія програми.");
                     }
                 });
+            }).exceptionally(ex -> {
+                javafx.application.Platform.runLater(() -> {
+                    checkUpdateBtn.setDisable(false);
+                    ToastService.showError("Не вдалося перевірити оновлення. Перевірте з'єднання з інтернетом.");
+                });
+                return null;
             });
         });
         rows.getChildren().add(createActionRow("Перевірка оновлень", "Перевірити наявність нової версії програмного забезпечення", ICON_REFRESH, COLOR_PRIMARY, checkUpdateBtn));

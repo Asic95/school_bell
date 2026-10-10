@@ -15,7 +15,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,6 +49,11 @@ public class AirAlertService {
     private static final int FAILURE_THRESHOLD = 5;
     private boolean isCurrentlyHealthy = true;
 
+    private static final int ACTIVE_HOUR_START = 7;
+    private static final int ACTIVE_HOUR_END   = 19;
+    private boolean offHoursPauseLogged = false;
+    private volatile boolean pollingActive = false;
+
     public AirAlertService(MainApp mainApp, ConfigService configService, SignalService signalService, ScheduledExecutorService scheduler) {
         this.mainApp = mainApp;
         this.configService = configService;
@@ -62,18 +69,58 @@ public class AirAlertService {
             logger.info("Air raid automation disabled in config.");
             return;
         }
-        if (pollingTask != null && !pollingTask.isCancelled()) return;
+        if (pollingActive) return;
         
-        pollingTask = scheduler.scheduleAtFixedRate(this::pollAndAct, 0, 6, TimeUnit.SECONDS);
+        pollingActive = true;
+        scheduleNextPoll();
         logger.info("AirAlertService started polling Live API (6s interval)");
         mainApp.addLog("Автоматизацію повітряної тривоги активовано", "INFO");
     }
 
     public void stop() {
+        pollingActive = false;
         if (pollingTask != null) {
             pollingTask.cancel(true);
+            pollingTask = null;
             logger.info("AirAlertService stopped polling");
             mainApp.addLog("Автоматизацію тривоги зупинено", "INFO");
+        }
+    }
+
+    private void scheduleNextPoll() {
+        if (!pollingActive) return;
+
+        LocalDateTime now;
+        try {
+            now = mainApp.getNtpService().getCorrectedDateTime();
+        } catch (Exception e) {
+            logger.warn("Не вдалося отримати скоригований час для планування polling", e);
+            now = LocalDateTime.now();
+        }
+
+        long delaySeconds;
+        int currentHour = now.getHour();
+        if (currentHour >= ACTIVE_HOUR_START && currentHour < ACTIVE_HOUR_END) {
+            delaySeconds = 6;
+        } else {
+            LocalDate nextActiveDate = currentHour >= ACTIVE_HOUR_END
+                    ? now.toLocalDate().plusDays(1)
+                    : now.toLocalDate();
+            LocalDateTime nextStart = LocalDateTime.of(nextActiveDate, LocalTime.of(ACTIVE_HOUR_START, 0));
+            delaySeconds = Math.max(1, Duration.between(now, nextStart).toSeconds());
+        }
+
+        pollingTask = scheduler.schedule(this::runScheduledPoll, delaySeconds, TimeUnit.SECONDS);
+    }
+
+    private void runScheduledPoll() {
+        if (!pollingActive) return;
+        try {
+            pollAndAct();
+        } catch (Exception e) {
+            logger.error("Unexpected error in scheduled air-alert polling", e);
+        } finally {
+            scheduleNextPoll();
         }
     }
 
@@ -91,6 +138,19 @@ public class AirAlertService {
 
     private void pollAndAct() {
         try {
+            int currentHour = mainApp.getNtpService().getCorrectedDateTime().getHour();
+            boolean withinActiveHours = currentHour >= ACTIVE_HOUR_START && currentHour < ACTIVE_HOUR_END;
+            if (!withinActiveHours) {
+                if (!offHoursPauseLogged) {
+                    offHoursPauseLogged = true;
+                    String msg = "Автоматизацію повітряної тривоги зупинено і буде продовжено в 07:00";
+                    logger.info(msg);
+                    mainApp.addLog(msg, "INFO");
+                }
+                return;
+            }
+            offHoursPauseLogged = false;
+
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(API_URL))
                     .timeout(Duration.ofSeconds(10))

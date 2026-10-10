@@ -245,6 +245,30 @@ public class UIStyles {
             "-fx-background-color: " + COLOR_DANGER_SOFT + ";" +
             "-fx-border-color: " + COLOR_DANGER + ";";
 
+    public static final String UPDATE_BANNER_STYLE =
+            "-fx-background-color: " + GLASS_WHITE + ";" +
+            "-fx-background-radius: 18;" +
+            "-fx-border-color: " + BORDER_SLATE_70 + ";" +
+            "-fx-border-radius: 18;" +
+            "-fx-border-width: 1;" +
+            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_06 + ", 18, 0, 0, 4);";
+
+    public static final String UPDATE_BANNER_CRITICAL_STYLE =
+            "-fx-background-color: " + GLASS_WHITE + ";" +
+            "-fx-background-radius: 18;" +
+            "-fx-border-color: " + COLOR_DANGER_BORDER + ";" +
+            "-fx-border-radius: 18;" +
+            "-fx-border-width: 1.5;" +
+            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_08 + ", 22, 0, 0, 6);";
+
+    public static final String UPDATE_BANNER_READY_STYLE =
+            "-fx-background-color: " + GLASS_WHITE + ";" +
+            "-fx-background-radius: 18;" +
+            "-fx-border-color: " + COLOR_SUCCESS_BORDER + ";" +
+            "-fx-border-radius: 18;" +
+            "-fx-border-width: 1.5;" +
+            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_06 + ", 18, 0, 0, 4);";
+
     public static final String PREMIUM_SELECT_STYLE =
             "-fx-font-family: 'Inter';" +
             "-fx-font-size: 17px;" +

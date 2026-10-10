@@ -2,15 +2,19 @@ $ErrorActionPreference = "Stop"
 
 # Configuration
 $NAME = "SchoolBell"
-$VERSION = "1.2.7"
+$VERSION = "1.2.8"
 $VENDOR = "SchoolBell Team"
 $DESC = "School Bell Management System"
 $MAIN_CLASS = "com.schoolbell.Launcher"
-$MAIN_JAR = "untitled-1.2.7.jar"
+$MAIN_JAR = "untitled-1.2.8.jar"
 $ICON = "icon.ico"
 
 # jpackage requires a version containing only numbers and dots (e.g. 1.1.1) on Windows
 $JPACKAGE_VERSION = ($VERSION -split '-')[0]
+$UPDATE_MANIFEST_URL = $env:SCHOOLBELL_UPDATE_MANIFEST_URL
+if (-not $UPDATE_MANIFEST_URL) {
+    $UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/Asic95/school_bell/master/updates.json"
+}
 
 # Paths
 $JAVA_HOME = $env:JAVA_HOME
@@ -43,6 +47,17 @@ if (Test-Path "jpackage_input") { Remove-Item -Recurse -Force "jpackage_input" }
 New-Item -ItemType Directory "jpackage_input" | Out-Null
 Copy-Item "target\$MAIN_JAR" "jpackage_input\"
 
+# Add a second launcher backed by the same bundled runtime. The updater is
+# JavaFX-free and receives the packaged application version through a system
+# property, so scheduled checks do not need to start SchoolBell itself.
+$updaterLauncherProperties = @(
+    "main-jar=$MAIN_JAR",
+    "main-class=com.schoolbell.updater.SchoolBellUpdater",
+    "java-options=-Dschoolbell.version=$JPACKAGE_VERSION",
+    "java-options=-Dschoolbell.update.manifest.url=$UPDATE_MANIFEST_URL"
+)
+Set-Content -Path "jpackage_input\updater-launcher.properties" -Value $updaterLauncherProperties -Encoding ASCII
+
 Write-Host "`n--- Step 3: Packaging as App Image (EXE + Runtime) ---" -ForegroundColor Cyan
 if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
 
@@ -52,6 +67,8 @@ if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
     --name $NAME `
     --main-jar $MAIN_JAR `
     --main-class $MAIN_CLASS `
+    --add-launcher SchoolBellUpdater=jpackage_input\updater-launcher.properties `
+    --java-options "-Dschoolbell.update.manifest.url=$UPDATE_MANIFEST_URL" `
     --vendor $VENDOR `
     --app-version $JPACKAGE_VERSION `
     --description $DESC `

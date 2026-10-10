@@ -37,7 +37,7 @@ import static com.schoolbell.ui.UIStyles.*;
 
 public class MainApp extends Application {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
-    public static final String VERSION = "1.2.7";
+    public static final String VERSION = "1.2.8";
     private static final String APP_TITLE = "SchoolBell v" + VERSION;
 
     // Services
@@ -81,6 +81,7 @@ public class MainApp extends Application {
     private NotificationsView notificationsView;
     private SystemView systemView;
     private ImportView importView;
+    private UpdateBanner updateBanner;
     private Stage primaryStage;
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -147,10 +148,17 @@ public class MainApp extends Application {
         contentArea.setStyle(DEPTH_1);
         HBox.setHgrow(contentArea, Priority.ALWAYS);
 
+        updateBanner = new UpdateBanner(this, updateService);
+
+        VBox contentWrapper = new VBox(updateBanner, contentArea);
+        contentWrapper.setStyle(DEPTH_1);
+        VBox.setVgrow(contentArea, Priority.ALWAYS);
+        HBox.setHgrow(contentWrapper, Priority.ALWAYS);
+
         navigation = new AppNavigation(this, sidebar, contentArea);
         navigation.init();
         
-        HBox mainLayout = new HBox(sidebar, contentArea);
+        HBox mainLayout = new HBox(sidebar, contentWrapper);
         StackPane root = new StackPane(mainLayout);
         ToastService.setup(root);
 
@@ -248,26 +256,45 @@ public class MainApp extends Application {
     }
 
     private UpdateAvailableDialog activeUpdateDialog;
+    private boolean initialUpdateCheckCompleted = false;
 
     private void checkForUpdates() {
         updateService.checkForUpdates().thenAccept(manifest -> {
+            initialUpdateCheckCompleted = true;
             if (manifest != null) {
                 Platform.runLater(() -> {
-                    if (activeUpdateDialog != null && activeUpdateDialog.isShowing()) {
+                    logger.info("Update available: {}", manifest.latestVersion());
+
+                    if (updateService.isUpdateSnoozed(manifest)) {
+                        logger.info("Update {} is snoozed. Banner and popups suppressed.", manifest.latestVersion());
                         return;
                     }
 
-                    String message = "Доступна нова версія " + manifest.latestVersion() + ". Натисніть для перегляду.";
-                    ToastService.show(message, ToastService.ToastType.INFO, () -> {
+                    if (updateBanner != null) {
+                        updateBanner.show(manifest);
+                    }
+
+                    // Phase 2: Start background download automatically
+                    updateService.startBackgroundDownload(manifest);
+
+                    if (manifest.critical()) {
                         if (activeUpdateDialog == null || !activeUpdateDialog.isShowing()) {
                             activeUpdateDialog = new UpdateAvailableDialog(primaryStage, updateService, manifest);
+                            if (updateBanner != null) {
+                                activeUpdateDialog.setOnSnoozeCallback(updateBanner::dismissWithAnimation);
+                            }
                             activeUpdateDialog.show();
                         }
-                    });
-                    
-                    logger.info("Update available: {}", manifest.latestVersion());
+                    }
                 });
             }
+        }).exceptionally(ex -> {
+            logger.warn("Check for updates failed: {}", ex.getMessage());
+            if (!initialUpdateCheckCompleted) {
+                logger.info("Scheduling retry for update check in 5 minutes...");
+                scheduler.schedule(this::checkForUpdates, 5, TimeUnit.MINUTES);
+            }
+            return null;
         });
     }
 
@@ -284,6 +311,7 @@ public class MainApp extends Application {
     public NotificationsView getNotificationsView() { return notificationsView; }
     public SystemView getSystemView() { return systemView; }
     public ImportView getImportView() { return importView; }
+    public UpdateBanner getUpdateBanner() { return updateBanner; }
 
     public Stage getStage() { return primaryStage; }
     public NtpService getNtpService() { return ntpService; }
