@@ -1,5 +1,6 @@
 package com.schoolbell.service;
 
+import com.schoolbell.MainApp;
 import com.schoolbell.service.UpdateService.UpdateManifest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,12 +28,11 @@ public class UpdateServiceTest {
     @Test
     @DisplayName("Should detect newer versions correctly")
     public void testIsNewerVersion() {
-        assertTrue(updateService.isNewerVersion("1.3.0"));
-        assertTrue(updateService.isNewerVersion("1.2.8"));
+        assertTrue(updateService.isNewerVersion("99.0.0"));
         assertTrue(updateService.isNewerVersion("2.0.0"));
 
-        assertFalse(updateService.isNewerVersion("1.2.7"));
-        assertFalse(updateService.isNewerVersion("1.2.6"));
+        assertFalse(updateService.isNewerVersion(MainApp.VERSION));
+        assertFalse(updateService.isNewerVersion("1.0.0"));
         assertFalse(updateService.isNewerVersion("1.1.0"));
         assertFalse(updateService.isNewerVersion(null));
     }

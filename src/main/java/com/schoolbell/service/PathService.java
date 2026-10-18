@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 public class PathService {
@@ -31,6 +32,31 @@ public class PathService {
 
     public static String getDatabaseUrl() {
         return "jdbc:sqlite:" + getDatabasePath();
+    }
+
+    /** Shared storage used by the SYSTEM updater and the interactive app. */
+    public static Path getSharedUpdaterDirectory() {
+        String programData = System.getenv("PROGRAMDATA");
+        if (programData == null || programData.isBlank()) {
+            programData = new File(System.getProperty("java.io.tmpdir", ".")).getAbsolutePath();
+        }
+        return Path.of(programData, APP_FOLDER, "updater");
+    }
+
+    public static Path getSharedUpdaterDownloadsDirectory() {
+        return getSharedUpdaterDirectory().resolve("downloads");
+    }
+
+    public static Path getSharedUpdaterEventsDirectory() {
+        return getSharedUpdaterDirectory().resolve("events");
+    }
+
+    public static Path getSharedUpdaterPolicyFile() {
+        return getSharedUpdaterDirectory().resolve("update-policy.json");
+    }
+
+    public static Path getSharedUpdaterSafetyFile() {
+        return getSharedUpdaterDirectory().resolve("update-safety.json");
     }
 
     /**

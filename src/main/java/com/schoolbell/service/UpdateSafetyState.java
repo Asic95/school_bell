@@ -16,21 +16,25 @@ public final class UpdateSafetyState {
 
     private UpdateSafetyState() {}
 
-    public record State(long timestamp, long pid, boolean safe, String reason) {}
+    public record State(long timestamp, long pid, boolean safe, String reason, boolean autostart) {}
 
-    public static void write(boolean safe, String reason) {
+    public static void write(boolean safe, String reason, boolean autostart) {
         Path file = PathService.getSharedUpdaterSafetyFile();
         Path temp = file.resolveSibling(file.getFileName() + ".part");
         try {
             Files.createDirectories(file.getParent());
             State state = new State(System.currentTimeMillis(), ProcessHandle.current().pid(), safe,
-                    reason == null ? "" : reason);
+                    reason == null ? "" : reason, autostart);
             Files.writeString(temp, GSON.toJson(state), StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
             Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException ignored) {
             try { Files.deleteIfExists(temp); } catch (IOException ignoredAgain) {}
         }
+    }
+
+    public static void write(boolean safe, String reason) {
+        write(safe, reason, false);
     }
 
     public static State read() {

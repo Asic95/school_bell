@@ -211,7 +211,9 @@ public class UpdateAvailableDialog extends BasePremiumDialog {
             saveBtn.setGraphic(createSVGIcon(ICON_CHECK, Color.WHITE, 18));
             statusLabel.setVisible(true);
             statusLabel.setManaged(true);
-            statusLabel.setText("Оновлення завантажено та перевірено (SHA-256).");
+            progressBar.setVisible(false);
+            progressBar.setManaged(false);
+            statusLabel.setText("Оновлення завантажено й готове до встановлення.");
             statusLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SUCCESS + ";");
         } else if (updateService.getDownloadStatus() == UpdateService.DownloadStatus.DOWNLOADING &&
                 manifest.latestVersion().equalsIgnoreCase(updateService.getDownloadingVersion())) {
@@ -287,7 +289,7 @@ public class UpdateAvailableDialog extends BasePremiumDialog {
                         cancelBtn.setDisable(false);
                         saveBtn.setText("ВСТАНОВИТИ ЗАРАЗ");
                         saveBtn.setGraphic(createSVGIcon(ICON_CHECK, Color.WHITE, 18));
-                        statusLabel.setText("Завантаження завершено та перевірено (SHA-256).");
+                        statusLabel.setText("Завантаження завершено. Оновлення готове до встановлення.");
                         statusLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: 800; -fx-text-fill: " + COLOR_SUCCESS + ";");
                         updateService.removeProgressListener(progressListener);
                         updateService.removeStatusListener(this);

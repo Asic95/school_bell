@@ -206,7 +206,7 @@ public class UpdateBanner extends HBox {
             versionBadge.setText("v" + currentManifest.latestVersion());
             versionBadge.setStyle("-fx-background-color: " + COLOR_SUCCESS_PALE + "; -fx-background-radius: 99; -fx-padding: 1 8; -fx-font-size: 11px; -fx-font-weight: 800; -fx-border-color: " + COLOR_SUCCESS_BORDER + "; -fx-border-radius: 99; -fx-text-fill: " + COLOR_SUCCESS + ";");
 
-            messageLabel.setText(String.format("Оновлення v%s завантажено та перевірено (SHA-256). Натисніть «Встановити», щоб оновити програму.", currentManifest.latestVersion()));
+            messageLabel.setText(String.format("Оновлення v%s завантажено й готове до встановлення. Натисніть «Встановити», щоб оновити програму.", currentManifest.latestVersion()));
 
             updateBtn.setText("ВСТАНОВИТИ");
             updateBtn.setStyle(PREMIUM_BTN_SMALL_STYLE + "-fx-background-color: linear-gradient(to right, " + COLOR_SUCCESS + ", " + COLOR_TEAL_DARK + ");");

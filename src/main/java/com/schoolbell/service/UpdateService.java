@@ -3,6 +3,7 @@ package com.schoolbell.service;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.schoolbell.MainApp;
+import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,10 +19,15 @@ import java.security.MessageDigest;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class UpdateService {
     private static final Logger logger = LoggerFactory.getLogger(UpdateService.class);
+    public static final long UPDATE_INSTALL_DELAY_MS = 5L * 24 * 60 * 60 * 1000;
+    public static final String SETTING_FIRST_SEEN_AT = "update.first_seen_at";
+    public static final String SETTING_DEADLINE_AT = "update.deadline_at";
+    public static final String SETTING_INSTALL_PENDING = "update.install_pending";
     private static final String DEFAULT_MANIFEST_URL = "https://raw.githubusercontent.com/Asic95/school_bell/master/updates.json";
     private static final String MANIFEST_URL = System.getProperty(
             "schoolbell.update.manifest.url", DEFAULT_MANIFEST_URL);
@@ -30,7 +36,7 @@ public class UpdateService {
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
     private static final Gson gson = new Gson();
-    private Consumer<String> journalConsumer;
+    private BiConsumer<String, String> journalConsumer;
 
     public enum DownloadStatus {
         IDLE,
@@ -48,14 +54,28 @@ public class UpdateService {
     private final List<Consumer<DownloadStatus>> statusListeners = new CopyOnWriteArrayList<>();
     private final List<Consumer<Double>> progressListeners = new CopyOnWriteArrayList<>();
 
-    public void setJournalConsumer(Consumer<String> consumer) {
+    public void setJournalConsumer(BiConsumer<String, String> consumer) {
         this.journalConsumer = consumer;
     }
 
     private void logToJournal(String message) {
-        logger.info(message);
+        String normalized = message.toLowerCase(java.util.Locale.ROOT);
+        String level = normalized.contains("помил")
+                || normalized.contains("не вдалося")
+                || normalized.contains("не знайдено")
+                || normalized.contains("не вдалося")
+                ? "ERROR" : "INFO";
+        logToJournal(message, level);
+    }
+
+    private void logToJournal(String message, String level) {
+        switch (level) {
+            case "ERROR" -> logger.error(message);
+            case "WARNING" -> logger.warn(message);
+            default -> logger.info(message);
+        }
         if (journalConsumer != null) {
-            journalConsumer.accept(message);
+            journalConsumer.accept(message, level);
         }
     }
 
@@ -69,11 +89,19 @@ public class UpdateService {
 
         File dir = new File(tempDir);
         File[] leftovers = dir.listFiles(
-            (d, name) -> name.startsWith("schoolbell_update_") && name.endsWith(".exe")
+            (d, name) -> (name.startsWith("schoolbell_update_") || name.startsWith("schoolbell_updater_"))
+                    && name.endsWith(".exe")
         );
         if (leftovers == null || leftovers.length == 0) return;
 
+        // Keep recent installers so an interrupted update can be resumed instead
+        // of downloading the same large file again on the next launch.
+        long cleanupCutoff = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000;
+
         for (File f : leftovers) {
+            if (f.lastModified() > cleanupCutoff) {
+                continue;
+            }
             if (verifiedInstallerFile != null && f.getAbsolutePath().equalsIgnoreCase(verifiedInstallerFile.getAbsolutePath())) {
                 continue;
             }
@@ -87,6 +115,10 @@ public class UpdateService {
                 logger.warn("Очистка: помилка при видаленні інсталятора '{}': {}", f.getName(), e.getMessage());
             }
         }
+
+        // Clean shared updater storage (%ProgramData%/SchoolBell/updater)
+        Path activeToKeep = verifiedInstallerFile != null ? verifiedInstallerFile.toPath() : null;
+        com.schoolbell.updater.UpdaterStorageCleaner.cleanStorage(activeToKeep, msg -> logToJournal(msg, "INFO"));
     }
 
     public DownloadStatus getDownloadStatus() {
@@ -172,12 +204,16 @@ public class UpdateService {
         notifyStatus(DownloadStatus.DOWNLOADING);
         logToJournal("Початок фонового завантаження оновлення " + manifest.latestVersion() + "...");
 
-        activeDownloadFuture = downloadUpdate(manifest, this::notifyProgress)
+        activeDownloadFuture = CompletableFuture
+                .supplyAsync(() -> findExistingVerifiedInstaller(manifest))
+                .thenCompose(existing -> existing != null
+                        ? CompletableFuture.completedFuture(existing)
+                        : downloadUpdate(manifest, this::notifyProgress))
                 .thenApply(file -> {
                     this.verifiedInstallerFile = file;
                     this.downloadProgress = 1.0;
                     notifyStatus(DownloadStatus.VERIFIED);
-                    logToJournal("Фонове завантаження завершено та перевірено (SHA-256). Оновлення готове до встановлення!");
+                    logToJournal("Фонове завантаження завершено. Оновлення готове до встановлення!");
                     return file;
                 }).exceptionally(ex -> {
                     this.verifiedInstallerFile = null;
@@ -210,6 +246,32 @@ public class UpdateService {
             return false;
         }
         String untilStr = DatabaseManager.getSetting(SETTING_SNOOZED_UNTIL, "0");
+        /* if (Boolean.parseBoolean(System.getProperty("schoolbell.direct.update", "true"))) {
+            try {
+                ProcessBuilder directInstaller = new ProcessBuilder(
+                        installerFile.getAbsolutePath(),
+                        "/CLOSEAPPLICATIONS",
+                        "/NORESTART"
+                );
+                directInstaller.directory(installerFile.getParentFile());
+                directInstaller.start();
+                clearAutomaticInstallState();
+                logToJournal("Запущено перевірений інсталятор оновлення. SchoolBell завершує роботу.");
+                Platform.exit();
+                Thread shutdownFallback = new Thread(() -> {
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException ignored) {
+                        Thread.currentThread().interrupt();
+                    }
+                    System.exit(0);
+                }, "schoolbell-update-shutdown-fallback");
+                shutdownFallback.setDaemon(true);
+                shutdownFallback.start();
+            } catch (IOException e) {
+                logToJournal("Не вдалося запустити інсталятор оновлення: " + e.getMessage(), "ERROR");
+            }
+            return; */
         try {
             long until = Long.parseLong(untilStr);
             return System.currentTimeMillis() < until;
@@ -272,6 +334,7 @@ public class UpdateService {
                     logToJournal("Поточна версія: " + currentVersion + ", Доступна: " + latestVersion);
 
                     if (isNewerVersion(latestVersion)) {
+                        trackUpdatePolicy(manifest);
                         logToJournal("Виявлено нову версію! Потрібне оновлення.");
                         return manifest;
                     } else {
@@ -288,6 +351,30 @@ public class UpdateService {
                 throw new java.util.concurrent.CompletionException(e);
             }
         });
+    }
+
+    private void trackUpdatePolicy(UpdateManifest manifest) {
+        if (manifest == null || manifest.latestVersion() == null || manifest.critical()) return;
+
+        long now = System.currentTimeMillis();
+        UpdatePolicyState.State state = UpdatePolicyState.observe(
+                manifest.latestVersion(), now, UPDATE_INSTALL_DELAY_MS);
+        DatabaseManager.saveSetting(SETTING_FIRST_SEEN_AT, String.valueOf(state.first_seen_at()));
+        DatabaseManager.saveSetting(SETTING_DEADLINE_AT, String.valueOf(state.deadline_at()));
+
+        boolean pending = state.install_pending() || now >= state.deadline_at();
+        if (pending && !state.install_pending()) {
+            UpdatePolicyState.markPending(manifest.latestVersion(), now, UPDATE_INSTALL_DELAY_MS);
+            logToJournal("Автоматичне встановлення після 5 днів очікує безпечного моменту.", "WARNING");
+        }
+        DatabaseManager.saveSetting(SETTING_INSTALL_PENDING, String.valueOf(pending));
+    }
+
+    public boolean isAutomaticInstallPending(UpdateManifest manifest) {
+        if (manifest == null || manifest.latestVersion() == null || manifest.critical()) return false;
+        UpdatePolicyState.State state = UpdatePolicyState.read();
+        return state != null && manifest.latestVersion().equalsIgnoreCase(state.version())
+                && (state.install_pending() || System.currentTimeMillis() >= state.deadline_at());
     }
 
     public boolean isNewerVersion(String latestVersion) {
@@ -316,6 +403,50 @@ public class UpdateService {
         }
     }
 
+    private File findExistingVerifiedInstaller(UpdateManifest manifest) {
+        if (manifest.checksum() == null || manifest.checksum().isBlank()) {
+            return null;
+        }
+
+        File[] sharedCandidates = PathService.getSharedUpdaterDownloadsDirectory().toFile().listFiles(
+                (dir, name) -> name.startsWith("SchoolBell_Setup_v") && name.endsWith(".exe"));
+        File sharedVerified = findMatchingInstaller(sharedCandidates, manifest);
+        if (sharedVerified != null) return sharedVerified;
+
+        String tempDir = System.getProperty("java.io.tmpdir");
+        if (tempDir == null) return null;
+        File[] candidates = new File(tempDir).listFiles(
+                (dir, name) -> name.startsWith("schoolbell_update_") && name.endsWith(".exe"));
+        if (candidates == null) return null;
+
+        for (File candidate : candidates) {
+            try {
+                if (candidate.isFile() && manifest.checksum().equalsIgnoreCase(calculateChecksum(candidate.toPath()))) {
+                    logToJournal("Знайдено раніше завантажене оновлення. Повторне завантаження не потрібне.");
+                    return candidate;
+                }
+            } catch (Exception e) {
+                logger.debug("Не вдалося перевірити залишковий інсталятор {}: {}", candidate.getName(), e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    private File findMatchingInstaller(File[] candidates, UpdateManifest manifest) {
+        if (candidates == null) return null;
+        for (File candidate : candidates) {
+            try {
+                if (candidate.isFile() && manifest.checksum().equalsIgnoreCase(calculateChecksum(candidate.toPath()))) {
+                    logToJournal("Знайдено раніше завантажене оновлення. Повторне завантаження не потрібне.");
+                    return candidate;
+                }
+            } catch (Exception e) {
+                logger.debug("Не вдалося перевірити інсталятор {}: {}", candidate.getName(), e.getMessage());
+            }
+        }
+        return null;
+    }
+
     public CompletableFuture<File> downloadUpdate(UpdateManifest manifest, Consumer<Double> progressConsumer) {
         return CompletableFuture.supplyAsync(() -> {
             Path tempFile = null;
@@ -332,7 +463,11 @@ public class UpdateService {
                 }
 
                 long totalBytes = response.headers().firstValueAsLong("Content-Length").orElse(-1L);
-                tempFile = Files.createTempFile("schoolbell_update_", ".exe");
+                Path downloadDirectory = PathService.getSharedUpdaterDownloadsDirectory();
+                Files.createDirectories(downloadDirectory);
+                Path target = downloadDirectory.resolve(
+                        "SchoolBell_Setup_v" + sanitizeVersion(manifest.latestVersion()) + ".exe");
+                tempFile = target.resolveSibling(target.getFileName() + ".part");
                 
                 try (InputStream is = response.body();
                      OutputStream os = Files.newOutputStream(tempFile)) {
@@ -372,7 +507,9 @@ public class UpdateService {
                     }
                 }
 
-                return tempFile.toFile();
+                Files.move(tempFile, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                        java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+                return target.toFile();
             } catch (Exception e) {
                 if (tempFile != null) {
                     try { Files.deleteIfExists(tempFile); } catch (IOException ignored) {}
@@ -402,7 +539,38 @@ public class UpdateService {
         return hexString.toString();
     }
 
+    private static String sanitizeVersion(String version) {
+        return version == null ? "unknown" : version.replaceAll("[^0-9A-Za-z._-]", "_");
+    }
+
     public void installUpdate(File installerFile) {
+        if (Boolean.parseBoolean(System.getProperty("schoolbell.direct.update", "true"))) {
+            try {
+                ProcessBuilder directInstaller = new ProcessBuilder(
+                        installerFile.getAbsolutePath(),
+                        "/CLOSEAPPLICATIONS",
+                        "/NORESTART"
+                );
+                directInstaller.directory(installerFile.getParentFile());
+                directInstaller.start();
+                logToJournal("Запущено перевірений інсталятор оновлення. SchoolBell завершує роботу.");
+                Platform.exit();
+                Thread shutdownFallback = new Thread(() -> {
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException ignored) {
+                        Thread.currentThread().interrupt();
+                    }
+                    System.exit(0);
+                }, "schoolbell-update-shutdown-fallback");
+                shutdownFallback.setDaemon(true);
+                shutdownFallback.start();
+            } catch (IOException e) {
+                logToJournal("Не вдалося запустити інсталятор оновлення: " + e.getMessage(), "ERROR");
+            }
+            return;
+        }
+
         if (installerFile == null || !installerFile.isFile()) {
             logToJournal("Не вдалося запустити оновлення: перевірений інсталятор не знайдено.");
             return;
@@ -415,18 +583,65 @@ public class UpdateService {
                 return;
             }
 
-            ProcessBuilder pb = new ProcessBuilder(
-                    updater.getAbsolutePath(),
+            File mainExecutable = resolveMainExecutable();
+            Path appRoot = updater.toPath().toAbsolutePath().normalize().getParent();
+            Path runtimeJava = Path.of(System.getProperty("java.home", ""), "bin", "javaw.exe");
+            if (!Files.isRegularFile(runtimeJava)) {
+                runtimeJava = appRoot.resolve("runtime").resolve("bin").resolve("javaw.exe");
+            }
+            Path appJar;
+            try (java.util.stream.Stream<Path> appFiles = Files.list(appRoot.resolve("app"))) {
+                appJar = appFiles
+                        .filter(path -> path.getFileName().toString().startsWith("untitled-"))
+                        .filter(path -> path.getFileName().toString().endsWith(".jar"))
+                        .findFirst()
+                        .orElseThrow(() -> new IOException("SchoolBell JAR не знайдено"));
+            }
+            if (!Files.isRegularFile(runtimeJava)) {
+                throw new IOException("Вбудований Java runtime не знайдено. Перевірено: " + runtimeJava);
+            }
+
+            java.util.List<String> updaterCommand = new java.util.ArrayList<>(java.util.List.of(
+                    runtimeJava.toString(),
+                    "-Dschoolbell.version=" + MainApp.VERSION,
+                    "-Dschoolbell.update.manifest.url=" + System.getProperty(
+                            "schoolbell.update.manifest.url", ""),
+                    "-cp", appJar.toString(),
+                    "com.schoolbell.updater.SchoolBellUpdater",
                     "--installer", installerFile.getAbsolutePath(),
                     "--wait-pid", String.valueOf(ProcessHandle.current().pid())
-            );
-            pb.directory(updater.getParentFile());
+            ));
+            if (mainExecutable != null && mainExecutable.isFile()) {
+                updaterCommand.add("--main-exe");
+                updaterCommand.add(mainExecutable.getAbsolutePath());
+            }
+
+            ProcessBuilder pb = new ProcessBuilder(updaterCommand);
+            pb.directory(appRoot.toFile());
             pb.start();
+            clearAutomaticInstallState();
             logToJournal("Передано оновлення окремому updater-процесу. SchoolBell завершує роботу.");
-            System.exit(0);
+            Platform.exit();
+            Thread shutdownFallback = new Thread(() -> {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                }
+                System.exit(0);
+            }, "schoolbell-update-shutdown-fallback");
+            shutdownFallback.setDaemon(true);
+            shutdownFallback.start();
         } catch (IOException e) {
             logToJournal("Не вдалося запустити SchoolBellUpdater.exe: " + e.getMessage());
         }
+    }
+
+    public void clearAutomaticInstallState() {
+        UpdatePolicyState.clear();
+        DatabaseManager.saveSetting(SETTING_FIRST_SEEN_AT, "0");
+        DatabaseManager.saveSetting(SETTING_DEADLINE_AT, "0");
+        DatabaseManager.saveSetting(SETTING_INSTALL_PENDING, "false");
     }
 
     private File resolveUpdaterExecutable() {
@@ -453,5 +668,30 @@ public class UpdateService {
         if (workingDirectorySibling.isFile()) return workingDirectorySibling;
 
         return null;
+    }
+
+    private File resolveMainExecutable() {
+        String command = ProcessHandle.current().info().command().orElse(null);
+        if (command != null) {
+            File currentExecutable = new File(command);
+            if (currentExecutable.isFile() && currentExecutable.getName().equalsIgnoreCase("SchoolBell.exe")) {
+                return currentExecutable;
+            }
+        }
+
+        try {
+            Path codeLocation = Path.of(UpdateService.class.getProtectionDomain()
+                    .getCodeSource().getLocation().toURI()).toAbsolutePath();
+            Path appDirectory = Files.isDirectory(codeLocation) ? codeLocation : codeLocation.getParent();
+            if (appDirectory != null && "app".equalsIgnoreCase(String.valueOf(appDirectory.getFileName()))) {
+                File main = appDirectory.getParent().resolve("SchoolBell.exe").toFile();
+                if (main.isFile()) return main;
+            }
+        } catch (Exception ignored) {
+            // Fall through to the working-directory lookup below.
+        }
+
+        File workingDirectoryMain = new File(System.getProperty("user.dir", "."), "SchoolBell.exe");
+        return workingDirectoryMain.isFile() ? workingDirectoryMain : null;
     }
 }

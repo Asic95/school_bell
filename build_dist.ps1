@@ -58,6 +58,15 @@ $updaterLauncherProperties = @(
 )
 Set-Content -Path "jpackage_input\updater-launcher.properties" -Value $updaterLauncherProperties -Encoding ASCII
 
+$scheduledUpdaterLauncherProperties = @(
+    "main-jar=$MAIN_JAR",
+    "main-class=com.schoolbell.updater.SchoolBellUpdater",
+    "arguments=--scheduled",
+    "java-options=-Dschoolbell.version=$JPACKAGE_VERSION",
+    "java-options=-Dschoolbell.update.manifest.url=$UPDATE_MANIFEST_URL"
+)
+Set-Content -Path "jpackage_input\updater-scheduled-launcher.properties" -Value $scheduledUpdaterLauncherProperties -Encoding ASCII
+
 Write-Host "`n--- Step 3: Packaging as App Image (EXE + Runtime) ---" -ForegroundColor Cyan
 if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
 
@@ -68,6 +77,7 @@ if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
     --main-jar $MAIN_JAR `
     --main-class $MAIN_CLASS `
     --add-launcher SchoolBellUpdater=jpackage_input\updater-launcher.properties `
+    --add-launcher SchoolBellUpdaterScheduled=jpackage_input\updater-scheduled-launcher.properties `
     --java-options "-Dschoolbell.update.manifest.url=$UPDATE_MANIFEST_URL" `
     --vendor $VENDOR `
     --app-version $JPACKAGE_VERSION `
@@ -75,6 +85,16 @@ if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
     --icon $ICON
 
 if ($LASTEXITCODE -ne 0) { throw "jpackage packaging failed" }
+
+# jpackage's runtime image contains the JVM DLLs but may omit the java/javaw
+# launcher binaries. The manual updater starts the bundled runtime directly,
+# so include the matching launcher from the same JDK used for packaging.
+$runtimeBin = "dist\$NAME\runtime\bin"
+Copy-Item (Join-Path $JAVA_HOME "bin\javaw.exe") (Join-Path $runtimeBin "javaw.exe") -Force
+Copy-Item (Join-Path $JAVA_HOME "bin\java.exe") (Join-Path $runtimeBin "java.exe") -Force
+if (-not (Test-Path (Join-Path $runtimeBin "javaw.exe"))) {
+    throw "Failed to include javaw.exe in the bundled runtime"
+}
 
 Write-Host "`n--- Step 4: Building Installer (Inno Setup) ---" -ForegroundColor Cyan
 $ISCC = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"

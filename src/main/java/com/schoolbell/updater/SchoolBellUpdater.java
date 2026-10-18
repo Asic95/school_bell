@@ -2,6 +2,9 @@ package com.schoolbell.updater;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+import com.schoolbell.service.PathService;
+import com.schoolbell.service.UpdatePolicyState;
+import com.schoolbell.service.UpdateSafetyState;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -15,13 +18,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -29,6 +31,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -57,7 +60,6 @@ public final class SchoolBellUpdater {
     private static final DateTimeFormatter LOG_TIME =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    private final Path appData;
     private final Path updaterDirectory;
     private final Path logFile;
     private final Path lockFile;
@@ -68,12 +70,7 @@ public final class SchoolBellUpdater {
     private final Gson gson = new Gson();
 
     private SchoolBellUpdater() {
-        String appDataValue = System.getenv("APPDATA");
-        if (appDataValue == null || appDataValue.isBlank()) {
-            appDataValue = System.getProperty("user.home", ".");
-        }
-        appData = Path.of(appDataValue, APP_NAME);
-        updaterDirectory = appData.resolve("updater");
+        updaterDirectory = PathService.getSharedUpdaterDirectory();
         logFile = updaterDirectory.resolve("updater.log");
         lockFile = updaterDirectory.resolve("updater.lock");
     }
@@ -103,6 +100,9 @@ public final class SchoolBellUpdater {
             Arguments arguments = Arguments.parse(args);
             log("INFO", "Updater запущено. Режим: " + (arguments.scheduled ? "scheduled" : "install"));
 
+            // Periodic cleanup of stale .part files, obsolete installers and rotated logs
+            UpdaterStorageCleaner.cleanStorage(arguments.installer, msg -> log("INFO", msg));
+
             if (arguments.installer != null) {
                 installPassedInstaller(arguments);
             } else if (arguments.scheduled) {
@@ -120,30 +120,53 @@ public final class SchoolBellUpdater {
         }
 
         if (arguments.waitPid > 0) {
-            waitForProcessToExit(arguments.waitPid);
+            try {
+                waitForProcessToExit(arguments.waitPid);
+            } catch (IOException e) {
+                log("WARN", "SchoolBell не завершилася штатно: " + safeMessage(e) + ". Спроба примусового завершення.");
+                terminateRemainingSchoolBellProcesses();
+            }
         }
+        terminateRemainingSchoolBellProcesses();
         waitForSchoolBellProcessToExit();
 
         log("INFO", "Запуск інсталятора: " + installer);
+        Path installerLog = updaterDirectory.resolve("installer.log");
+        log("INFO", "Параметри інсталятора: /VERYSILENT /SUPPRESSMSGBOXES /CLOSEAPPLICATIONS /NORESTART /LOG=\""
+                + installerLog + "\"");
         Process installerProcess = new ProcessBuilder(
                 installer.toString(),
                 "/VERYSILENT",
+                "/SUPPRESSMSGBOXES",
                 "/CLOSEAPPLICATIONS",
-                "/NORESTART"
+                "/NORESTART",
+                "/LOG=" + installerLog.toAbsolutePath()
         ).directory(installer.getParent().toFile()).start();
 
+        log("INFO", "Процес інсталятора запущено, PID=" + installerProcess.pid() + ".");
         int exitCode = installerProcess.waitFor();
         log("INFO", "Інсталятор завершився з кодом: " + exitCode);
         if (exitCode != 0) {
             throw new IOException("Інсталятор завершився з кодом " + exitCode);
         }
 
-        Path mainExecutable = resolveMainExecutable();
-        if (mainExecutable != null && Files.isRegularFile(mainExecutable)) {
-            log("INFO", "Запуск оновленої SchoolBell: " + mainExecutable);
-            new ProcessBuilder(mainExecutable.toString()).directory(mainExecutable.getParent().toFile()).start();
+        // Do NOT launch SchoolBell.exe when running as SYSTEM (Session 0).
+        // GUI applications cannot display windows in the non-interactive session.
+        // The user will see the updated version the next time they open SchoolBell normally.
+        if (isNonInteractiveSession()) {
+            log("INFO", "Updater працює в неінтерактивній сесії (SYSTEM). "
+                    + "SchoolBell.exe не запускається — користувач побачить оновлену версію при наступному відкритті.");
         } else {
-            log("WARN", "Не вдалося автоматично знайти SchoolBell.exe після оновлення.");
+            Path mainExecutable = resolveMainExecutable(arguments);
+            if (mainExecutable != null && Files.isRegularFile(mainExecutable)) {
+                log("INFO", "Запуск оновленої SchoolBell: " + mainExecutable);
+                new ProcessBuilder(mainExecutable.toString()).directory(mainExecutable.getParent().toFile()).start();
+            } else {
+                log("WARN", "Не вдалося автоматично знайти SchoolBell.exe після оновлення.");
+            }
+        }
+        if (arguments.selfDelete != null) {
+            scheduleSelfDelete(arguments.selfDelete);
         }
         logToSystemJournal("Оновлення SchoolBell успішно встановлено.", "INFO");
     }
@@ -165,11 +188,12 @@ public final class SchoolBellUpdater {
             return;
         }
 
-        Path downloadDirectory = updaterDirectory.resolve("downloads");
+        Path downloadDirectory = PathService.getSharedUpdaterDownloadsDirectory();
         Files.createDirectories(downloadDirectory);
         Path target = downloadDirectory.resolve("SchoolBell_Setup_v" + sanitizeVersion(manifest.latestVersion) + ".exe");
         if (Files.isRegularFile(target) && manifest.checksum != null &&
                 manifest.checksum.equalsIgnoreCase(sha256(target))) {
+            maybeInstallAfterDeadline(manifest, target);
             log("INFO", "Оновлення " + manifest.latestVersion + " уже завантажене та перевірене.");
             return;
         }
@@ -185,6 +209,75 @@ public final class SchoolBellUpdater {
         Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         log("INFO", "Оновлення " + manifest.latestVersion + " завантажене та перевірене.");
         logToSystemJournal("Updater завантажив оновлення " + manifest.latestVersion + ".", "INFO");
+        UpdaterStorageCleaner.cleanStorage(target, msg -> log("INFO", msg));
+        maybeInstallAfterDeadline(manifest, target);
+    }
+
+    private void maybeInstallAfterDeadline(Manifest manifest, Path target) throws Exception {
+        if (manifest == null || manifest.critical || !shouldInstallAfterDeadline(manifest.latestVersion)) return;
+        if (!isSafeToInstall()) {
+            log("INFO", "П'ятиденний дедлайн минув, але безпечного моменту немає. Спроба буде повторена пізніше.");
+            return;
+        }
+
+        log("INFO", "П'ятиденний дедлайн минув, безпечний момент підтверджено. Починаємо автоматичне встановлення.");
+        UpdateSafetyState.State safety = UpdateSafetyState.read();
+        if (safety != null && safety.autostart()) {
+            Path flag = updaterDirectory.resolve("restart.flag");
+            try {
+                Files.writeString(flag, "1", StandardCharsets.UTF_8);
+                log("INFO", "Створено restart.flag: у програмі увімкнено автозапуск, після оновлення вона перезапуститься.");
+            } catch (IOException e) {
+                log("WARN", "Не вдалося створити restart.flag: " + e.getMessage());
+            }
+        }
+        terminateRemainingSchoolBellProcesses();
+        waitForSchoolBellProcessToExit();
+        launchInstallerDetached(target);
+        log("INFO", "Автоматичний updater завершився після запуску інсталятора. Завершення установки записується в installer.log.");
+    }
+
+    /**
+     * The scheduled updater is itself installed in the directory that Inno Setup
+     * replaces. Let the updater exit first so the installer can replace its files.
+     */
+    private void launchInstallerDetached(Path installer) throws IOException {
+        Path installerLog = updaterDirectory.resolve("installer.log");
+        Process process = new ProcessBuilder(
+                installer.toAbsolutePath().toString(),
+                "/VERYSILENT",
+                "/SUPPRESSMSGBOXES",
+                "/CLOSEAPPLICATIONS",
+                "/NORESTART",
+                "/LOG=" + installerLog.toAbsolutePath()
+        ).directory(installer.getParent().toFile())
+                .redirectInput(ProcessBuilder.Redirect.INHERIT)
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .start();
+        log("INFO", "Від’єднаний процес інсталятора запущено, PID=" + process.pid()
+                + ". Updater завершується для заміни своїх файлів.");
+    }
+
+    private boolean shouldInstallAfterDeadline(String version) {
+        long now = System.currentTimeMillis();
+        UpdatePolicyState.State state = UpdatePolicyState.read();
+        if (state == null || version == null || !version.equalsIgnoreCase(state.version())) {
+            state = UpdatePolicyState.observe(version, now, 5L * 24 * 60 * 60 * 1000);
+        }
+        if (now >= state.deadline_at() && !state.install_pending()) {
+            state = UpdatePolicyState.markPending(version, now, 5L * 24 * 60 * 60 * 1000);
+        }
+        return state.install_pending() || now >= state.deadline_at();
+    }
+
+    private boolean isSafeToInstall() {
+        boolean schoolBellRunning = ProcessHandle.allProcesses().anyMatch(this::isSchoolBellProcess);
+        if (!schoolBellRunning) return true;
+        UpdateSafetyState.State safety = UpdateSafetyState.read();
+        if (safety == null) return false;
+        long age = System.currentTimeMillis() - safety.timestamp();
+        return safety.safe() && age >= 0 && age <= 30_000;
     }
 
     private Manifest fetchManifest() throws Exception {
@@ -235,6 +328,31 @@ public final class SchoolBellUpdater {
         throw new IOException("SchoolBell не завершилася протягом дозволеного часу.");
     }
 
+    private void terminateRemainingSchoolBellProcesses() throws InterruptedException {
+        Process taskKill = null;
+        try {
+            taskKill = new ProcessBuilder("taskkill", "/F", "/T", "/IM", MAIN_EXE)
+                    .redirectErrorStream(true)
+                    .start();
+            // taskkill.exe writes localized console text using the Windows OEM code page,
+            // not the JVM's UTF-8/default charset. Decode it explicitly to keep updater.log readable.
+            String output = new String(taskKill.getInputStream().readAllBytes(), Charset.forName("IBM866")).trim();
+            int exitCode = taskKill.waitFor();
+            if (exitCode == 0) {
+                log("INFO", "Залишковий процес SchoolBell завершено перед встановленням оновлення.");
+                logToSystemJournal("Перед встановленням оновлення було примусово завершено залишковий процес SchoolBell.", "WARNING");
+            } else if (!output.isBlank()) {
+                log("INFO", "Активних процесів SchoolBell для завершення не знайдено: " + output);
+            }
+        } catch (IOException e) {
+            log("WARN", "Не вдалося виконати примусове завершення SchoolBell: " + safeMessage(e));
+        } finally {
+            if (taskKill != null && taskKill.isAlive()) {
+                taskKill.destroyForcibly();
+            }
+        }
+    }
+
     private void waitForHandle(ProcessHandle handle) throws InterruptedException, IOException {
         Instant deadline = Instant.now().plus(PROCESS_WAIT_TIMEOUT);
         while (handle.isAlive() && Instant.now().isBefore(deadline)) {
@@ -251,7 +369,11 @@ public final class SchoolBellUpdater {
                 || command.equalsIgnoreCase(MAIN_EXE);
     }
 
-    private Path resolveMainExecutable() {
+    private Path resolveMainExecutable(Arguments arguments) {
+        if (arguments.mainExecutable != null && Files.isRegularFile(arguments.mainExecutable)) {
+            return arguments.mainExecutable.toAbsolutePath().normalize();
+        }
+
         String updaterCommand = ProcessHandle.current().info().command().orElse(null);
         if (updaterCommand != null) {
             Path sibling = Path.of(updaterCommand).toAbsolutePath().getParent().resolve(MAIN_EXE);
@@ -273,6 +395,41 @@ public final class SchoolBellUpdater {
         Path currentDirectory = Path.of(System.getProperty("user.dir", ".")).toAbsolutePath();
         Path sibling = currentDirectory.resolve(MAIN_EXE);
         return Files.isRegularFile(sibling) ? sibling : null;
+    }
+
+    private void scheduleSelfDelete(Path selfDelete) {
+        try {
+            String command = "ping 127.0.0.1 -n 3 > nul & del /f /q \""
+                    + selfDelete.toAbsolutePath() + "\"";
+            new ProcessBuilder("cmd.exe", "/c", command).start();
+        } catch (IOException e) {
+            log("WARN", "Не вдалося запланувати очищення тимчасового updater-файлу: " + safeMessage(e));
+        }
+    }
+    /**
+     * Detects whether the updater is running in the non-interactive Session 0
+     * (e.g. as a SYSTEM scheduled task). GUI applications cannot display windows
+     * in Session 0, so we must not attempt to launch SchoolBell.exe there.
+     *
+     * Detection: on Windows, {@code query process} or the {@code SessionName}
+     * environment variable is unreliable from SYSTEM tasks. Instead we check
+     * whether the current user name is literally {@code "SYSTEM"} (or the
+     * localized equivalent) — scheduled tasks in the .iss are created with
+     * {@code /RU SYSTEM}.
+     */
+    private static boolean isNonInteractiveSession() {
+        String userName = System.getProperty("user.name", "");
+        if (userName.equalsIgnoreCase("SYSTEM") || userName.equalsIgnoreCase("СИСТЕМА")) {
+            return true;
+        }
+        // Fallback: check the Windows session name environment variable.
+        // In an interactive logon session it is typically "Console" or an RDP name;
+        // in Session 0 it is usually "Services" or absent.
+        String sessionName = System.getenv("SESSIONNAME");
+        if (sessionName != null && sessionName.equalsIgnoreCase("Services")) {
+            return true;
+        }
+        return false;
     }
 
     private String readCurrentVersion() {
@@ -339,17 +496,17 @@ public final class SchoolBellUpdater {
     }
 
     private void logToSystemJournal(String message, String level) {
-        Path database = appData.resolve("school_bell.db");
-        if (!Files.isRegularFile(database)) return;
-        String url = "jdbc:sqlite:" + database.toAbsolutePath();
-        try (Connection connection = DriverManager.getConnection(url);
-             PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO system_logs (level, message, timestamp) VALUES (?, ?, datetime('now', 'localtime'))")) {
-            statement.setString(1, level);
-            statement.setString(2, message);
-            statement.executeUpdate();
+        Path eventsDirectory = PathService.getSharedUpdaterEventsDirectory();
+        try {
+            Files.createDirectories(eventsDirectory);
+            Path temporary = eventsDirectory.resolve(UUID.randomUUID() + ".event.part");
+            Path event = eventsDirectory.resolve(temporary.getFileName().toString().replace(".part", ""));
+            Files.writeString(temporary, level + System.lineSeparator() + message + System.lineSeparator(),
+                    java.nio.charset.StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+            Files.move(temporary, event, StandardCopyOption.ATOMIC_MOVE);
         } catch (Exception e) {
-            log("WARN", "Не вдалося записати подію в системний журнал: " + safeMessage(e));
+            log("WARN", "Не вдалося передати подію в системний журнал: " + safeMessage(e));
         }
     }
 
@@ -360,11 +517,14 @@ public final class SchoolBellUpdater {
     private record Manifest(
             @SerializedName("latest_version") String latestVersion,
             @SerializedName("download_url") String downloadUrl,
-            String checksum
+            String checksum,
+            boolean critical
     ) {}
 
     private static final class Arguments {
         private Path installer;
+        private Path mainExecutable;
+        private Path selfDelete;
         private long waitPid;
         private boolean scheduled;
 
@@ -380,6 +540,12 @@ public final class SchoolBellUpdater {
                             try { result.waitPid = Long.parseLong(args[++i]); }
                             catch (NumberFormatException ignored) { result.waitPid = 0; }
                         }
+                    }
+                    case "--main-exe" -> {
+                        if (i + 1 < args.length) result.mainExecutable = Path.of(args[++i]);
+                    }
+                    case "--self-delete" -> {
+                        if (i + 1 < args.length) result.selfDelete = Path.of(args[++i]);
                     }
                     case "--scheduled" -> result.scheduled = true;
                     default -> { }

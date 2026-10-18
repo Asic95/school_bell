@@ -35,22 +35,75 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "{#DistDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
+[Dirs]
+Name: "{commonappdata}\{#AppName}\updater"; Permissions: users-modify
+Name: "{commonappdata}\{#AppName}\updater\downloads"; Permissions: users-modify
+Name: "{commonappdata}\{#AppName}\updater\events"; Permissions: users-modify
+
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{sys}\schtasks.exe"; Parameters: "/Create /TN ""SchoolBell\UpdaterAtLogon"" /TR """"""{app}\SchoolBellUpdater.exe"" --scheduled"" /SC ONLOGON /RL HIGHEST /F"; Flags: runhidden waituntilterminated
-Filename: "{sys}\schtasks.exe"; Parameters: "/Create /TN ""SchoolBell\UpdaterEvery6Hours"" /TR """"""{app}\SchoolBellUpdater.exe"" --scheduled"" /SC HOURLY /MO 6 /RL HIGHEST /F"; Flags: runhidden waituntilterminated
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-Filename: "{app}\{#AppExeName}"; Flags: nowait; Check: IsSilent
 
 [UninstallRun]
-Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN ""SchoolBell\UpdaterAtLogon"" /F"; Flags: runhidden waituntilterminated
-Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN ""SchoolBell\UpdaterEvery6Hours"" /F"; Flags: runhidden waituntilterminated
+Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN ""SchoolBellUpdaterAtLogon"" /F"; Flags: runhidden waituntilterminated; RunOnceId: "DeleteSchoolBellUpdaterAtLogon"
+Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN ""SchoolBellUpdaterEvery6Hours"" /F"; Flags: runhidden waituntilterminated; RunOnceId: "DeleteSchoolBellUpdaterEvery6Hours"
 
 [Code]
-function IsSilent: Boolean;
+procedure RunScheduledTaskCommand(const Parameters, ActionName: String);
+var
+  ResultCode: Integer;
 begin
-  Result := WizardSilent;
+  Log(ActionName + ' — параметри: ' + Parameters);
+  if Exec(ExpandConstant('{sys}\schtasks.exe'), Parameters, '', SW_HIDE,
+    ewWaitUntilTerminated, ResultCode) then begin
+    if ResultCode = 0 then
+      Log(ActionName + ' успішно. Код: 0')
+    else
+      Log(ActionName + ' завершилося з кодом: ' + IntToStr(ResultCode));
+  end else
+    Log('Не вдалося запустити schtasks для операції "' + ActionName + '".');
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  UpdaterExe, CreateAtLogon, CreateEvery6h, RestartFlag: String;
+  ResultCode: Integer;
+begin
+  if CurStep = ssPostInstall then begin
+    UpdaterExe := ExpandConstant('{app}\SchoolBellUpdaterScheduled.exe');
+
+    { Remove task names created by older installer builds. }
+    RunScheduledTaskCommand('/Delete /TN "SchoolBell\UpdaterAtLogon" /F',
+      'Видалення застарілого завдання SchoolBell\UpdaterAtLogon');
+    RunScheduledTaskCommand('/Delete /TN "SchoolBell\UpdaterEvery6Hours" /F',
+      'Видалення застарілого завдання SchoolBell\UpdaterEvery6Hours');
+
+    { schtasks /TR requires outer quotes AND backslash-escaped inner quotes }
+    { when the command path contains spaces: /TR "\"C:\Path With Spaces\app.exe\"" }
+    CreateAtLogon := '/Create /TN "SchoolBellUpdaterAtLogon"'
+      + ' /TR ' + #34 + '\"' + UpdaterExe + '\"' + #34
+      + ' /SC ONLOGON /RU SYSTEM /RL HIGHEST /F';
+    CreateEvery6h := '/Create /TN "SchoolBellUpdaterEvery6Hours"'
+      + ' /TR ' + #34 + '\"' + UpdaterExe + '\"' + #34
+      + ' /SC HOURLY /MO 6 /RU SYSTEM /RL HIGHEST /F';
+
+    RunScheduledTaskCommand(CreateAtLogon,
+      'Створення завдання SchoolBellUpdaterAtLogon');
+    RunScheduledTaskCommand(CreateEvery6h,
+      'Створення завдання SchoolBellUpdaterEvery6Hours');
+
+    { Check if SchoolBell was running with autostart enabled before the update. }
+    { If restart.flag exists, restart SchoolBell.exe in the active user's session. }
+    RestartFlag := ExpandConstant('{commonappdata}\{#AppName}\updater\restart.flag');
+    if FileExists(RestartFlag) then begin
+      DeleteFile(RestartFlag);
+      Log('Знайдено restart.flag. Запуск SchoolBell.exe для активного користувача...');
+      Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+        '-ExecutionPolicy Bypass -NoProfile -Command "$u = (Get-CimInstance Win32_ComputerSystem).UserName; if ($u) { schtasks /Create /TN \"SchoolBellRestart\" /TR \"\"\"' + ExpandConstant('{app}\SchoolBell.exe') + '\"\"\" /SC ONCE /ST 23:59 /RU $u /IT /F; schtasks /Run /TN \"SchoolBellRestart\"; Start-Sleep -Seconds 2; schtasks /Delete /TN \"SchoolBellRestart\" /F }"',
+        '', SW_HIDE, ewNoWait, ResultCode);
+    end;
+  end;
 end;

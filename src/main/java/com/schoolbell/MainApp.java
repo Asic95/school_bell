@@ -107,10 +107,11 @@ public class MainApp extends Application {
 
         // 2. Initialize Core Services (Lightweight)
         DatabaseManager.initialize();
+        UpdaterEventImporter.importPendingEvents();
         configService = new ConfigService();
         configService.loadConfig();
         updateService = new UpdateService();
-        updateService.setJournalConsumer(msg -> addLog(msg, "INFO"));
+        updateService.setJournalConsumer(this::addLog);
         // Clean up leftover installer files from previous auto-updates
         new Thread(updateService::cleanupLeftoverInstallers, "UpdateCleanup-Thread").start();
 
@@ -249,6 +250,7 @@ public class MainApp extends Application {
 
         // Background maintenance
         scheduler.scheduleAtFixedRate(DatabaseManager::cleanupOldData, 1, 24, TimeUnit.HOURS);
+        scheduler.scheduleAtFixedRate(this::publishUpdateSafetyState, 0, 10, TimeUnit.SECONDS);
         scheduler.schedule(this::checkForUpdates, 10, TimeUnit.SECONDS);
         scheduler.scheduleAtFixedRate(this::checkForUpdates, 24, 24, TimeUnit.HOURS);
 
@@ -257,6 +259,63 @@ public class MainApp extends Application {
 
     private UpdateAvailableDialog activeUpdateDialog;
     private boolean initialUpdateCheckCompleted = false;
+
+    private void publishUpdateSafetyState() {
+        boolean safe = true;
+        String reason = "SAFE";
+        try {
+            if (audioService != null && audioService.getCurrentPlayingTrack() != null) {
+                safe = false;
+                reason = "AUDIO_PLAYING";
+            } else if (signalService != null && signalService.isActionInProgress()) {
+                safe = false;
+                reason = "SIGNAL_IN_PROGRESS";
+            } else if (signalService != null &&
+                    (signalService.isAirRaidActive() || signalService.isEmergencyActive())) {
+                safe = false;
+                reason = "ALERT_ACTIVE";
+            } else if (isDuringLesson()) {
+                safe = false;
+                reason = "LESSON_ACTIVE";
+            } else if (isUpdateActionImminent()) {
+                safe = false;
+                reason = "SCHEDULED_ACTION_IMMINENT";
+            }
+        } catch (Exception e) {
+            safe = false;
+            reason = "SAFETY_CHECK_ERROR";
+        }
+        boolean autostart = configService != null && configService.isAutostartEnabled();
+        UpdateSafetyState.write(safe, reason, autostart);
+    }
+
+    private boolean isDuringLesson() {
+        if (schedule == null || schedule.size() < 2) return false;
+        LocalTime now = LocalTime.now();
+        for (int i = 0; i + 1 < schedule.size(); i++) {
+            BellEntry start = schedule.get(i);
+            BellEntry end = schedule.get(i + 1);
+            String startType = start.type() == null ? "" : start.type().toLowerCase(Locale.ROOT);
+            String endType = end.type() == null ? "" : end.type().toLowerCase(Locale.ROOT);
+            boolean lessonStart = startType.contains("початок");
+            boolean lessonEnd = endType.contains("кінець");
+            if (lessonStart && lessonEnd && !now.isBefore(start.time()) && now.isBefore(end.time())) return true;
+        }
+        return false;
+    }
+
+    private boolean isUpdateActionImminent() {
+        if (mediaSchedulerService == null) return false;
+        try {
+            var event = mediaSchedulerService.getNextEvent();
+            if (event == null || event.time() == null) return false;
+            LocalTime eventTime = LocalTime.parse(event.time());
+            long seconds = java.time.Duration.between(LocalTime.now(), eventTime).getSeconds();
+            return seconds >= 0 && seconds <= 120;
+        } catch (Exception ignored) {
+            return true;
+        }
+    }
 
     private void checkForUpdates() {
         updateService.checkForUpdates().thenAccept(manifest -> {
@@ -287,6 +346,8 @@ public class MainApp extends Application {
                         }
                     }
                 });
+            } else {
+                updateService.clearAutomaticInstallState();
             }
         }).exceptionally(ex -> {
             logger.warn("Check for updates failed: {}", ex.getMessage());
