@@ -3,6 +3,7 @@ package com.schoolbell.ui;
 import com.schoolbell.MainApp;
 import com.schoolbell.service.ConfigService;
 import com.schoolbell.service.SystemService;
+import com.schoolbell.service.AirAlertService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -215,7 +216,9 @@ public class SystemView {
         rows.getChildren().add(createActionRow("Перевірка оновлень", "Перевірити наявність нової версії програмного забезпечення", ICON_REFRESH, COLOR_PRIMARY, checkUpdateBtn));
 
         rows.getChildren().add(createToggleRow("Автоматизація повітряної тривоги",
-                "Пошук та автоматичне оповіщення про повітряну тривогу", ICON_SETTINGS, COLOR_TANGERINE, airRaidTg));
+                String.format("Пошук та автоматичне оповіщення про тривогу (%02d:00–%02d:00)",
+                        AirAlertService.ACTIVE_HOUR_START, AirAlertService.ACTIVE_HOUR_END),
+                ICON_SETTINGS, COLOR_TANGERINE, airRaidTg));
 
         VBox regionBox = new VBox(8);
         Label regionLbl = new Label("ОБЕРІТЬ РЕГІОН:");

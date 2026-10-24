@@ -49,8 +49,8 @@ public class AirAlertService {
     private static final int FAILURE_THRESHOLD = 5;
     private boolean isCurrentlyHealthy = true;
 
-    private static final int ACTIVE_HOUR_START = 7;
-    private static final int ACTIVE_HOUR_END   = 19;
+    public static final int ACTIVE_HOUR_START = 7;
+    public static final int ACTIVE_HOUR_END   = 19;
     private boolean offHoursPauseLogged = false;
     private volatile boolean pollingActive = false;
 
@@ -75,15 +75,35 @@ public class AirAlertService {
         scheduleNextPoll();
         logger.info("AirAlertService started polling Live API (6s interval)");
         mainApp.addLog("Автоматизацію повітряної тривоги активовано", "INFO");
+
+        int currentHour = getEffectiveHour();
+        if (currentHour < ACTIVE_HOUR_START || currentHour >= ACTIVE_HOUR_END) {
+            offHoursPauseLogged = true;
+            String msg = String.format("Автоматизація повітряної тривоги переходить у нічний режим і буде відновлена о %02d:00", ACTIVE_HOUR_START);
+            logger.warn(msg);
+            mainApp.addLog(msg, "WARNING");
+        } else {
+            offHoursPauseLogged = false;
+        }
     }
 
     public void stop() {
         pollingActive = false;
+        offHoursPauseLogged = false;
         if (pollingTask != null) {
             pollingTask.cancel(true);
             pollingTask = null;
             logger.info("AirAlertService stopped polling");
             mainApp.addLog("Автоматизацію тривоги зупинено", "INFO");
+        }
+    }
+
+    private int getEffectiveHour() {
+        try {
+            return mainApp.getNtpService().getCorrectedDateTime().getHour();
+        } catch (Exception e) {
+            logger.warn("Не вдалося отримати скоригований час, використовуємо системний", e);
+            return java.time.LocalDateTime.now().getHour();
         }
     }
 
@@ -138,14 +158,14 @@ public class AirAlertService {
 
     private void pollAndAct() {
         try {
-            int currentHour = mainApp.getNtpService().getCorrectedDateTime().getHour();
+            int currentHour = getEffectiveHour();
             boolean withinActiveHours = currentHour >= ACTIVE_HOUR_START && currentHour < ACTIVE_HOUR_END;
             if (!withinActiveHours) {
                 if (!offHoursPauseLogged) {
                     offHoursPauseLogged = true;
-                    String msg = "Автоматизацію повітряної тривоги зупинено і буде продовжено в 07:00";
-                    logger.info(msg);
-                    mainApp.addLog(msg, "INFO");
+                    String msg = String.format("Автоматизація повітряної тривоги переходить у нічний режим і буде відновлена о %02d:00", ACTIVE_HOUR_START);
+                    logger.warn(msg);
+                    mainApp.addLog(msg, "WARNING");
                 }
                 return;
             }
