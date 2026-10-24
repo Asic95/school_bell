@@ -83,3 +83,8 @@ For small functional buttons inside cards:
 ```powershell
 ./build_dist.ps1
 ```
+
+## Git Workflow & Repository Hygiene
+- **FORBIDDEN:** Never use git add -A or git add .. Always stage specific files explicitly (e.g. git add src/... schoolbell_installer.iss).
+- **Internal Documentation:** All temporary analysis, implementation plans, drafts, diagnostics, and strategy notes must be placed inside docs/internal/ (which is gitignored). Never place scratch or planning .md files in the repository root.
+- **Root Directory Cleanliness:** The root directory must only contain official project files (pom.xml, README.md, updates.json, uild_dist.ps1, schoolbell_installer.iss, .gitignore, GEMINI.md).

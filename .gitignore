@@ -43,3 +43,8 @@ installer_output/
 jpackage_input/
 dependency-reduced-pom.xml
 *.bak
+
+### Internal Documentation & Drafts ###
+docs/internal/
+*.docx
+*.skill
