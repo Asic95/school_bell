@@ -232,38 +232,9 @@ public final class SchoolBellUpdater {
             }
         }
         terminateRemainingSchoolBellProcesses();
-        // Remove the Windows autostart registry entry so SchoolBell cannot be relaunched
-        // by Windows while the installer is replacing its files. The installer will re-create
-        // the entry during setup (via CurStepChanged / [Registry] section).
-        disableAutostartRegistry();
         waitForSchoolBellProcessToExit();
         launchInstallerDetached(target);
         log("INFO", "Автоматичний updater завершився після запуску інсталятора. Завершення установки записується в installer.log.");
-    }
-
-    /**
-     * Removes the SchoolBell autostart entry from HKCU Run registry key.
-     * This prevents SchoolBell from being relaunched by Windows while the installer
-     * is replacing the application files. The installer re-creates the entry.
-     */
-    private void disableAutostartRegistry() {
-        try {
-            Process reg = new ProcessBuilder(
-                    "reg", "delete",
-                    "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
-                    "/v", "SchoolBell",
-                    "/f"
-            ).redirectErrorStream(true).start();
-            String out = new String(reg.getInputStream().readAllBytes()).trim();
-            int code = reg.waitFor();
-            if (code == 0) {
-                log("INFO", "Запис автозапуску SchoolBell тимчасово видалено з реєстру перед оновленням.");
-            } else {
-                log("INFO", "Запис автозапуску не знайдено в реєстрі (або вже відсутній): " + out);
-            }
-        } catch (Exception e) {
-            log("WARN", "Не вдалося видалити запис автозапуску з реєстру: " + e.getMessage());
-        }
     }
 
     /**
