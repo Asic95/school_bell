@@ -1,7 +1,7 @@
 {
     "latest_version":  "1.2.8",
     "critical":  false,
-    "checksum":  "addf2eddfc2fbf88cea89b0cafe47633e14424218deb2ffd68504175eb4a8ea8",
+    "checksum":  "270c9efba043b613e676867589be58764c3bada4531ff4ae51233b91bf5e8f66",
     "changelog":  [
                       "Покращено зовнішній вигляд «Журналу системних подій» у меню «Система»",
                       "Виправлено проблему з відображенням часу наступної медіа-події",

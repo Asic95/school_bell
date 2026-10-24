@@ -22,7 +22,7 @@ SetupIconFile=icon.ico
 AppMutex=SchoolBell_App_Instance
 UninstallDisplayIcon={app}\{#AppExeName}
 LanguageDetectionMethod=none
-CloseApplications=yes
+CloseApplications=force
 PrivilegesRequired=admin
 
 [Languages]
@@ -65,6 +65,27 @@ begin
       Log(ActionName + ' завершилося з кодом: ' + IntToStr(ResultCode));
   end else
     Log('Не вдалося запустити schtasks для операції "' + ActionName + '".');
+end;
+
+function InitializeSetup(): Boolean;
+var
+  ResultCode: Integer;
+begin
+  Result := True;
+  Log('InitializeSetup: Перевірка та завершення процесів SchoolBell...');
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /T /IM SchoolBell.exe', '', SW_HIDE,
+    ewWaitUntilTerminated, ResultCode);
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ResultCode: Integer;
+begin
+  Result := '';
+  Log('PrepareToInstall: Примусове завершення процесів SchoolBell перед оновленням файлів...');
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /T /IM SchoolBell.exe', '', SW_HIDE,
+    ewWaitUntilTerminated, ResultCode);
+  Sleep(1000);
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);

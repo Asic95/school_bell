@@ -132,13 +132,13 @@ public final class SchoolBellUpdater {
 
         log("INFO", "Запуск інсталятора: " + installer);
         Path installerLog = updaterDirectory.resolve("installer.log");
-        log("INFO", "Параметри інсталятора: /VERYSILENT /SUPPRESSMSGBOXES /CLOSEAPPLICATIONS /NORESTART /LOG=\""
+        log("INFO", "Параметри інсталятора: /VERYSILENT /SUPPRESSMSGBOXES /FORCECLOSEAPPLICATIONS /NORESTART /LOG=\""
                 + installerLog + "\"");
         Process installerProcess = new ProcessBuilder(
                 installer.toString(),
                 "/VERYSILENT",
                 "/SUPPRESSMSGBOXES",
-                "/CLOSEAPPLICATIONS",
+                "/FORCECLOSEAPPLICATIONS",
                 "/NORESTART",
                 "/LOG=" + installerLog.toAbsolutePath()
         ).directory(installer.getParent().toFile()).start();
@@ -276,7 +276,7 @@ public final class SchoolBellUpdater {
                 installer.toAbsolutePath().toString(),
                 "/VERYSILENT",
                 "/SUPPRESSMSGBOXES",
-                "/CLOSEAPPLICATIONS",
+                "/FORCECLOSEAPPLICATIONS",
                 "/NORESTART",
                 "/LOG=" + installerLog.toAbsolutePath()
         ).directory(installer.getParent().toFile())
