@@ -75,6 +75,10 @@ begin
   Log('InitializeSetup: Перевірка та завершення процесів SchoolBell...');
   Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /T /IM SchoolBell.exe', '', SW_HIDE,
     ewWaitUntilTerminated, ResultCode);
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM SchoolBellUpdater.exe', '', SW_HIDE,
+    ewWaitUntilTerminated, ResultCode);
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM SchoolBellUpdaterScheduled.exe', '', SW_HIDE,
+    ewWaitUntilTerminated, ResultCode);
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
@@ -84,6 +88,10 @@ begin
   Result := '';
   Log('PrepareToInstall: Примусове завершення процесів SchoolBell перед оновленням файлів...');
   Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /T /IM SchoolBell.exe', '', SW_HIDE,
+    ewWaitUntilTerminated, ResultCode);
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM SchoolBellUpdater.exe', '', SW_HIDE,
+    ewWaitUntilTerminated, ResultCode);
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM SchoolBellUpdaterScheduled.exe', '', SW_HIDE,
     ewWaitUntilTerminated, ResultCode);
   Sleep(1000);
 end;

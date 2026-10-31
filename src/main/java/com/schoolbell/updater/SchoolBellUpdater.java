@@ -79,6 +79,7 @@ public final class SchoolBellUpdater {
         SchoolBellUpdater updater = new SchoolBellUpdater();
         try {
             updater.run(args);
+            System.exit(0);
         } catch (Exception e) {
             updater.log("ERROR", "Updater завершився з помилкою: " + safeMessage(e));
             System.exit(1);
@@ -129,45 +130,17 @@ public final class SchoolBellUpdater {
         terminateRemainingSchoolBellProcesses();
         waitForSchoolBellProcessToExit();
 
-        log("INFO", "Запуск інсталятора: " + installer);
-        Path installerLog = updaterDirectory.resolve("installer.log");
-        log("INFO", "Параметри інсталятора: /VERYSILENT /SUPPRESSMSGBOXES /FORCECLOSEAPPLICATIONS /NORESTART /LOG=\""
-                + installerLog + "\"");
-        Process installerProcess = new ProcessBuilder(
-                installer.toString(),
-                "/VERYSILENT",
-                "/SUPPRESSMSGBOXES",
-                "/FORCECLOSEAPPLICATIONS",
-                "/NORESTART",
-                "/LOG=" + installerLog.toAbsolutePath()
-        ).directory(installer.getParent().toFile()).start();
-
-        log("INFO", "Процес інсталятора запущено, PID=" + installerProcess.pid() + ".");
-        int exitCode = installerProcess.waitFor();
-        log("INFO", "Інсталятор завершився з кодом: " + exitCode);
-        if (exitCode != 0) {
-            throw new IOException("Інсталятор завершився з кодом " + exitCode);
+        Path flag = updaterDirectory.resolve("restart.flag");
+        try {
+            Files.writeString(flag, "1", StandardCharsets.UTF_8);
+            log("INFO", "Створено restart.flag: після оновлення SchoolBell перезапуститься.");
+        } catch (IOException e) {
+            log("WARN", "Не вдалося створити restart.flag: " + e.getMessage());
         }
 
-        // Do NOT launch SchoolBell.exe when running as SYSTEM (Session 0).
-        // GUI applications cannot display windows in the non-interactive session.
-        // The user will see the updated version the next time they open SchoolBell normally.
-        if (isNonInteractiveSession()) {
-            log("INFO", "Updater працює в неінтерактивній сесії (SYSTEM). "
-                    + "SchoolBell.exe не запускається — користувач побачить оновлену версію при наступному відкритті.");
-        } else {
-            Path mainExecutable = resolveMainExecutable(arguments);
-            if (mainExecutable != null && Files.isRegularFile(mainExecutable)) {
-                log("INFO", "Запуск оновленої SchoolBell: " + mainExecutable);
-                new ProcessBuilder(mainExecutable.toString()).directory(mainExecutable.getParent().toFile()).start();
-            } else {
-                log("WARN", "Не вдалося автоматично знайти SchoolBell.exe після оновлення.");
-            }
-        }
-        if (arguments.selfDelete != null) {
-            scheduleSelfDelete(arguments.selfDelete);
-        }
-        logToSystemJournal("Оновлення SchoolBell успішно встановлено.", "INFO");
+        launchInstallerDetached(installer);
+        log("INFO", "Інсталятор запущено від'єднано. Updater завершує роботу для заміни своїх файлів.");
+        System.exit(0);
     }
 
     /**
@@ -240,6 +213,7 @@ public final class SchoolBellUpdater {
         waitForSchoolBellProcessToExit();
         launchInstallerDetached(target);
         log("INFO", "Автоматичний updater завершився після запуску інсталятора. Завершення установки записується в installer.log.");
+        System.exit(0);
     }
 
     /**
@@ -256,7 +230,6 @@ public final class SchoolBellUpdater {
                 "/NORESTART",
                 "/LOG=" + installerLog.toAbsolutePath()
         ).directory(installer.getParent().toFile())
-                .redirectInput(ProcessBuilder.Redirect.INHERIT)
                 .redirectOutput(ProcessBuilder.Redirect.DISCARD)
                 .redirectError(ProcessBuilder.Redirect.DISCARD)
                 .start();
