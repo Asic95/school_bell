@@ -1,6 +1,9 @@
 package com.schoolbell.ui;
 
 import javafx.animation.TranslateTransition;
+import javafx.animation.Interpolator;
+import javafx.animation.RotateTransition;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -14,6 +17,69 @@ import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
 public class ControlFactory {
+
+    /** Opens the calendar when the editable date text is clicked. */
+    public static void configureDatePickerPopup(DatePicker datePicker) {
+        datePicker.getEditor().setOnMouseClicked(event -> {
+            if (!datePicker.isShowing()) {
+                datePicker.show();
+            }
+        });
+    }
+
+    /** Applies the shared popup cell presentation, including the selected-item checkmark. */
+    public static <T> void configurePremiumComboPopup(ComboBox<T> combo) {
+        combo.setVisibleRowCount(8);
+        configureComboArrowAnimation(combo);
+        combo.setCellFactory(listView -> new ListCell<>() {
+            private void refreshCell() {
+                T item = getItem();
+                if (isEmpty() || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+
+                String text = combo.getConverter() != null
+                        ? combo.getConverter().toString(item)
+                        : String.valueOf(item);
+                setText(text);
+                setGraphic(isSelected()
+                        ? createSVGIcon(ICON_CHECK, Color.web(COLOR_PRIMARY), 14)
+                        : null);
+                setContentDisplay(ContentDisplay.RIGHT);
+                setGraphicTextGap(10);
+            }
+
+            @Override
+            protected void updateItem(T item, boolean empty) {
+                super.updateItem(item, empty);
+                refreshCell();
+            }
+
+            @Override
+            public void updateSelected(boolean selected) {
+                super.updateSelected(selected);
+                refreshCell();
+            }
+        });
+    }
+
+    private static <T> void configureComboArrowAnimation(ComboBox<T> combo) {
+        combo.showingProperty().addListener((obs, wasShowing, isShowing) ->
+                Platform.runLater(() -> {
+                    Node arrow = combo.lookup(".arrow");
+                    if (arrow == null) {
+                        return;
+                    }
+
+                    RotateTransition transition = new RotateTransition(Duration.millis(200), arrow);
+                    transition.setInterpolator(Interpolator.EASE_BOTH);
+                    transition.setFromAngle(arrow.getRotate());
+                    transition.setToAngle(isShowing ? 180 : 0);
+                    transition.play();
+                }));
+    }
 
     public static HBox createPageHeader(String eyebrow, String title, String subtitle, String icon, String iconColor, Node action) {
         HBox header = new HBox(18);
@@ -208,6 +274,8 @@ public class ControlFactory {
 
     public static ComboBox<String> createTimeCombo(int max, int current) {
         ComboBox<String> cb = new ComboBox<>();
+        cb.getStyleClass().add("compact-combo");
+        configurePremiumComboPopup(cb);
         for (int i = 0; i < max; i++) cb.getItems().add(String.format("%02d", i));
         cb.setValue(String.format("%02d", current));
         cb.setPrefWidth(95); 
@@ -225,9 +293,9 @@ public class ControlFactory {
                     setText(null);
                 } else {
                     setText(item);
-                    setAlignment(Pos.CENTER);
+                    setAlignment(Pos.CENTER_LEFT);
                     // Use internal cell padding to position text without triggering ellipsis
-                    setStyle("-fx-text-fill: " + COLOR_NAVY + "; -fx-font-weight: 500; -fx-background-color: transparent; -fx-padding: 0 0 0 10;");
+                    setStyle("-fx-text-fill: " + COLOR_NAVY + "; -fx-font-weight: 500; -fx-background-color: transparent; -fx-padding: 0 0 0 7;");
                 }
             }
         });

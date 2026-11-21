@@ -1,6 +1,7 @@
 package com.schoolbell.service;
 
 import com.schoolbell.hardware.RelayController;
+import com.schoolbell.model.AirRaidStartupAction;
 import com.schoolbell.model.BellEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ public class SignalService {
 
     /**
      * Resolves a configuration path (file or folder) to a specific audio file path.
+     * <p>
      * If it's a folder, it shuffles the contents and maintains a playlist index.
      */
     private String resolveAudioPath(String configPath) {
@@ -53,7 +55,7 @@ public class SignalService {
                     String lower = name.toLowerCase();
                     return lower.endsWith(".mp3") || lower.endsWith(".wav") || lower.endsWith(".m4a");
                 });
-                
+
                 if (files != null && files.length > 0) {
                     playlist.addAll(java.util.Arrays.asList(files));
                     java.util.Collections.shuffle(playlist);
@@ -66,12 +68,12 @@ public class SignalService {
             // Get current file and increment index
             java.io.File nextFile = playlist.get(currentPlaylistIndex);
             currentPlaylistIndex = (currentPlaylistIndex + 1) % playlist.size();
-            
+
             // If we've looped back to the start, re-shuffle for variety
             if (currentPlaylistIndex == 0) {
                 java.util.Collections.shuffle(playlist);
             }
-            
+
             return nextFile.getAbsolutePath();
         }
 
@@ -106,34 +108,51 @@ public class SignalService {
     }
 
     public void runAirRaidSignal() {
-        runAirRaidSignal(null);
+        runAirRaidSignal(null, AirRaidStartupAction.BELL_AND_AUDIO);
     }
 
     /**
      * Starts an air-raid signal. The optional level is used only when the
+     * <p>
      * threat-level audio mode is enabled; manual activation passes null and
+     * <p>
      * therefore uses the legacy general-purpose sound.
      */
     public void runAirRaidSignal(String alertLevel) {
+        runAirRaidSignal(alertLevel, AirRaidStartupAction.BELL_AND_AUDIO);
+    }
+
+    /**
+     * Starts an air-raid signal with a specific startup action.
+     */
+    public void runAirRaidSignal(String alertLevel, AirRaidStartupAction action) {
+        if (action == null) {
+            action = AirRaidStartupAction.BELL_AND_AUDIO;
+        }
         if (isActionInProgress) return;
         isActionInProgress = true;
         isAirRaidActive = true;
         currentAlertType = "AIR_RAID";
         audioService.stopImmediate();
-        addLog("Запуск сигналу: Повітряна тривога", "WARNING");
+        addLog("Запуск сигналу: Повітряна тривога (" + action.getTitle() + ")", "WARNING");
+        final AirRaidStartupAction finalAction = action;
         new Thread(() -> {
             try {
-                for (int i = 1; i <= 3; i++) {
-                    relayController.turnOn();
-                    Thread.sleep(configService.getAirRaidRingDuration() * 1000L);
-                    relayController.turnOff();
-                    if (i < 3) Thread.sleep(configService.getAirRaidPauseDuration() * 1000L);
+                if (finalAction.includesBell()) {
+                    for (int i = 1; i <= 3; i++) {
+                        relayController.turnOn();
+                        Thread.sleep(configService.getAirRaidRingDuration() * 1000L);
+                        relayController.turnOff();
+                        if (i < 3) Thread.sleep(configService.getAirRaidPauseDuration() * 1000L);
+                    }
                 }
-                if (configService.isAudioAirRaidEnabled()) {
-                    Thread.sleep(1500);
+                if (finalAction.includesAudio() && configService.isAudioAirRaidEnabled()) {
+                    if (finalAction.includesBell()) {
+                        Thread.sleep(1500);
+                    }
                     audioService.playAudioFile(resolveAirRaidStartAudioPath(alertLevel));
                 }
-                addLog("Сигнал тривоги завершено. Режим тривоги активовано.", "SUCCESS");
+                addLog("Сигнал тривоги завершено. Режим тривоги активовано (" + finalAction.getTitle() + ").", "SUCCESS");
             } catch (InterruptedException e) {
                 relayController.turnOff();
                 currentAlertType = "NONE";
@@ -181,7 +200,7 @@ public class SignalService {
                     relayController.turnOff();
                     if (i < 3) Thread.sleep(configService.getAirRaidPauseDuration() * 1000L);
                 }
-                
+
                 if (configService.isAudioAirRaidEnabled()) {
                     String clearPath = configService.getAudioAirRaidClearPath();
                     if (clearPath != null && !clearPath.isBlank()) {
@@ -189,7 +208,7 @@ public class SignalService {
                         audioService.playAudioFile(resolveAudioPath(clearPath));
                     }
                 }
-                
+
                 isAirRaidActive = false;
                 currentAlertType = "NONE";
                 addLog("Відбій тривоги завершено.", "SUCCESS");
@@ -209,7 +228,7 @@ public class SignalService {
         isEmergencyActive = true;
         currentAlertType = "EMERGENCY";
         audioService.stopImmediate();
-        addLog("Запуск сигналу: Надзвичайна ситуація", "ERROR");
+        addLog("Запуск сигналу: Надзвичайна ситуація", "WARNING");
         new Thread(() -> {
             try {
                 relayController.turnOn();
@@ -255,7 +274,9 @@ public class SignalService {
 
     /**
      * Plays the automation error sound (e.g. when API fails).
-     * This sound plays even if other actions are in progress, 
+     * <p>
+     * This sound plays even if other actions are in progress,
+     * <p>
      * but only if a path is configured.
      */
     public void playAutomationError() {
@@ -367,12 +388,12 @@ public class SignalService {
                     // Only for lesson starts
                     if (entry.type().contains("початок")) {
                         LocalTime triggerTime = entry.time().minusMinutes(earlyMin).minusSeconds(earlySec);
-                        
+
                         // Check if now matches the triggerTime (with 1s tolerance)
-                        if (now.getHour() == triggerTime.getHour() && 
-                            now.getMinute() == triggerTime.getMinute() && 
-                            now.getSecond() == triggerTime.getSecond()) {
-                            
+                        if (now.getHour() == triggerTime.getHour() &&
+                                now.getMinute() == triggerTime.getMinute() &&
+                                now.getSecond() == triggerTime.getSecond()) {
+
                             lastEarlyBellMinute = minuteOnly;
                             new Thread(() -> {
                                 isActionInProgress = true;
@@ -393,7 +414,7 @@ public class SignalService {
                 }
             }
         }
-        
+
         if (now.getSecond() == 0 && !isActionInProgress) {
             LocalTime minuteOnly = now.truncatedTo(ChronoUnit.MINUTES);
             schedule.stream()

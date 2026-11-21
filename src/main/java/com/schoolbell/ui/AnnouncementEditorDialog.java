@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.schoolbell.ui.ControlFactory.createLabeledField;
+import static com.schoolbell.ui.ControlFactory.configureDatePickerPopup;
 import static com.schoolbell.ui.UIStyles.COLOR_INDIGO;
 import static com.schoolbell.ui.UIStyles.COLOR_NAVY;
 import static com.schoolbell.ui.UIStyles.COLOR_SLATE;
@@ -73,6 +74,8 @@ public class AnnouncementEditorDialog extends BasePremiumDialog {
 
         startPicker = new DatePicker(announcement != null ? announcement.startDate() : LocalDate.now());
         endPicker = new DatePicker(announcement != null ? announcement.endDate() : LocalDate.now().plusWeeks(1));
+        configureDatePickerPopup(startPicker);
+        configureDatePickerPopup(endPicker);
         startPicker.setMaxWidth(Double.MAX_VALUE);
         endPicker.setMaxWidth(Double.MAX_VALUE);
 

@@ -6,6 +6,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.GridPane;
@@ -39,19 +40,40 @@ public class ScheduleQuickSelectorDialog extends BasePremiumDialog {
         scheduleCombo.setValue(mainApp.getConfigService().getSelectedScheduleName());
         scheduleCombo.setMaxWidth(Double.MAX_VALUE);
         scheduleCombo.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(scheduleCombo);
         
         // Custom cell style for ComboBox
         scheduleCombo.setCellFactory(lv -> new ListCell<String>() {
+            private void refreshCell() {
+                String item = getItem();
+                if (isEmpty() || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+
+                setText(item);
+                setGraphic(isSelected()
+                        ? UIComponents.createSVGIcon(ICON_CHECK, Color.web(COLOR_PRIMARY), 14)
+                        : null);
+                setContentDisplay(ContentDisplay.RIGHT);
+                setGraphicTextGap(10);
+                setStyle("-fx-padding: 12 16; -fx-background-radius: 12; " +
+                        (isSelected()
+                                ? "-fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 700;"
+                                : "-fx-text-fill: " + COLOR_NAVY + "; -fx-font-weight: 600;"));
+            }
+
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                    setStyle("-fx-background-color: transparent;");
-                } else {
-                    setText(item);
-                    setStyle("-fx-padding: 12 16; -fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + "; -fx-background-radius: 12;");
-                }
+                refreshCell();
+            }
+
+            @Override
+            public void updateSelected(boolean selected) {
+                super.updateSelected(selected);
+                refreshCell();
             }
         });
 

@@ -15,6 +15,7 @@ import static com.schoolbell.ui.UIStyles.ICON_SAVE;
 import static com.schoolbell.ui.UIStyles.MODERN_CHECKBOX_STYLE;
 import static com.schoolbell.ui.UIStyles.MODERN_DATE_PICKER_STYLE;
 import static com.schoolbell.ui.UIStyles.MODERN_SPINNER_STYLE;
+import static com.schoolbell.ui.UIStyles.PREMIUM_SELECT_STYLE;
 
 import java.util.Base64;
 import java.nio.charset.StandardCharsets;
@@ -75,7 +76,8 @@ public abstract class BasePremiumDialog extends Stage {
         scene.getStylesheets().addAll(
                 encodeCssToDataUri(MODERN_DATE_PICKER_STYLE),
                 encodeCssToDataUri(MODERN_CHECKBOX_STYLE),
-                encodeCssToDataUri(MODERN_SPINNER_STYLE)
+                encodeCssToDataUri(MODERN_SPINNER_STYLE),
+                encodeCssToDataUri(PREMIUM_SELECT_STYLE)
         );
         setScene(scene);
     }

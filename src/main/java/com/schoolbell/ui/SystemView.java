@@ -3,6 +3,7 @@ package com.schoolbell.ui;
 import com.schoolbell.MainApp;
 import com.schoolbell.service.ConfigService;
 import com.schoolbell.service.SystemService;
+import com.schoolbell.model.AirRaidStartupAction;
 import com.schoolbell.service.AirAlertService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -33,6 +34,7 @@ public class SystemView {
     private final ToggleButton airRaidTg;
     private final ComboBox<String> regionCombo;
     private final ComboBox<String> districtCombo;
+    private final ComboBox<AirRaidStartupAction> startupActionCombo;
 
     private final BellSettingsPane bellSettingsPane;
     private final SystemJournalPane journalPane;
@@ -59,9 +61,11 @@ public class SystemView {
         regionCombo.getItems().addAll(mainApp.getAirAlertService().getRegions());
         regionCombo.setValue(config.getSelectedRegionId());
         regionCombo.setStyle(PREMIUM_SELECT_STYLE);
+        configurePremiumComboPopup(regionCombo);
 
         districtCombo = new ComboBox<>();
         districtCombo.setStyle(PREMIUM_SELECT_STYLE);
+        configurePremiumComboPopup(districtCombo);
 
         if (config.getSelectedRegionId() != null) {
             districtCombo.getItems().addAll(mainApp.getAirAlertService().getDistricts(config.getSelectedRegionId()));
@@ -73,6 +77,13 @@ public class SystemView {
             save();
         });
         districtCombo.setOnAction(e -> save());
+
+        startupActionCombo = new ComboBox<>();
+        startupActionCombo.getItems().addAll(AirRaidStartupAction.values());
+        startupActionCombo.setValue(config.getAirRaidStartupAction());
+        startupActionCombo.setStyle(PREMIUM_SELECT_STYLE);
+        configurePremiumComboPopup(startupActionCombo);
+        startupActionCombo.setOnAction(e -> save());
 
         bellSettingsPane = new BellSettingsPane(
                 config.getRegularBellDuration(),
@@ -234,6 +245,13 @@ public class SystemView {
         districtBox.getChildren().addAll(districtLbl, districtCombo);
         districtBox.setPadding(new Insets(0, 15, 10, 15));
 
+        VBox startupActionBox = new VBox(8);
+        Label startupActionLbl = new Label("ДІЯ ПРИ ВИЯВЛЕННІ ТРИВОГИ НА СТАРТІ ПРОГРАМИ:");
+        startupActionLbl.setStyle(HEADER_STYLE);
+        startupActionCombo.setMaxWidth(Double.MAX_VALUE);
+        startupActionBox.getChildren().addAll(startupActionLbl, startupActionCombo);
+        startupActionBox.setPadding(new Insets(0, 15, 10, 15));
+
         Runnable refreshVisibility = () -> {
             boolean active = airRaidTg.isSelected();
             regionBox.setVisible(active);
@@ -243,6 +261,9 @@ public class SystemView {
             boolean hasDistricts = active && sel != null && !mainApp.getAirAlertService().getDistricts(sel).isEmpty();
             districtBox.setVisible(hasDistricts);
             districtBox.setManaged(hasDistricts);
+
+            startupActionBox.setVisible(active);
+            startupActionBox.setManaged(active);
         };
 
         airRaidTg.selectedProperty().addListener((obs, old, nv) -> {
@@ -254,7 +275,7 @@ public class SystemView {
         regionCombo.valueProperty().addListener((obs, old, nv) -> refreshVisibility.run());
         refreshVisibility.run();
 
-        rows.getChildren().addAll(regionBox, districtBox);
+        rows.getChildren().addAll(regionBox, districtBox, startupActionBox);
         card.getChildren().add(rows);
         return card;
     }
@@ -292,6 +313,7 @@ public class SystemView {
 
         ComboBox<com.schoolbell.hardware.ShellyRelayDevice> shellyCombo = new ComboBox<>();
         shellyCombo.setStyle(PREMIUM_SELECT_STYLE);
+        configurePremiumComboPopup(shellyCombo);
         shellyCombo.setPromptText("Оберіть знайдений Shelly...");
         shellyCombo.setMaxWidth(Double.MAX_VALUE);
         shellyCombo.setPrefHeight(48);
@@ -489,6 +511,9 @@ public class SystemView {
             config.setAirRaidAutomationEnabled(airRaidTg.isSelected());
             config.setSelectedRegionId(regionCombo.getValue());
             config.setSelectedDistrictId(districtCombo.getValue());
+            if (startupActionCombo.getValue() != null) {
+                config.setAirRaidStartupAction(startupActionCombo.getValue());
+            }
 
             config.setEarlyBellMinutes(bellSettingsPane.getEarlyMin());
             config.setEarlyBellSeconds(bellSettingsPane.getEarlySec());

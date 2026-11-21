@@ -53,6 +53,7 @@ public class AirAlertService {
     public static final int ACTIVE_HOUR_END   = 19;
     private boolean offHoursPauseLogged = false;
     private volatile boolean pollingActive = false;
+    private boolean isInitialStartupPoll = true;
 
     public AirAlertService(MainApp mainApp, ConfigService configService, SignalService signalService, ScheduledExecutorService scheduler) {
         this.mainApp = mainApp;
@@ -233,7 +234,12 @@ public class AirAlertService {
                     String msg = "Наживо: Виявлено тривогу: " + locationLabel + reasonSuffix;
                     logger.warn(msg);
                     mainApp.addLog(msg, "WARNING");
-                    signalService.runAirRaidSignal(alertResult.level);
+                    if (isInitialStartupPoll) {
+                        isInitialStartupPoll = false;
+                        mainApp.handleStartupAirAlert(alertResult.level, locationLabel, reasonSuffix);
+                    } else {
+                        signalService.runAirRaidSignal(alertResult.level);
+                    }
                 } else {
                     // Alert is already active - check for threat level change / escalation
                     String newReason = alertResult.reason != null ? alertResult.reason : "";
@@ -252,6 +258,7 @@ public class AirAlertService {
                 }
             } else {
                 // currentAlert == false
+                isInitialStartupPoll = false;
                 if (lastAlertState) {
                     clearConfirmationCount++;
                     logger.info("Alert clear check: confirmed {}/{} cycles", clearConfirmationCount, CLEAR_CONFIRMATION_THRESHOLD);
@@ -262,6 +269,7 @@ public class AirAlertService {
                         lastAlertLevel = null;
                         clearConfirmationCount = 0;
 
+                        mainApp.dismissStartupAirAlertDialog();
                         String msg = "Наживо: Відбій тривоги: " + locationLabel;
                         logger.info(msg);
                         mainApp.addLog(msg, "SUCCESS");

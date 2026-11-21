@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static com.schoolbell.ui.UIStyles.*;
+import static com.schoolbell.ui.ControlFactory.configureDatePickerPopup;
 
 public class SubstitutionEditorDialog extends BasePremiumDialog {
     private final MainApp mainApp;
@@ -57,6 +58,7 @@ public class SubstitutionEditorDialog extends BasePremiumDialog {
         grid.getColumnConstraints().addAll(labelCol, fieldCol);
 
         datePicker = new DatePicker(entry != null ? entry.date() : defaultDate);
+        configureDatePickerPopup(datePicker);
         datePicker.setMaxWidth(Double.MAX_VALUE);
         grid.add(createLabel("ДАТА"), 0, 0);
         grid.add(datePicker, 1, 0);
@@ -71,6 +73,7 @@ public class SubstitutionEditorDialog extends BasePremiumDialog {
         classCombo.getItems().addAll(mainApp.getAcademicService().getAllClasses());
         classCombo.setMaxWidth(Double.MAX_VALUE);
         classCombo.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(classCombo);
         grid.add(createLabel("КЛАС"), 0, 2);
         grid.add(classCombo, 1, 2);
 
@@ -78,6 +81,7 @@ public class SubstitutionEditorDialog extends BasePremiumDialog {
         teacherCombo.getItems().addAll(mainApp.getStaffService().getAllTeachers());
         teacherCombo.setMaxWidth(Double.MAX_VALUE);
         teacherCombo.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(teacherCombo);
         grid.add(createLabel("ВЧИТЕЛЬ"), 0, 3);
         grid.add(teacherCombo, 1, 3);
 
@@ -85,6 +89,7 @@ public class SubstitutionEditorDialog extends BasePremiumDialog {
         subjectCombo.getItems().addAll(mainApp.getStaffService().getAllSubjects());
         subjectCombo.setMaxWidth(Double.MAX_VALUE);
         subjectCombo.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(subjectCombo);
         grid.add(createLabel("ПРЕДМЕТ"), 0, 4);
         grid.add(subjectCombo, 1, 4);
 
@@ -92,6 +97,7 @@ public class SubstitutionEditorDialog extends BasePremiumDialog {
         classroomCombo.getItems().addAll(mainApp.getAcademicService().getAllClassrooms());
         classroomCombo.setMaxWidth(Double.MAX_VALUE);
         classroomCombo.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(classroomCombo);
         classroomCombo.setPromptText("Оберіть кабінет");
         grid.add(createLabel("КАБІНЕТ"), 0, 5);
         grid.add(classroomCombo, 1, 5);

@@ -144,76 +144,76 @@ public class UIStyles {
 
     public static final String DEPTH_1 = "-fx-background-color: " + COLOR_SURFACE_SUBTLE + ";";
 
-    public static final String SOFT_CARD = 
+    public static final String SOFT_CARD =
             "-fx-background-color: " + GLASS_WHITE + "; " +
-            "-fx-background-radius: 28; " +
-            "-fx-border-color: " + BORDER_SLATE_70 + "; " +
-            "-fx-border-width: 1; " +
-            "-fx-border-radius: 28; " +
-            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_08 + ", 15, 0, 0, 8);";
+                    "-fx-background-radius: 28; " +
+                    "-fx-border-color: " + BORDER_SLATE_70 + "; " +
+                    "-fx-border-width: 1; " +
+                    "-fx-border-radius: 28; " +
+                    "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_08 + ", 15, 0, 0, 8);";
 
     public static final String PREMIUM_FIELD_STYLE =
             "-fx-font-family: 'Inter';" +
-            "-fx-font-size: 17px;" +
-            "-fx-font-weight: 600;" +
-            "-fx-background-color: white;" +
-            "-fx-background-radius: 18;" +
-            "-fx-border-color: " + COLOR_BORDER_FIELD + ";" +
-            "-fx-border-radius: 18;" +
-            "-fx-border-width: 1;" +
-            "-fx-padding: 11 16;" +
-            "-fx-text-fill: " + COLOR_NAVY + ";" +
-            "-fx-prompt-text-fill: " + COLOR_SLATE + ";";
+                    "-fx-font-size: 17px;" +
+                    "-fx-font-weight: 600;" +
+                    "-fx-background-color: white;" +
+                    "-fx-background-radius: 18;" +
+                    "-fx-border-color: " + COLOR_BORDER_FIELD + ";" +
+                    "-fx-border-radius: 18;" +
+                    "-fx-border-width: 1;" +
+                    "-fx-padding: 11 16;" +
+                    "-fx-text-fill: " + COLOR_NAVY + ";" +
+                    "-fx-prompt-text-fill: " + COLOR_SLATE + ";";
 
     public static final String PREMIUM_FIELD_FOCUSED_STYLE =
             PREMIUM_FIELD_STYLE +
-            "-fx-border-color: " + COLOR_INDIGO + ";" +
-            "-fx-background-color: " + COLOR_SURFACE_BRAND + ";";
+                    "-fx-border-color: " + COLOR_INDIGO + ";" +
+                    "-fx-background-color: " + COLOR_SURFACE_BRAND + ";";
 
     public static final String PREMIUM_FIELD_ERROR_STYLE =
             PREMIUM_FIELD_STYLE +
-            "-fx-border-color: " + COLOR_DANGER + ";" +
-            "-fx-background-color: " + COLOR_DANGER_PALE + ";";
+                    "-fx-border-color: " + COLOR_DANGER + ";" +
+                    "-fx-background-color: " + COLOR_DANGER_PALE + ";";
 
     public static final String PREMIUM_BTN_STYLE =
             "-fx-background-color: linear-gradient(to right, " + COLOR_INDIGO + ", " + COLOR_PRIMARY + ");" +
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 18;" +
-            "-fx-font-weight: 900;" +
-            "-fx-padding: 14 24;" +
-            "-fx-cursor: hand;" +
-            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_28 + ", 12, 0, 0, 6);";
+                    "-fx-text-fill: white;" +
+                    "-fx-background-radius: 18;" +
+                    "-fx-font-weight: 900;" +
+                    "-fx-padding: 14 24;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_28 + ", 12, 0, 0, 6);";
 
     public static final String PREMIUM_BTN_SMALL_STYLE =
             PREMIUM_BTN_STYLE + "-fx-padding: 10 20; -fx-font-size: 13px;";
 
     public static final String ICON_BADGE_STYLE =
             "-fx-min-width: 54; -fx-min-height: 54; -fx-max-width: 54; -fx-max-height: 54;" +
-            "-fx-background-radius: 18;" +
-            "-fx-alignment: CENTER;" +
-            "-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + ");";
+                    "-fx-background-radius: 18;" +
+                    "-fx-alignment: CENTER;" +
+                    "-fx-background-color: linear-gradient(to bottom right, " + COLOR_SURFACE_GLASS_START + ", " + COLOR_SURFACE_GLASS_END + ");";
 
     public static final String PREMIUM_TOGGLE_CONTAINER =
             "-fx-background-color: " + TR_SLATE_92 + ";" +
-            "-fx-background-radius: 20;" +
-            "-fx-padding: 3;";
+                    "-fx-background-radius: 20;" +
+                    "-fx-padding: 3;";
 
     public static final String PREMIUM_TOGGLE_ACTIVE =
             "-fx-background-color: linear-gradient(to right, " + COLOR_INDIGO + ", " + COLOR_PRIMARY + ");" +
-            "-fx-text-fill: white;" +
-            "-fx-background-radius: 17;" +
-            "-fx-font-weight: bold;" +
-            "-fx-padding: 6 16;" +
-            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_28 + ", 12, 0, 0, 4);" +
-            "-fx-cursor: hand;";
+                    "-fx-text-fill: white;" +
+                    "-fx-background-radius: 17;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-padding: 6 16;" +
+                    "-fx-effect: dropshadow(three-pass-box, " + SHADOW_INDIGO_28 + ", 12, 0, 0, 4);" +
+                    "-fx-cursor: hand;";
 
     public static final String PREMIUM_TOGGLE_INACTIVE =
             "-fx-background-color: transparent;" +
-            "-fx-text-fill: " + COLOR_SLATE + ";" +
-            "-fx-background-radius: 17;" +
-            "-fx-font-weight: bold;" +
-            "-fx-padding: 6 16;" +
-            "-fx-cursor: hand;";
+                    "-fx-text-fill: " + COLOR_SLATE + ";" +
+                    "-fx-background-radius: 17;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-padding: 6 16;" +
+                    "-fx-cursor: hand;";
 
     public static final String HEADER_STYLE = "-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE + "; -fx-text-transform: uppercase; -fx-letter-spacing: 1.5px;";
     public static final String PREMIUM_LABEL_STYLE = "-fx-font-family: 'Inter'; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE + "; -fx-text-transform: uppercase; -fx-letter-spacing: 1.5px;";
@@ -221,100 +221,194 @@ public class UIStyles {
     public static final String DIALOG_SUBTITLE_STYLE = "-fx-font-family: 'Inter'; -fx-font-size: 15px; -fx-text-fill: " + COLOR_SLATE + ";";
     public static final String DIALOG_SECONDARY_BUTTON_STYLE =
             "-fx-background-color: white;" +
-            "-fx-text-fill: " + COLOR_SLATE + ";" +
-            "-fx-font-weight: 800;" +
-            "-fx-padding: 12 24;" +
-            "-fx-background-radius: 18;" +
-            "-fx-border-color: " + COLOR_BORDER_SOFT + ";" +
-            "-fx-border-radius: 18;" +
-            "-fx-cursor: hand;";
+                    "-fx-text-fill: " + COLOR_SLATE + ";" +
+                    "-fx-font-weight: 800;" +
+                    "-fx-padding: 12 24;" +
+                    "-fx-background-radius: 18;" +
+                    "-fx-border-color: " + COLOR_BORDER_SOFT + ";" +
+                    "-fx-border-radius: 18;" +
+                    "-fx-cursor: hand;";
     public static final String DIALOG_SECONDARY_BUTTON_HOVER_STYLE =
             DIALOG_SECONDARY_BUTTON_STYLE +
-            "-fx-background-color: " + COLOR_SURFACE_SUBTLE + ";";
+                    "-fx-background-color: " + COLOR_SURFACE_SUBTLE + ";";
     public static final String DIALOG_DANGER_BUTTON_STYLE =
             "-fx-background-color: white;" +
-            "-fx-text-fill: " + COLOR_DANGER + ";" +
-            "-fx-font-weight: 800;" +
-            "-fx-padding: 12 24;" +
-            "-fx-background-radius: 18;" +
-            "-fx-cursor: hand;" +
-            "-fx-border-color: " + COLOR_DANGER_BORDER + ";" +
-            "-fx-border-radius: 18;";
+                    "-fx-text-fill: " + COLOR_DANGER + ";" +
+                    "-fx-font-weight: 800;" +
+                    "-fx-padding: 12 24;" +
+                    "-fx-background-radius: 18;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-border-color: " + COLOR_DANGER_BORDER + ";" +
+                    "-fx-border-radius: 18;";
     public static final String DIALOG_DANGER_BUTTON_HOVER_STYLE =
             DIALOG_DANGER_BUTTON_STYLE +
-            "-fx-background-color: " + COLOR_DANGER_SOFT + ";" +
-            "-fx-border-color: " + COLOR_DANGER + ";";
+                    "-fx-background-color: " + COLOR_DANGER_SOFT + ";" +
+                    "-fx-border-color: " + COLOR_DANGER + ";";
 
     public static final String UPDATE_BANNER_STYLE =
             "-fx-background-color: " + GLASS_WHITE + ";" +
-            "-fx-background-radius: 18;" +
-            "-fx-border-color: " + BORDER_SLATE_70 + ";" +
-            "-fx-border-radius: 18;" +
-            "-fx-border-width: 1;" +
-            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_06 + ", 18, 0, 0, 4);";
+                    "-fx-background-radius: 18;" +
+                    "-fx-border-color: " + BORDER_SLATE_70 + ";" +
+                    "-fx-border-radius: 18;" +
+                    "-fx-border-width: 1;" +
+                    "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_06 + ", 18, 0, 0, 4);";
 
     public static final String UPDATE_BANNER_CRITICAL_STYLE =
             "-fx-background-color: " + GLASS_WHITE + ";" +
-            "-fx-background-radius: 18;" +
-            "-fx-border-color: " + COLOR_DANGER_BORDER + ";" +
-            "-fx-border-radius: 18;" +
-            "-fx-border-width: 1.5;" +
-            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_08 + ", 22, 0, 0, 6);";
+                    "-fx-background-radius: 18;" +
+                    "-fx-border-color: " + COLOR_DANGER_BORDER + ";" +
+                    "-fx-border-radius: 18;" +
+                    "-fx-border-width: 1.5;" +
+                    "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_08 + ", 22, 0, 0, 6);";
 
     public static final String UPDATE_BANNER_READY_STYLE =
             "-fx-background-color: " + GLASS_WHITE + ";" +
-            "-fx-background-radius: 18;" +
-            "-fx-border-color: " + COLOR_SUCCESS_BORDER + ";" +
-            "-fx-border-radius: 18;" +
-            "-fx-border-width: 1.5;" +
-            "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_06 + ", 18, 0, 0, 4);";
+                    "-fx-background-radius: 18;" +
+                    "-fx-border-color: " + COLOR_SUCCESS_BORDER + ";" +
+                    "-fx-border-radius: 18;" +
+                    "-fx-border-width: 1.5;" +
+                    "-fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_06 + ", 18, 0, 0, 4);";
 
     public static final String PREMIUM_SELECT_STYLE =
-            "-fx-font-family: 'Inter';" +
-            "-fx-font-size: 17px;" +
-            "-fx-font-weight: 600;" +
-            "-fx-background-color: white;" +
-            "-fx-background-radius: 18;" +
-            "-fx-border-color: " + COLOR_BORDER_FIELD + ";" +
-            "-fx-border-radius: 18;" +
-            "-fx-border-width: 1;" +
-            "-fx-padding: 11 16;" +
-            "-fx-focus-color: transparent;" +
-            "-fx-faint-focus-color: transparent;";
+            ".combo-box { " +
+                    "    -fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 600; " +
+                    "    -fx-background-color: white; -fx-background-radius: 18; " +
+                    "    -fx-border-color: " + COLOR_BORDER_FIELD + "; -fx-border-radius: 18; -fx-border-width: 1; " +
+                    "    -fx-padding: 5 8 5 14; -fx-cursor: hand; " +
+                    "    -fx-focus-color: transparent; -fx-faint-focus-color: transparent; " +
+                    "} " +
+                    ".combo-box:hover { -fx-border-color: " + COLOR_SLATE_LIGHT + "; } " +
+                    ".combo-box:focused, .combo-box:showing { " +
+                    "    -fx-border-color: " + COLOR_PRIMARY + "; " +
+                    "    -fx-effect: dropshadow(three-pass-box, " + COLOR_PRIMARY + "20, 10, 0, 0, 0); " +
+                    "} " +
+                    /* Текст всередині кнопки вибору (прибираємо зайві падінги modena.css) */
+                    ".combo-box > .list-cell { " +
+                    "    -fx-background-color: transparent; -fx-text-fill: " + COLOR_NAVY + "; " +
+                    "    -fx-padding: 6 4; -fx-font-weight: 600; " +
+                    "} " +
+                    /* Кнопка зі стрілкою праворуч */
+                    ".combo-box > .arrow-button { " +
+                    "    -fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-background-radius: 11; " +
+                    "    -fx-padding: 8 10; -fx-cursor: hand; " +
+                    "} " +
+                    ".combo-box:showing > .arrow-button { -fx-background-color: " + COLOR_PRIMARY + "; } " +
+                    ".combo-box > .arrow-button > .arrow { " +
+                    "    -fx-shape: \"M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z\"; " +
+                    "    -fx-background-color: " + COLOR_PRIMARY + "; -fx-padding: 4 6; " +
+                    "} " +
+                    ".combo-box:showing > .arrow-button > .arrow { -fx-background-color: white; } " +
+                    ".combo-box.compact-combo > .arrow-button { " +
+                    "    -fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-background-radius: 8; " +
+                    "    -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-width: 1; -fx-border-radius: 8; " +
+                    "    -fx-pref-width: 28; -fx-min-width: 28; -fx-max-width: 28; " +
+                    "    -fx-pref-height: 28; -fx-min-height: 28; -fx-max-height: 28; -fx-padding: 2 4; -fx-alignment: center; " +
+                    "} " +
+                    ".combo-box.compact-combo:showing > .arrow-button { -fx-background-color: " + COLOR_SURFACE_SKY + "; } " +
+                    ".combo-box.compact-combo > .arrow-button > .arrow, " +
+                    ".combo-box.compact-combo:showing > .arrow-button > .arrow { " +
+                    "    -fx-background-color: " + COLOR_SLATE + "; -fx-padding: 2 4; " +
+                    "} " +
+                    /* Випадаючий список (Popup) */
+                    ".combo-box-popup > .list-view { " +
+                    "    -fx-background-color: white; -fx-background-radius: 20; " +
+                    "    -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 20; -fx-border-width: 1; " +
+                    "    -fx-padding: 6; -fx-fixed-cell-size: 42; " +
+                    "    -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_15 + ", 25, 0, 0, 8); " +
+                    "} " +
+                    ".combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell { " +
+                    "    -fx-background-color: transparent; -fx-background-radius: 12; " +
+                    "    -fx-text-fill: " + COLOR_NAVY + "; -fx-font-size: 15px; -fx-font-weight: 500; " +
+                    "    -fx-padding: 10 14; -fx-cursor: hand; " +
+                    "} " +
+                    ".combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:hover { " +
+                    "    -fx-background-color: " + COLOR_SURFACE_SOFT + "; -fx-text-fill: " + COLOR_NAVY + "; " +
+                    "} " +
+                    ".combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected { " +
+                    "    -fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 700; " +
+                    "} " +
+                    ".combo-box-popup .scroll-bar:vertical { " +
+                    "    -fx-pref-width: 8; -fx-min-width: 8; -fx-max-width: 8; -fx-background-color: transparent; " +
+                    "} " +
+                    ".combo-box-popup .scroll-bar:vertical .track { " +
+                    "    -fx-background-color: " + COLOR_SURFACE_SUBTLE + "; -fx-background-radius: 4; " +
+                    "} " +
+                    ".combo-box-popup .scroll-bar:vertical .thumb { " +
+                    "    -fx-background-color: " + COLOR_SLATE_LIGHT + "; -fx-background-radius: 4; " +
+                    "} " +
+                    ".combo-box-popup .scroll-bar:vertical .increment-button, .combo-box-popup .scroll-bar:vertical .decrement-button { " +
+                    "    -fx-padding: 0; -fx-pref-height: 0; -fx-min-height: 0; -fx-max-height: 0; " +
+                    "} ";
 
-    public static final String MODERN_SPINNER_STYLE = 
-        ".spinner { -fx-background-color: white; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_FIELD + "; -fx-border-radius: 18; } " +
-        ".spinner > .text-field { -fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 600; -fx-background-color: white; -fx-background-radius: 18 0 0 18; -fx-background-insets: 0; -fx-padding: 11 16; } " +
-        ".spinner > .increment-arrow-button, .spinner > .decrement-arrow-button { -fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-background-insets: 0; -fx-cursor: hand; } " +
-        ".spinner > .increment-arrow-button { -fx-background-radius: 0 18 0 0; } " +
-        ".spinner > .decrement-arrow-button { -fx-background-radius: 0 0 18 0; } " +
-        ".spinner > .increment-arrow-button:hover, .spinner > .decrement-arrow-button:hover { -fx-background-color: " + COLOR_PRIMARY + "15; } " +
-        ".spinner > .increment-arrow-button > .increment-arrow { -fx-shape: \"M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z\"; -fx-background-color: " + COLOR_PRIMARY + "; } " +
-        ".spinner > .decrement-arrow-button > .decrement-arrow { -fx-shape: \"M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z\"; -fx-background-color: " + COLOR_PRIMARY + "; } ";
+    public static final String MODERN_SPINNER_STYLE =
+            ".spinner { -fx-background-color: white; -fx-background-radius: 18; -fx-border-color: " + COLOR_BORDER_FIELD + "; -fx-border-radius: 18; } " +
+                    ".spinner > .text-field { -fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 600; -fx-background-color: white; -fx-background-radius: 18 0 0 18; -fx-background-insets: 0; -fx-padding: 11 16; } " +
+                    ".spinner > .increment-arrow-button, .spinner > .decrement-arrow-button { -fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-background-insets: 0; -fx-cursor: hand; } " +
+                    ".spinner > .increment-arrow-button { -fx-background-radius: 0 18 0 0; } " +
+                    ".spinner > .decrement-arrow-button { -fx-background-radius: 0 0 18 0; } " +
+                    ".spinner > .increment-arrow-button:hover, .spinner > .decrement-arrow-button:hover { -fx-background-color: " + COLOR_PRIMARY + "15; } " +
+                    ".spinner > .increment-arrow-button > .increment-arrow { -fx-shape: \"M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z\"; -fx-background-color: " + COLOR_PRIMARY + "; } " +
+                    ".spinner > .decrement-arrow-button > .decrement-arrow { -fx-shape: \"M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z\"; -fx-background-color: " + COLOR_PRIMARY + "; } ";
 
-    public static final String MODERN_DATE_PICKER_STYLE = 
-        ".date-picker { -fx-background-color: transparent; } " +
-        ".date-picker > .text-field { -fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 600; -fx-background-color: white; -fx-background-radius: 18 0 0 18; -fx-border-color: " + COLOR_BORDER_FIELD + "; -fx-border-radius: 18 0 0 18; -fx-border-width: 1 0 1 1; -fx-padding: 11 16; } " +
-        ".date-picker > .arrow-button { -fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 0 18 18 0; -fx-padding: 11 16; -fx-cursor: hand; } " +
-        ".date-picker > .arrow-button > .arrow { -fx-shape: \"M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z\"; -fx-background-color: white; -fx-padding: 8; } " +
-        ".date-picker-popup { -fx-background-color: white; -fx-background-radius: 24; -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_15 + ", 30, 0, 0, 10); -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-width: 1; -fx-border-radius: 24; -fx-padding: 15; } " +
-        ".date-picker-popup > .month-year-pane { -fx-background-color: white; -fx-padding: 15 20; } " +
-        ".date-picker-popup > .month-year-pane > .label, " +
-        ".date-picker-popup > .month-year-pane > .spinner > .label { " +
-        "    -fx-font-family: 'Inter'; -fx-font-size: 20px; -fx-font-weight: 400; -fx-text-fill: " + COLOR_NAVY + "; -fx-padding: 0 12; " +
-        "} " +
-        ".date-picker-popup > .month-year-pane > .button { -fx-background-color: " + COLOR_SURFACE_SOFT + "; -fx-background-radius: 12; -fx-cursor: hand; -fx-padding: 10 18; -fx-focus-color: transparent; -fx-faint-focus-color: transparent; } " +
-        ".date-picker-popup > .month-year-pane > .button:hover { -fx-background-color: " + COLOR_PRIMARY + "20; } " +
-        ".date-picker-popup > .month-year-pane > .button > .left-arrow, " +
-        ".date-picker-popup > .month-year-pane > .button > .right-arrow { " +
-        "    -fx-background-color: " + COLOR_PRIMARY + "; -fx-padding: 10; " +
-        "} " +
-        ".date-picker-popup > .calendar-grid { -fx-background-color: white; -fx-padding: 5; } " +
-        ".date-picker-popup > * > .day-name-cell, .date-picker-popup > * > .week-number-cell { -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-padding: 12; } " +
-        ".date-picker-popup > * > .day-cell { -fx-background-color: white; -fx-background-radius: 12; -fx-padding: 12; -fx-cursor: hand; -fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + "; -fx-font-size: 14px; } " +
-        ".date-picker-popup > * > .day-cell:hover { -fx-background-color: " + COLOR_SURFACE_SOFT + "; } " +
-        ".date-picker-popup > * > .today { -fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 900; -fx-border-color: " + COLOR_PRIMARY + "30; -fx-border-radius: 12; } " +
-        ".date-picker-popup > * > .selected { -fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: white; -fx-font-weight: 900; } ";
+    public static final String MODERN_DATE_PICKER_STYLE =
+            ".date-picker { -fx-background-color: transparent; } " +
+                    ".date-picker > .text-field { -fx-font-family: 'Inter'; -fx-font-size: 16px; -fx-font-weight: 600; -fx-background-color: white; -fx-background-radius: 18 0 0 18; -fx-border-color: " + COLOR_BORDER_FIELD + "; -fx-border-radius: 18 0 0 18; -fx-border-width: 1 0 1 1; -fx-padding: 11 16; } " +
+                    ".date-picker > .arrow-button { -fx-background-color: " + COLOR_PRIMARY + "; -fx-background-radius: 0 18 18 0; -fx-padding: 11 16; -fx-cursor: hand; } " +
+                    ".date-picker > .arrow-button > .arrow { -fx-shape: \"M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z\"; -fx-background-color: white; -fx-padding: 8; } " +
+                    ".date-picker-popup { -fx-background-color: white; -fx-background-radius: 24; -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_15 + ", 30, 0, 0, 10); -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-width: 1; -fx-border-radius: 24; -fx-padding: 15; } " +
+                    /* .month-year-pane у JavaFX це BorderPane, тому робимо бокові відступи і розсуваємо спінери */
+                    ".date-picker-popup > .month-year-pane { -fx-background-color: white; -fx-padding: 10 14 15 14; } " +
+                    ".date-picker-popup > .month-year-pane > .spinner { -fx-background-color: white; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-border-radius: 20; -fx-background-radius: 20; -fx-padding: 3 8; } " +
+                    ".date-picker-popup > .month-year-pane > .spinner:first-child { -fx-translate-x: -5; } " +
+                    ".date-picker-popup > .month-year-pane > .spinner:last-child { -fx-translate-x: 5; } " +
+                    ".date-picker-popup > .month-year-pane > .label, " +
+                    ".date-picker-popup > .month-year-pane > .spinner > .label { " +
+                    "    -fx-font-family: 'Inter'; -fx-font-size: 15px; -fx-font-weight: 500; -fx-text-fill: " + COLOR_NAVY + "; -fx-padding: 0 8; " +
+                    "} " +
+                    /* Кнопки спінера: спочатку базовий стан і :focused, а ПІСЛЯ них :hover та :focused:hover */
+                    ".date-picker-popup > .month-year-pane .spinner .button { " +
+                    "    -fx-background-color: transparent; -fx-background-radius: 50; -fx-background-insets: 0; " +
+                    "    -fx-border-color: transparent; -fx-border-width: 0; -fx-padding: 6 8; -fx-cursor: hand; " +
+                    "    -fx-focus-color: transparent; -fx-faint-focus-color: transparent; " +
+                    "} " +
+                    ".date-picker-popup > .month-year-pane .spinner .button:focused, " +
+                    ".date-picker-popup > .month-year-pane .spinner .button:armed { " +
+                    "    -fx-background-color: transparent; -fx-background-insets: 0; " +
+                    "    -fx-border-color: transparent; -fx-effect: none; " +
+                    "} " +
+                    ".date-picker-popup > .month-year-pane .spinner .button:hover, " +
+                    ".date-picker-popup > .month-year-pane .spinner .button:focused:hover { " +
+                    "    -fx-background-color: " + COLOR_SURFACE_SOFT + "; -fx-background-insets: 0; " +
+                    "} " +
+                    ".date-picker-popup > .month-year-pane .spinner .button > .left-arrow, " +
+                    ".date-picker-popup > .month-year-pane .spinner .button > .right-arrow { " +
+                    "    -fx-background-color: " + COLOR_SLATE_LIGHT + "; -fx-padding: 4 3; " +
+                    "} " +
+                    ".date-picker-popup > .month-year-pane .spinner .button:hover > .left-arrow, " +
+                    ".date-picker-popup > .month-year-pane .spinner .button:focused:hover > .left-arrow, " +
+                    ".date-picker-popup > .month-year-pane .spinner .button:hover > .right-arrow, " +
+                    ".date-picker-popup > .month-year-pane .spinner .button:focused:hover > .right-arrow { " +
+                    "    -fx-background-color: " + COLOR_PRIMARY + "; " +
+                    "} " +
+                    ".date-picker-popup > .calendar-grid { -fx-background-color: white; -fx-padding: 5; } " +
+                    ".date-picker-popup > * > .day-name-cell, .date-picker-popup > * > .week-number-cell { -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-padding: 8 0 12 0; } " +
+                    ".date-picker-popup > * > .day-cell { " +
+                    "    -fx-background-color: transparent; -fx-background-insets: 2; -fx-background-radius: 12; " +
+                    "    -fx-border-color: transparent; -fx-border-insets: 2; -fx-border-radius: 12; " +
+                    "    -fx-pref-width: 38; -fx-pref-height: 38; -fx-padding: 0; -fx-alignment: center; " +
+                    "    -fx-cursor: hand; -fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + "; -fx-font-size: 14px; " +
+                    "} " +
+                    ".date-picker-popup > * > .previous-month, .date-picker-popup > * > .next-month { -fx-text-fill: " + COLOR_SLATE_LIGHT + "; } " +
+                    ".date-picker-popup > * > .day-cell:hover { -fx-background-color: " + COLOR_SURFACE_SOFT + "; } " +
+                    ".date-picker-popup > * > .day-cell:focused { -fx-background-insets: 2; -fx-border-color: transparent; } " +
+                    ".date-picker-popup > * > .today { " +
+                    "    -fx-background-color: " + COLOR_SURFACE_SKY + "; -fx-background-insets: 2; -fx-background-radius: 12; " +
+                    "    -fx-text-fill: " + COLOR_PRIMARY + "; -fx-font-weight: 900; " +
+                    "    -fx-border-color: " + COLOR_PRIMARY + "4D; -fx-border-insets: 2; -fx-border-radius: 12; " +
+                    "} " +
+                    ".date-picker-popup > * > .selected, .date-picker-popup > * > .selected:focused { " +
+                    "    -fx-background-color: " + COLOR_PRIMARY + "; -fx-background-insets: 2; -fx-background-radius: 12; " +
+                    "    -fx-text-fill: white; -fx-font-weight: 900; -fx-border-color: transparent; " + "} ";
 
     public static final String SIDEBAR_STYLE = "-fx-background-color: #0c1427; -fx-padding: 20 0 20 0;";
     public static final String NAV_BTN_BASE = "-fx-background-color: transparent; -fx-padding: 12 24; -fx-cursor: hand; -fx-background-radius: 12; -fx-text-fill: " + COLOR_SLATE_LIGHT + "; -fx-font-weight: 800; -fx-alignment: CENTER_LEFT; -fx-font-size: 14px;";
@@ -344,6 +438,7 @@ public class UIStyles {
     public static final String ICON_SEARCH = "M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z";
     public static final String ICON_INFO = "M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z";
     public static final String ICON_VOLUME = "M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16.03C15.5,15.29 16.5,13.77 16.5,12M3,9V15H7L12,20V4L7,9H3Z";
+    public static final String ICON_VOLUME_OFF = "M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,13.17 18.75,14.28 18.3,15.3L16.77,13.77C16.92,13.21 17,12.62 17,12C17,10.23 16,8.71 14,7.97V3.23M3,9V15H7L12,20V4L7,9H3M3,2L22,21L20.5,22.5L1.5,3.5L3,2Z";
     public static final String ICON_MONITOR = "M21,14H22V16H2V14H3V4H21V14M19,12V6H5V12H19M14,18H10V17H14V18M15,20H9V19H15V20Z";
     public static final String ICON_PHONE = "M17,1H7A2,2 0 0,0 5,3V21A2,2 0 0,0 7,23H17A2,2 0 0,0 19,21V3A2,2 0 0,0 17,1M17,19H7V5H17V19Z";
     public static final String ICON_TABLET = "M19,18H5V6H19M21,4H3C1.89,4 1,4.89 1,6V18A2,2 0 0,0 3,20H21A2,2 0 0,0 23,18V6C23,4.89 22.1,4 21,4Z";
@@ -372,7 +467,7 @@ public class UIStyles {
     public static final String ICON_CLONE = "M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z";
     public static final String ICON_RADIO = "M20,10H4A2,2 0 0,0 2,12V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V12A2,2 0 0,0 20,10M7,20A3,3 0 1,1 10,17A3,3 0 0,1 7,20M18,14H14V12H18V14M16,10V2H14V10H16M20,7V8H18V7H20Z";
 
-    
+
     // New Modern Settings Icons
     public static final String ICON_POWER = "M16.56,5.44L15.11,6.89C16.84,7.94 18,9.83 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12C6,9.83 7.16,7.94 8.88,6.88L7.44,5.44C5.13,6.96 3.5,9.6 3.5,12.6C3.5,17.3 7.3,21.1 12,21.1C16.7,21.1 20.5,17.3 20.5,12.6C20.5,9.6 18.87,6.96 16.56,5.44M13,3H11V13H13V3Z";
     public static final String ICON_TRAY = "M2,12H4V17H20V12H22V17A2,2 0 0,1 20,19H4A2,2 0 0,1 2,17V12M12,15L17.5,9.5L16.08,8.08L13,11.17V2H11V11.17L7.92,8.08L6.5,9.5L12,15Z";
@@ -394,63 +489,63 @@ public class UIStyles {
 
     public static final String TITLE_BAR_STYLE = "-fx-background-color: #0c1427; -fx-padding: 5 15 5 15; -fx-alignment: CENTER_LEFT; -fx-border-color: " + BORDER_WHITE_05 + "; -fx-border-width: 0 0 1 0;";
 
-    public static final String MODERN_CHECKBOX_STYLE = 
-        ".check-box .box {" +
-        "    -fx-background-color: white;" +
-        "    -fx-border-color: " + COLOR_BORDER_SOFT + ";" +
-        "    -fx-border-width: 1.5;" +
-        "    -fx-border-radius: 6;" +
-        "    -fx-background-radius: 6;" +
-        "    -fx-padding: 3;" +
-        "}" +
-        ".check-box:hover .box {" +
-        "    -fx-border-color: " + COLOR_SLATE_MUTED + ";" +
-        "}" +
-        ".check-box:selected .box {" +
-        "    -fx-background-color: " + COLOR_PRIMARY + ";" +
-        "    -fx-border-color: " + COLOR_PRIMARY + ";" +
-        "}" +
-        ".check-box:selected .mark {" +
-        "    -fx-background-color: white;" +
-        "    -fx-shape: \"M1.73,12.91L8.1,19.28L22.79,4.59L20.67,2.47L8.1,15.04L3.85,10.79L1.73,12.91Z\";" +
-        "    -fx-scale-x: 0.7;" +
-        "    -fx-scale-y: 0.7;" +
-        "}" +
-        ".check-box .label {" +
-        "    -fx-text-fill: " + COLOR_TEXT_STRONG + ";" +
-        "    -fx-font-size: 13px;" +
-        "    -fx-font-weight: 600;" +
-        "    -fx-padding: 0 0 0 8;" +
-        "}";
+    public static final String MODERN_CHECKBOX_STYLE =
+            ".check-box .box {" +
+                    "    -fx-background-color: white;" +
+                    "    -fx-border-color: " + COLOR_BORDER_SOFT + ";" +
+                    "    -fx-border-width: 1.5;" +
+                    "    -fx-border-radius: 6;" +
+                    "    -fx-background-radius: 6;" +
+                    "    -fx-padding: 3;" +
+                    "}" +
+                    ".check-box:hover .box {" +
+                    "    -fx-border-color: " + COLOR_SLATE_MUTED + ";" +
+                    "}" +
+                    ".check-box:selected .box {" +
+                    "    -fx-background-color: " + COLOR_PRIMARY + ";" +
+                    "    -fx-border-color: " + COLOR_PRIMARY + ";" +
+                    "}" +
+                    ".check-box:selected .mark {" +
+                    "    -fx-background-color: white;" +
+                    "    -fx-shape: \"M1.73,12.91L8.1,19.28L22.79,4.59L20.67,2.47L8.1,15.04L3.85,10.79L1.73,12.91Z\";" +
+                    "    -fx-scale-x: 0.7;" +
+                    "    -fx-scale-y: 0.7;" +
+                    "}" +
+                    ".check-box .label {" +
+                    "    -fx-text-fill: " + COLOR_TEXT_STRONG + ";" +
+                    "    -fx-font-size: 13px;" +
+                    "    -fx-font-weight: 600;" +
+                    "    -fx-padding: 0 0 0 8;" +
+                    "}";
 
     public static final String PREMIUM_MENU_STYLE =
-        ".context-menu {" +
-        "    -fx-background-color: white;" +
-        "    -fx-background-radius: 18;" +
-        "    -fx-border-color: " + BORDER_SLATE_70 + ";" +
-        "    -fx-border-width: 1.2;" +
-        "    -fx-border-radius: 18;" +
-        "    -fx-padding: 8;" +
-        "    -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_08 + ", 20, 0, 0, 10);" +
-        "}" +
-        ".menu-item {" +
-        "    -fx-padding: 10 18;" +
-        "    -fx-background-radius: 12;" +
-        "    -fx-cursor: hand;" +
-        "}" +
-        ".menu-item:focused {" +
-        "    -fx-background-color: " + COLOR_SURFACE_SOFT + ";" +
-        "}" +
-        ".menu-item .label {" +
-        "    -fx-text-fill: " + COLOR_NAVY + ";" +
-        "    -fx-font-family: 'Inter';" +
-        "    -fx-font-weight: 600;" +
-        "    -fx-font-size: 14px;" +
-        "}" +
-        ".menu-item .graphic-container {" +
-        "    -fx-padding: 0 12 0 0;" +
-        "}" +
-        ".separator-menu-item .separator {" +
-        "    -fx-padding: 4 0 4 0;" +
-        "}";
+            ".context-menu {" +
+                    "    -fx-background-color: white;" +
+                    "    -fx-background-radius: 18;" +
+                    "    -fx-border-color: " + BORDER_SLATE_70 + ";" +
+                    "    -fx-border-width: 1.2;" +
+                    "    -fx-border-radius: 18;" +
+                    "    -fx-padding: 8;" +
+                    "    -fx-effect: dropshadow(three-pass-box, " + SHADOW_NAVY_08 + ", 20, 0, 0, 10);" +
+                    "}" +
+                    ".menu-item {" +
+                    "    -fx-padding: 10 18;" +
+                    "    -fx-background-radius: 12;" +
+                    "    -fx-cursor: hand;" +
+                    "}" +
+                    ".menu-item:focused {" +
+                    "    -fx-background-color: " + COLOR_SURFACE_SOFT + ";" +
+                    "}" +
+                    ".menu-item .label {" +
+                    "    -fx-text-fill: " + COLOR_NAVY + ";" +
+                    "    -fx-font-family: 'Inter';" +
+                    "    -fx-font-weight: 600;" +
+                    "    -fx-font-size: 14px;" +
+                    "}" +
+                    ".menu-item .graphic-container {" +
+                    "    -fx-padding: 0 12 0 0;" +
+                    "}" +
+                    ".separator-menu-item .separator {" +
+                    "    -fx-padding: 4 0 4 0;" +
+                    "}";
 }

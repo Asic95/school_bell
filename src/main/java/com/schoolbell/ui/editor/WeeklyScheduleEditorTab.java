@@ -4,6 +4,7 @@ import com.schoolbell.MainApp;
 import com.schoolbell.model.*;
 import com.schoolbell.ui.LessonEditorDialog;
 import com.schoolbell.ui.ScheduleEditorDialog;
+import com.schoolbell.ui.ControlFactory;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -58,6 +59,7 @@ public class WeeklyScheduleEditorTab {
         classPicker.setPromptText("Натисніть тут, щоб обрати клас для редагування...");
         classPicker.setMaxWidth(Double.MAX_VALUE);
         classPicker.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(classPicker);
 
         VBox iconWrap = new VBox(createSVGIcon(ICON_CLASS, Color.web(COLOR_PRIMARY), 24));
         iconWrap.setAlignment(Pos.CENTER);

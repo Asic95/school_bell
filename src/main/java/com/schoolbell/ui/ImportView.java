@@ -100,6 +100,7 @@ public class ImportView {
         sourceCombo.getItems().addAll("NZ.UA (Електронний журнал)", "Інше джерело");
         sourceCombo.setValue("NZ.UA (Електронний журнал)");
         sourceCombo.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(sourceCombo);
         sourceCombo.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(sourceCombo, Priority.ALWAYS);
 
@@ -118,6 +119,7 @@ public class ImportView {
         formatCombo.getItems().addAll("PDF файл", "JSON", "CSV", "TXT");
         formatCombo.setValue("PDF файл");
         formatCombo.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(formatCombo);
         formatCombo.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(formatCombo, Priority.ALWAYS);
 

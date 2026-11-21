@@ -83,6 +83,7 @@ public class MainApp extends Application {
     private ImportView importView;
     private UpdateBanner updateBanner;
     private Stage primaryStage;
+    private StartupAirRaidDialog startupAirRaidDialog;
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -168,6 +169,9 @@ public class MainApp extends Application {
 
         Scene scene = new Scene(windowWrapper, 1400, 950);
         scene.setFill(Color.TRANSPARENT);
+        scene.getStylesheets().add(
+                "data:text/css;base64," + Base64.getEncoder().encodeToString(
+                        PREMIUM_SELECT_STYLE.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
         primaryStage.setScene(scene);
 
         // 5. Initialize Hardware & Background Services
@@ -448,6 +452,25 @@ public class MainApp extends Application {
     public UpdateService getUpdateService() { return updateService; }
 
     public void saveConfig() { configService.saveConfig(); }
+
+    public void handleStartupAirAlert(String alertLevel, String locationLabel, String reasonSuffix) {
+        javafx.application.Platform.runLater(() -> {
+            if (startupAirRaidDialog != null && startupAirRaidDialog.isShowing()) {
+                return;
+            }
+            startupAirRaidDialog = new StartupAirRaidDialog(primaryStage, this, alertLevel, locationLabel, reasonSuffix);
+            startupAirRaidDialog.show();
+        });
+    }
+
+    public void dismissStartupAirAlertDialog() {
+        javafx.application.Platform.runLater(() -> {
+            if (startupAirRaidDialog != null && startupAirRaidDialog.isShowing()) {
+                startupAirRaidDialog.dismissDueToClear();
+                startupAirRaidDialog = null;
+            }
+        });
+    }
 
     private void startHttpServer(int port) {
         try {

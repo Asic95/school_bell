@@ -53,12 +53,14 @@ public class LessonEditorDialog extends BasePremiumDialog {
         teacherCombo.setPromptText("Оберіть вчителя");
         teacherCombo.setMaxWidth(Double.MAX_VALUE);
         teacherCombo.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(teacherCombo);
 
         subjectCombo = new ComboBox<>();
         subjectCombo.getItems().addAll(mainApp.getStaffService().getAllSubjects());
         subjectCombo.setPromptText("Оберіть предмет");
         subjectCombo.setMaxWidth(Double.MAX_VALUE);
         subjectCombo.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(subjectCombo);
         subjectCombo.itemsProperty().addListener((obs, oldItems, newItems) -> {
             if (newItems != null) {
                 subjectCombo.setVisibleRowCount(Math.min(newItems.size(), 10));
@@ -70,12 +72,14 @@ public class LessonEditorDialog extends BasePremiumDialog {
         classroomCombo.setPromptText("Оберіть кабінет");
         classroomCombo.setMaxWidth(Double.MAX_VALUE);
         classroomCombo.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(classroomCombo);
 
         parityCombo = new ComboBox<>();
         parityCombo.getItems().addAll("Всі тижні", "Чисельник (непарний)", "Знаменник (парний)");
         parityCombo.getSelectionModel().select(parity);
         parityCombo.setMaxWidth(Double.MAX_VALUE);
         parityCombo.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(parityCombo);
 
         teacherCombo.setOnAction(e -> {
             Teacher selected = teacherCombo.getValue();

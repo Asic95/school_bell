@@ -1,9 +1,12 @@
 package com.schoolbell;
 
 import com.schoolbell.ui.ScheduleEditorDialog;
+import com.schoolbell.ui.TelegramGroupDialog;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -44,18 +47,30 @@ public class AppNavigation {
         createNavButton("SCHOOL", "Школа", ICON_FOLDER, this::showSchool);
         createNavButton("IMPORT", "Імпорт", ICON_PLUS, this::showImport);
         createNavButton("SYSTEM", "Система", ICON_SETTINGS, this::showSystem);
-        
         // External Help Link
         createNavButton("HELP", "Допомога", ICON_INFO, this::openHelp);
     }
 
     private void openHelp() {
-        mainApp.getHostServices().showDocument("https://github.com/Asic95/school_bell#school-bell--%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B0-%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B0-%D1%88%D0%BA%D1%96%D0%BB%D1%8C%D0%BD%D0%B8%D1%85-%D0%B4%D0%B7%D0%B2%D1%96%D0%BD%D0%BA%D1%96%D0%B2");
+        new TelegramGroupDialog(mainApp.getStage(), mainApp).display();
     }
 
     public void createNavButton(String id, String text, String iconPath, Runnable action) {
         Button btn = new Button(text);
-        btn.setGraphic(createSVGIcon(iconPath, Color.web(COLOR_ICON_MUTED), 20));
+        Node icon = createSVGIcon(iconPath, Color.web(COLOR_ICON_MUTED), 20);
+        if ("HELP".equals(id)) {
+            StackPane iconWithBadge = new StackPane(icon);
+            Label badge = new Label("NEW");
+            badge.setStyle("-fx-background-color: #229ED9; -fx-text-fill: white; -fx-font-size: 8px; -fx-font-weight: 800; -fx-padding: 2 3 2 3; -fx-background-radius: 5;");
+            StackPane.setAlignment(badge, javafx.geometry.Pos.TOP_RIGHT);
+            badge.setTranslateX(5);
+            badge.setTranslateY(-5);
+            iconWithBadge.getChildren().add(badge);
+            btn.setGraphic(iconWithBadge);
+            Tooltip.install(btn, new Tooltip("Група SchoolBell у Telegram"));
+        } else {
+            btn.setGraphic(icon);
+        }
         btn.setGraphicTextGap(15);
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setStyle(NAV_BTN_BASE);
@@ -73,12 +88,20 @@ public class AppNavigation {
     public void setActiveNav(String id) {
         navButtons.forEach((k, v) -> {
             v.setStyle(NAV_BTN_BASE);
-            if (v.getGraphic() instanceof javafx.scene.shape.SVGPath icon) icon.setFill(Color.web(COLOR_ICON_MUTED));
+            setNavIconColor(v.getGraphic(), Color.web(COLOR_ICON_MUTED));
         });
         Button active = navButtons.get(id);
         if (active != null) {
             active.setStyle(NAV_BTN_BASE + NAV_BTN_ACTIVE);
-            if (active.getGraphic() instanceof javafx.scene.shape.SVGPath icon) icon.setFill(Color.WHITE);
+            setNavIconColor(active.getGraphic(), Color.WHITE);
+        }
+    }
+
+    private void setNavIconColor(Node node, Color color) {
+        if (node instanceof javafx.scene.shape.SVGPath icon) {
+            icon.setFill(color);
+        } else if (node instanceof javafx.scene.Parent parent) {
+            parent.getChildrenUnmodifiable().forEach(child -> setNavIconColor(child, color));
         }
     }
 

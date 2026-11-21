@@ -44,6 +44,7 @@ public class EfirNetworkSection extends VBox {
         this.themeCombo.getItems().addAll("classic", "modern", "modern_full", "panorama", "neo", "cyber", "soft");
         this.themeCombo.setValue(config.getDashboardTheme());
         this.themeCombo.setStyle(PREMIUM_SELECT_STYLE);
+        configurePremiumComboPopup(this.themeCombo);
         this.themeCombo.setPrefWidth(200);
 
         this.firewallStatusLabel = new Label("ПЕРЕВІРКА...");

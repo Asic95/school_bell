@@ -87,6 +87,7 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
             default -> "На перервах";
         } : "На перервах");
         typeC.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-background-radius: 12; -fx-border-radius: 12; -fx-background-color: white; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-padding: 8;");
+        configurePremiumComboPopup(typeC);
         typeC.setMaxWidth(Double.MAX_VALUE);
         grid.add(createLabel("ТИП ТРИГЕРА"), 0, 1);
         grid.add(typeC, 1, 1);
@@ -209,6 +210,7 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
         dateP = new DatePicker(event != null && event.date() != null && !event.date().isEmpty()
                 ? java.time.LocalDate.parse(event.date())
                 : java.time.LocalDate.now());
+        configureDatePickerPopup(dateP);
         dateP.setMaxWidth(200);
 
         breakAnchorC = new ComboBox<>();
@@ -221,6 +223,7 @@ public class MediaEventEditorDialog extends BasePremiumDialog {
             default -> "Початок перерви";
         } : "Початок перерви");
         breakAnchorC.setStyle("-fx-font-family: 'Inter'; -fx-font-size: 14px; -fx-font-weight: 600; -fx-background-radius: 12; -fx-border-radius: 12; -fx-background-color: white; -fx-border-color: " + COLOR_BORDER_SOFT + "; -fx-padding: 8;");
+        configurePremiumComboPopup(breakAnchorC);
         breakAnchorC.setPrefWidth(320);
 
         offsetF = createStyledField(String.valueOf(event != null ? event.breakOffset() : 0));

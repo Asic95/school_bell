@@ -1,5 +1,6 @@
 package com.schoolbell.service;
 
+import com.schoolbell.model.AirRaidStartupAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,7 @@ public class ConfigService {
     private boolean isAirRaidAutomationEnabled = false;
     private String selectedRegionId = null;
     private String selectedDistrictId = null;
+    private AirRaidStartupAction airRaidStartupAction = AirRaidStartupAction.BELL_AND_AUDIO;
     private String schoolName = "Сквирська гімназія №5";
     private String cityName = "Сквира";
     private String announcementText = "Вітаємо у системі School Bell!";
@@ -88,6 +90,7 @@ public class ConfigService {
         isAirRaidAutomationEnabled = Boolean.parseBoolean(DatabaseManager.getSetting("airAutomation.enabled", "false"));
         selectedRegionId = DatabaseManager.getSetting("airAutomation.region", null);
         selectedDistrictId = DatabaseManager.getSetting("airAutomation.district", null);
+        airRaidStartupAction = AirRaidStartupAction.fromString(DatabaseManager.getSetting("airAutomation.startupAction", "BELL_AND_AUDIO"));
         schoolName = DatabaseManager.getSetting("school.name", "Сквирська гімназія №5");
         cityName = DatabaseManager.getSetting("school.city", "Сквира");
         announcementText = DatabaseManager.getSetting("school.announcement", "Вітаємо у системі School Bell!");
@@ -138,6 +141,7 @@ public class ConfigService {
         DatabaseManager.saveSetting("airAutomation.enabled", String.valueOf(isAirRaidAutomationEnabled));
         DatabaseManager.saveSetting("airAutomation.region", selectedRegionId != null ? selectedRegionId : "");
         DatabaseManager.saveSetting("airAutomation.district", selectedDistrictId != null ? selectedDistrictId : "");
+        DatabaseManager.saveSetting("airAutomation.startupAction", airRaidStartupAction != null ? airRaidStartupAction.name() : AirRaidStartupAction.BELL_AND_AUDIO.name());
         DatabaseManager.saveSetting("system.dashboardTheme", dashboardTheme);
 
         DatabaseManager.saveSetting("relay.type", relayType);
@@ -229,6 +233,9 @@ public class ConfigService {
 
     public String getSelectedDistrictId() { return selectedDistrictId; }
     public void setSelectedDistrictId(String districtId) { this.selectedDistrictId = districtId; }
+
+    public AirRaidStartupAction getAirRaidStartupAction() { return airRaidStartupAction; }
+    public void setAirRaidStartupAction(AirRaidStartupAction airRaidStartupAction) { this.airRaidStartupAction = airRaidStartupAction; }
     public void setDashboardTheme(String dashboardTheme) { this.dashboardTheme = dashboardTheme; }
     public String getDashboardTheme() { return dashboardTheme; }
 }

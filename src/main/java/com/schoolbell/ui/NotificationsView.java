@@ -101,6 +101,7 @@ public class NotificationsView {
         deviceCombo = new ComboBox<>();
         deviceCombo.setMaxWidth(Double.MAX_VALUE);
         deviceCombo.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(deviceCombo);
         deviceCombo.setValue(config.getSelectedAudioDeviceName());
         try {
             deviceCombo.getItems().add("Системний за замовчуванням");

@@ -48,6 +48,7 @@ public class SubstitutionReportDialog extends BasePremiumDialog {
         monthPicker.setValue(LocalDate.now().getMonth());
         monthPicker.setMaxWidth(Double.MAX_VALUE);
         monthPicker.setStyle(PREMIUM_SELECT_STYLE);
+        ControlFactory.configurePremiumComboPopup(monthPicker);
         monthPicker.setConverter(new javafx.util.StringConverter<>() {
             @Override
             public String toString(Month m) {

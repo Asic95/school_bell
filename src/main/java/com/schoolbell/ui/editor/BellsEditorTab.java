@@ -10,7 +10,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
@@ -30,6 +29,7 @@ import static com.schoolbell.ui.CardFactory.createHelpCard;
 import static com.schoolbell.ui.CardFactory.createSideHelpPanel;
 import static com.schoolbell.ui.ControlFactory.createPageHeader;
 import static com.schoolbell.ui.ControlFactory.createPrimaryActionButton;
+import static com.schoolbell.ui.ControlFactory.configurePremiumComboPopup;
 import static com.schoolbell.ui.UIComponents.createSVGIcon;
 import static com.schoolbell.ui.UIStyles.*;
 
@@ -122,38 +122,23 @@ public class BellsEditorTab {
         selectorLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + COLOR_SLATE + "; -fx-letter-spacing: 0.5px;");
         ComboBox<String> selector = new ComboBox<>();
         selector.setPrefWidth(390);
+        selector.setPrefHeight(48);
+        selector.setMinHeight(48);
+        selector.setMaxHeight(48);
         selector.setStyle(PREMIUM_SELECT_STYLE);
-        selector.setCellFactory(lv -> new ListCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setGraphic(null);
-                    setText(null);
-                } else {
-                    setGraphic(createSVGIcon(ICON_CALENDAR, Color.web(COLOR_PRIMARY), 16));
-                    setText(item);
-                    setGraphicTextGap(12);
-                    setStyle("-fx-padding: 10 14; -fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + ";");
-                }
-            }
-        });
-        selector.setButtonCell(new ListCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setGraphic(null);
-                    setText(null);
-                } else {
-                    setGraphic(createSVGIcon(ICON_CALENDAR, Color.web(COLOR_PRIMARY), 18));
-                    setText(item);
-                    setGraphicTextGap(12);
-                    setStyle("-fx-font-weight: 600; -fx-text-fill: " + COLOR_NAVY + "; -fx-padding: 0 5;");
-                }
-            }
-        });
-        selectorBox.getChildren().addAll(selectorLabel, selector);
+        configurePremiumComboPopup(selector);
+
+        VBox calendarBadge = new VBox(createSVGIcon(ICON_CALENDAR, Color.web(COLOR_PRIMARY), 24));
+        calendarBadge.setAlignment(Pos.CENTER);
+        calendarBadge.setPrefSize(54, 54);
+        calendarBadge.setMinSize(54, 54);
+        calendarBadge.setMaxSize(54, 54);
+        calendarBadge.setStyle(ICON_BADGE_STYLE);
+
+        HBox selectorRow = new HBox(14, calendarBadge, selector);
+        selectorRow.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(selector, Priority.ALWAYS);
+        selectorBox.getChildren().addAll(selectorLabel, selectorRow);
 
         Button addBtn = createPrimaryActionButton("ДОДАТИ", ICON_PLUS);
         addBtn.setPrefHeight(48);
