@@ -1,6 +1,6 @@
 ; Inno Setup Script for SchoolBell
 #define AppName "SchoolBell"
-#define AppVersion "1.2.8"
+#define AppVersion "1.2.9"
 #define AppPublisher "SchoolBell Team"
 #define AppExeName "SchoolBell.exe"
 #define DistDir "dist\SchoolBell"
